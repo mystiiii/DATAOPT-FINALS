@@ -1,0 +1,201 @@
+<svg width="1340" height="860" viewBox="0 0 1340 860" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .text-title { font-family: 'Inter', -apple-system, sans-serif; font-size: 18px; font-weight: 700; fill: #111827; }
+      .text-subtitle { font-family: 'Inter', -apple-system, sans-serif; font-size: 12px; font-weight: 400; fill: #6B7280; }
+      .text-section { font-family: 'Inter', -apple-system, sans-serif; font-size: 13px; font-weight: 700; fill: #111827; }
+      .text-body { font-family: 'Inter', -apple-system, sans-serif; font-size: 12px; font-weight: 500; fill: #374151; }
+      .text-muted { font-family: 'Inter', -apple-system, sans-serif; font-size: 11px; font-weight: 400; fill: #9CA3AF; }
+      .text-metric { font-family: 'Inter', -apple-system, sans-serif; font-size: 14px; font-weight: 700; fill: #111827; }
+      .text-badge { font-family: 'Inter', -apple-system, sans-serif; font-size: 10px; font-weight: 600; }
+    </style>
+  </defs>
+
+  <rect width="1340" height="860" rx="24" fill="#FFFFFF" stroke="#E5E8ED" stroke-width="2"/>
+
+  <!-- ==================== LEFT SIDEBAR ==================== -->
+  <g id="Left-Sidebar">
+    <line x1="220" y1="0" x2="220" y2="860" stroke="#F0F2F5" stroke-width="1.5"/>
+
+    <rect x="24" y="24" width="32" height="32" rx="10" fill="#FF5A36"/>
+    <text x="35" y="46" font-family="'Inter', sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">⚡</text>
+    <text x="64" y="46" class="text-title" font-size="15">AdventureWorks</text>
+
+    <rect x="24" y="76" width="172" height="36" rx="10" fill="#F7F8FA" stroke="#EBECEF"/>
+    <circle cx="38" cy="94" r="5" stroke="#9CA3AF" stroke-width="1.5" fill="none"/>
+    <line x1="42" y1="98" x2="46" y2="102" stroke="#9CA3AF" stroke-width="1.5"/>
+    <text x="52" y="98" class="text-muted">Search financials...</text>
+
+    <rect x="24" y="128" width="172" height="36" rx="10" fill="transparent"/>
+    <rect x="36" y="139" width="14" height="14" rx="2" stroke="#6B7280" stroke-width="1.5" fill="none"/>
+    <text x="60" y="151" class="text-body" fill="#6B7280">Executive Dashboard</text>
+
+    <rect x="24" y="168" width="172" height="36" rx="10" fill="transparent"/>
+    <rect x="36" y="179" width="14" height="14" rx="2" stroke="#6B7280" stroke-width="1.5" fill="none"/>
+    <text x="60" y="191" class="text-body" fill="#6B7280">1. Sales Report</text>
+
+    <rect x="24" y="208" width="172" height="36" rx="10" fill="transparent"/>
+    <rect x="36" y="219" width="14" height="14" rx="2" stroke="#6B7280" stroke-width="1.5" fill="none"/>
+    <text x="60" y="231" class="text-body" fill="#6B7280">2. Customer Profile</text>
+
+    <!-- Nav 4: Revenue & Loss (ACTIVE) -->
+    <rect x="24" y="248" width="172" height="36" rx="10" fill="#FFF2EE" stroke="#FFE3DB"/>
+    <rect x="36" y="259" width="14" height="14" rx="2" fill="#FF5A36"/>
+    <text x="60" y="271" class="text-body" font-weight="700" fill="#FF5A36">3. Revenue &amp; Loss</text>
+
+    <rect x="24" y="288" width="172" height="36" rx="10" fill="transparent"/>
+    <rect x="36" y="299" width="14" height="14" rx="2" stroke="#6B7280" stroke-width="1.5" fill="none"/>
+    <text x="60" y="311" class="text-body" fill="#6B7280">4. Cost Analysis</text>
+
+    <line x1="24" y1="340" x2="196" y2="340" stroke="#F0F2F5" stroke-width="1"/>
+
+    <text x="60" y="371" class="text-body" fill="#6B7280">Data Governance</text>
+    <text x="60" y="407" class="text-body" fill="#6B7280">Query Optimization</text>
+    <text x="60" y="443" class="text-body" fill="#6B7280">RBAC Security</text>
+
+    <rect x="24" y="784" width="172" height="52" rx="14" fill="#F7F8FA" stroke="#EBECEF"/>
+    <circle cx="48" cy="810" r="14" fill="#1E293B"/>
+    <text x="41" y="814" font-family="'Inter', sans-serif" font-size="10" font-weight="bold" fill="#FFFFFF">LV</text>
+    <text x="70" y="806" class="text-body" font-size="11" font-weight="700">Lei Ivan V.</text>
+    <text x="70" y="820" class="text-muted" font-size="10">Consultant Lead</text>
+  </g>
+
+  <!-- ==================== CENTER CONTENT ==================== -->
+  <g id="Center-Content">
+    <line x1="1000" y1="0" x2="1000" y2="860" stroke="#F0F2F5" stroke-width="1.5"/>
+
+    <text x="244" y="44" class="text-subtitle">Analytics / Reporting Modules / <tspan font-weight="bold" fill="#111827">Module 3: Revenue &amp; Loss</tspan></text>
+
+    <rect x="760" y="24" width="124" height="34" rx="10" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="774" y="46" class="text-body" font-size="11" font-weight="600">Export Financials</text>
+
+    <rect x="894" y="24" width="112" height="34" rx="10" fill="#FF5A36"/>
+    <text x="918" y="46" font-family="'Inter', sans-serif" font-size="11" font-weight="bold" fill="#FFFFFF">Save Filter State</text>
+
+    <rect x="1016" y="24" width="34" height="34" rx="10" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1027" y="45" font-family="'Inter', sans-serif" font-size="14" fill="#9CA3AF">···</text>
+
+    <rect x="244" y="80" width="48" height="48" rx="14" fill="#FFF2EE" stroke="#FF5A36"/>
+    <text x="259" y="110" font-size="20">📉</text>
+    <text x="304" y="102" class="text-title">Module 3: Revenue &amp; Loss Financial Audit</text>
+    <text x="304" y="120" class="text-subtitle">Gross vs Net Revenue, promotional discount loss reductions, and manufacturing scrap loss audit</text>
+
+    <!-- Segmented Tab Pills -->
+    <rect x="244" y="148" width="430" height="36" rx="12" fill="#F5F6F8" stroke="#EBECEF"/>
+    <rect x="248" y="152" width="112" height="28" rx="10" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <circle cx="260" cy="166" r="3" fill="#FF5A36"/>
+    <text x="268" y="170" class="text-body" font-size="11" font-weight="700">Gross vs Net</text>
+    <text x="376" y="170" class="text-body" font-size="11" fill="#6B7280">Discount Impact</text>
+    <text x="496" y="170" class="text-body" font-size="11" fill="#6B7280">Production Scrap</text>
+    <text x="618" y="170" class="text-body" font-size="11" fill="#6B7280">Returns</text>
+
+    <text x="244" y="214" class="text-section">Annual Financial Reconciliation</text>
+    <text x="930" y="214" class="text-muted" font-size="11" font-weight="600">Audit Detail &rsaquo;</text>
+
+    <!-- Card 1 (2013 - EXPANDED ACTIVE) -->
+    <rect x="244" y="228" width="736" height="136" rx="16" fill="#FFFFFF" stroke="#FF5A36" stroke-width="2"/>
+    <text x="264" y="254" font-size="14" fill="#FF5A36">≡</text>
+    <text x="288" y="253" class="text-body" font-weight="700">Fiscal Year 2013 Financial Reconciliation (Peak Sales Volume)</text>
+    <rect x="680" y="240" width="60" height="18" rx="9" fill="#D1FAE5"/>
+    <text x="690" y="253" class="text-badge" fill="#065F46">Audited</text>
+    <text x="958" y="254" class="text-muted">⌵</text>
+
+    <line x1="264" y1="270" x2="960" y2="270" stroke="#F3F4F6"/>
+
+    <text x="264" y="292" class="text-muted" font-size="10">Gross Recorded Amount</text>
+    <text x="264" y="310" class="text-metric">$43,922,050.71</text>
+
+    <text x="440" y="292" class="text-muted" font-size="10">Promotional Discount Loss</text>
+    <text x="440" y="310" class="text-metric text-red-600">-$299,571.67</text>
+
+    <text x="616" y="292" class="text-muted" font-size="10">Net Recognized Revenue</text>
+    <text x="616" y="310" class="text-metric text-emerald-600">$43,622,479.04</text>
+
+    <text x="792" y="292" class="text-muted" font-size="10">Discount Loss Ratio</text>
+    <text x="792" y="310" class="text-metric">0.68%</text>
+
+    <text x="264" y="344" class="text-muted" font-size="10">Loss Formulation: Calculated via OrderQty * UnitPrice * UnitPriceDiscount across all 2013 line items</text>
+
+    <!-- Card 2: 2012 (Collapsed) -->
+    <rect x="244" y="376" width="736" height="52" rx="14" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="264" y="407" class="text-muted" font-size="14">≡</text>
+    <text x="288" y="406" class="text-body" font-weight="700">Fiscal Year 2012 Financial Reconciliation</text>
+    <text x="600" y="406" class="text-muted" font-size="11">Gross: $33.71M • Discount: -$186.5K • Net: $33.52M</text>
+    <rect x="890" y="393" width="56" height="18" rx="9" fill="#D1FAE5"/>
+    <text x="900" y="406" class="text-badge" fill="#065F46">Audited</text>
+    <text x="960" y="407" class="text-muted">&rsaquo;</text>
+
+    <!-- Card 3: 2011 (Collapsed) -->
+    <rect x="244" y="440" width="736" height="52" rx="14" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="264" y="471" class="text-muted" font-size="14">≡</text>
+    <text x="288" y="470" class="text-body" font-weight="700">Fiscal Year 2011 Financial Reconciliation</text>
+    <text x="600" y="470" class="text-muted" font-size="11">Gross: $12.64M • Discount: -$4.4K • Net: $12.64M</text>
+    <rect x="890" y="457" width="56" height="18" rx="9" fill="#D1FAE5"/>
+    <text x="900" y="470" class="text-badge" fill="#065F46">Audited</text>
+    <text x="960" y="471" class="text-muted">&rsaquo;</text>
+
+    <!-- Card 4: 2014 Partial Year (Collapsed) -->
+    <rect x="244" y="504" width="736" height="52" rx="14" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="264" y="535" class="text-muted" font-size="14">≡</text>
+    <text x="288" y="534" class="text-body" font-weight="700">Fiscal Year 2014 (Partial Year - Terminated June 30)</text>
+    <text x="600" y="534" class="text-muted" font-size="11">Gross: $20.09M • Discount: -$36.9K • Net: $20.05M</text>
+    <rect x="890" y="521" width="56" height="18" rx="9" fill="#FEF3C7"/>
+    <text x="900" y="534" class="text-badge" fill="#92400E">Partial</text>
+    <text x="960" y="535" class="text-muted">&rsaquo;</text>
+
+    <!-- Bottom Filter Action Bar -->
+    <line x1="244" y1="764" x2="980" y2="764" stroke="#F0F2F5"/>
+    <text x="244" y="790" class="text-muted">Financial Scope: SpecialOffer Category (All) • Status (Shipped) • Variance Filter (Full Period)</text>
+    <rect x="244" y="802" width="144" height="34" rx="10" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="256" y="824" class="text-body" font-size="11">🏷️ Offer (Promotional) ⌵</text>
+
+    <rect x="398" y="802" width="140" height="34" rx="10" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="410" y="824" class="text-body" font-size="11">📉 Min Discount ($0) ⌵</text>
+
+    <rect x="836" y="802" width="144" height="36" rx="12" fill="#FF5A36"/>
+    <text x="860" y="825" font-family="'Inter', sans-serif" font-size="11" font-weight="bold" fill="#FFFFFF">Audit Financials</text>
+  </g>
+
+  <!-- ==================== RIGHT PANEL ==================== -->
+  <g id="Right-Aside">
+    <text x="1030" y="44" class="text-section">Loss Audit Metrics</text>
+    <rect x="1208" y="26" width="108" height="28" rx="8" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1218" y="44" class="text-muted" font-size="10" font-weight="600">2011-2014 YTD ⌵</text>
+
+    <rect x="1030" y="72" width="286" height="236" rx="16" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1046" y="96" class="text-subtitle">Cumulative Discount Loss</text>
+    <text x="1290" y="96" class="text-muted">···</text>
+
+    <text x="1046" y="132" font-family="'Inter', sans-serif" font-size="28" font-weight="bold" fill="#DC2626">-$527,507</text>
+
+    <!-- Loss Breakdown -->
+    <text x="1046" y="162" class="text-muted" font-size="10">Discount Reduction: 0.48% of Gross</text>
+    <rect x="1046" y="170" width="254" height="14" rx="7" fill="#FEE2E2"/>
+    <rect x="1046" y="170" width="60" height="14" rx="7" fill="#DC2626"/>
+
+    <text x="1046" y="210" class="text-muted" font-size="10">Manufacturing Scrap Loss: 7,520 Units</text>
+    <text x="1046" y="230" class="text-muted" font-size="10">#1 Cause: Thermoform Temp Low (3,480)</text>
+    <text x="1046" y="246" class="text-muted" font-size="10">#2 Cause: Handling Damage (2,150)</text>
+
+    <text x="1030" y="344" class="text-section">Governance Disclosure</text>
+    <text x="1260" y="344" class="text-muted" font-size="10" font-weight="600">Full Notice &rsaquo;</text>
+
+    <rect x="1030" y="360" width="286" height="52" rx="12" fill="#FEF3C7" stroke="#FDE68A"/>
+    <text x="1044" y="380" font-size="10" font-weight="bold" fill="#92400E">⚠️ No Returns Table in Schema</text>
+    <text x="1044" y="398" font-size="9" fill="#92400E">Loss defined via UnitPriceDiscount &amp; ScrapQty</text>
+
+    <rect x="1030" y="420" width="286" height="40" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1044" y="445" font-size="12">📄</text>
+    <text x="1068" y="444" class="text-body" font-size="11">discount-calculation-formula.sql</text>
+
+    <rect x="1030" y="468" width="286" height="40" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1044" y="493" font-size="12">🛠️</text>
+    <text x="1068" y="492" class="text-body" font-size="11">workorder-scrapreason-audit.sql</text>
+
+    <rect x="1030" y="520" width="138" height="64" rx="12" fill="#F3F4F6" stroke="#E5E7EB"/>
+    <text x="1040" y="568" class="text-muted" font-size="9" font-weight="600">Discount-Trend.png</text>
+
+    <rect x="1178" y="520" width="138" height="64" rx="12" fill="#F3F4F6" stroke="#E5E7EB"/>
+    <text x="1188" y="568" class="text-muted" font-size="9" font-weight="600">Scrap-Reasons.png</text>
+  </g>
+</svg>

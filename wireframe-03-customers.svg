@@ -1,0 +1,204 @@
+<svg width="1340" height="860" viewBox="0 0 1340 860" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .text-title { font-family: 'Inter', -apple-system, sans-serif; font-size: 18px; font-weight: 700; fill: #111827; }
+      .text-subtitle { font-family: 'Inter', -apple-system, sans-serif; font-size: 12px; font-weight: 400; fill: #6B7280; }
+      .text-section { font-family: 'Inter', -apple-system, sans-serif; font-size: 13px; font-weight: 700; fill: #111827; }
+      .text-body { font-family: 'Inter', -apple-system, sans-serif; font-size: 12px; font-weight: 500; fill: #374151; }
+      .text-muted { font-family: 'Inter', -apple-system, sans-serif; font-size: 11px; font-weight: 400; fill: #9CA3AF; }
+      .text-metric { font-family: 'Inter', -apple-system, sans-serif; font-size: 14px; font-weight: 700; fill: #111827; }
+      .text-badge { font-family: 'Inter', -apple-system, sans-serif; font-size: 10px; font-weight: 600; }
+    </style>
+  </defs>
+
+  <rect width="1340" height="860" rx="24" fill="#FFFFFF" stroke="#E5E8ED" stroke-width="2"/>
+
+  <!-- ==================== LEFT SIDEBAR ==================== -->
+  <g id="Left-Sidebar">
+    <line x1="220" y1="0" x2="220" y2="860" stroke="#F0F2F5" stroke-width="1.5"/>
+
+    <rect x="24" y="24" width="32" height="32" rx="10" fill="#FF5A36"/>
+    <text x="35" y="46" font-family="'Inter', sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">⚡</text>
+    <text x="64" y="46" class="text-title" font-size="15">AdventureWorks</text>
+
+    <rect x="24" y="76" width="172" height="36" rx="10" fill="#F7F8FA" stroke="#EBECEF"/>
+    <circle cx="38" cy="94" r="5" stroke="#9CA3AF" stroke-width="1.5" fill="none"/>
+    <line x1="42" y1="98" x2="46" y2="102" stroke="#9CA3AF" stroke-width="1.5"/>
+    <text x="52" y="98" class="text-muted">Search customers...</text>
+
+    <rect x="24" y="128" width="172" height="36" rx="10" fill="transparent"/>
+    <rect x="36" y="139" width="14" height="14" rx="2" stroke="#6B7280" stroke-width="1.5" fill="none"/>
+    <text x="60" y="151" class="text-body" fill="#6B7280">Executive Dashboard</text>
+
+    <rect x="24" y="168" width="172" height="36" rx="10" fill="transparent"/>
+    <rect x="36" y="179" width="14" height="14" rx="2" stroke="#6B7280" stroke-width="1.5" fill="none"/>
+    <text x="60" y="191" class="text-body" fill="#6B7280">1. Sales Report</text>
+
+    <!-- Nav 3: Customer Profile (ACTIVE) -->
+    <rect x="24" y="208" width="172" height="36" rx="10" fill="#FFF2EE" stroke="#FFE3DB"/>
+    <rect x="36" y="219" width="14" height="14" rx="2" fill="#FF5A36"/>
+    <text x="60" y="231" class="text-body" font-weight="700" fill="#FF5A36">2. Customer Profile</text>
+
+    <rect x="24" y="248" width="172" height="36" rx="10" fill="transparent"/>
+    <rect x="36" y="259" width="14" height="14" rx="2" stroke="#6B7280" stroke-width="1.5" fill="none"/>
+    <text x="60" y="271" class="text-body" fill="#6B7280">3. Revenue &amp; Loss</text>
+
+    <rect x="24" y="288" width="172" height="36" rx="10" fill="transparent"/>
+    <rect x="36" y="299" width="14" height="14" rx="2" stroke="#6B7280" stroke-width="1.5" fill="none"/>
+    <text x="60" y="311" class="text-body" fill="#6B7280">4. Cost Analysis</text>
+
+    <line x1="24" y1="340" x2="196" y2="340" stroke="#F0F2F5" stroke-width="1"/>
+
+    <text x="60" y="371" class="text-body" fill="#6B7280">Data Governance</text>
+    <text x="60" y="407" class="text-body" fill="#6B7280">Query Optimization</text>
+    <text x="60" y="443" class="text-body" fill="#6B7280">RBAC Security</text>
+
+    <rect x="24" y="784" width="172" height="52" rx="14" fill="#F7F8FA" stroke="#EBECEF"/>
+    <circle cx="48" cy="810" r="14" fill="#1E293B"/>
+    <text x="41" y="814" font-family="'Inter', sans-serif" font-size="10" font-weight="bold" fill="#FFFFFF">LV</text>
+    <text x="70" y="806" class="text-body" font-size="11" font-weight="700">Lei Ivan V.</text>
+    <text x="70" y="820" class="text-muted" font-size="10">Consultant Lead</text>
+  </g>
+
+  <!-- ==================== CENTER CONTENT ==================== -->
+  <g id="Center-Content">
+    <line x1="1000" y1="0" x2="1000" y2="860" stroke="#F0F2F5" stroke-width="1.5"/>
+
+    <text x="244" y="44" class="text-subtitle">Analytics / Reporting Modules / <tspan font-weight="bold" fill="#111827">Module 2: Customer Profile</tspan></text>
+
+    <rect x="760" y="24" width="124" height="34" rx="10" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="774" y="46" class="text-body" font-size="11" font-weight="600">Export Spenders</text>
+
+    <rect x="894" y="24" width="112" height="34" rx="10" fill="#FF5A36"/>
+    <text x="918" y="46" font-family="'Inter', sans-serif" font-size="11" font-weight="bold" fill="#FFFFFF">Save Filter State</text>
+
+    <rect x="1016" y="24" width="34" height="34" rx="10" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1027" y="45" font-family="'Inter', sans-serif" font-size="14" fill="#9CA3AF">···</text>
+
+    <rect x="244" y="80" width="48" height="48" rx="14" fill="#FFF2EE" stroke="#FF5A36"/>
+    <text x="259" y="110" font-size="20">👥</text>
+    <text x="304" y="102" class="text-title">Module 2: Customer Profile &amp; Purchasing Behavior</text>
+    <text x="304" y="120" class="text-subtitle">B2B Store vs B2C Individual segmentation, order frequency, and identification of high-value spenders</text>
+
+    <!-- Segmented Tab Pills -->
+    <rect x="244" y="148" width="440" height="36" rx="12" fill="#F5F6F8" stroke="#EBECEF"/>
+    <rect x="248" y="152" width="112" height="28" rx="10" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <circle cx="260" cy="166" r="3" fill="#FF5A36"/>
+    <text x="268" y="170" class="text-body" font-size="11" font-weight="700">Top Spenders</text>
+    <text x="376" y="170" class="text-body" font-size="11" fill="#6B7280">B2B Store Accounts</text>
+    <text x="510" y="170" class="text-body" font-size="11" fill="#6B7280">B2C Individuals</text>
+    <text x="618" y="170" class="text-body" font-size="11" fill="#6B7280">Geography</text>
+
+    <text x="244" y="214" class="text-section">Top Customer Accounts by Lifetime Spend</text>
+    <text x="930" y="214" class="text-muted" font-size="11" font-weight="600">All Accounts &rsaquo;</text>
+
+    <!-- Card 1 (Roger Harui - EXPANDED ACTIVE) -->
+    <rect x="244" y="228" width="736" height="136" rx="16" fill="#FFFFFF" stroke="#FF5A36" stroke-width="2"/>
+    <text x="264" y="254" font-size="14" fill="#FF5A36">≡</text>
+    <text x="288" y="253" class="text-body" font-weight="700">Corporate Account: Roger Harui (CustomerID: 29818)</text>
+    <rect x="620" y="240" width="80" height="18" rx="9" fill="#D1FAE5"/>
+    <text x="630" y="253" class="text-badge" fill="#065F46">Tier 1 Spender</text>
+    <text x="958" y="254" class="text-muted">⌵</text>
+
+    <line x1="264" y1="270" x2="960" y2="270" stroke="#F3F4F6"/>
+
+    <text x="264" y="292" class="text-muted" font-size="10">Lifetime Spend</text>
+    <text x="264" y="310" class="text-metric">$989,184.08</text>
+
+    <text x="440" y="292" class="text-muted" font-size="10">Total Orders</text>
+    <text x="440" y="310" class="text-metric">12 Orders</text>
+
+    <text x="616" y="292" class="text-muted" font-size="10">Avg Order Value</text>
+    <text x="616" y="310" class="text-metric">$82,432.00</text>
+
+    <text x="792" y="292" class="text-muted" font-size="10">Assigned Territory</text>
+    <text x="792" y="310" class="text-metric text-emerald-600">Southeast (US)</text>
+
+    <text x="264" y="344" class="text-muted" font-size="10">Identity Resolution: Store corporate account joined via Person.Person &amp; Sales.Store COALESCE logic</text>
+
+    <!-- Card 2: Andrew Dixon (Collapsed) -->
+    <rect x="244" y="376" width="736" height="52" rx="14" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="264" y="407" class="text-muted" font-size="14">≡</text>
+    <text x="288" y="406" class="text-body" font-weight="700">Corporate Account: Andrew Dixon (CustomerID: 29715)</text>
+    <text x="640" y="406" class="text-muted" font-size="11">$961,675.86 Lifetime Spend • 12 Orders</text>
+    <rect x="890" y="393" width="56" height="18" rx="9" fill="#D1FAE5"/>
+    <text x="900" y="406" class="text-badge" fill="#065F46">Active</text>
+    <text x="960" y="407" class="text-muted">&rsaquo;</text>
+
+    <!-- Card 3: Reuben D'sa (Collapsed) -->
+    <rect x="244" y="440" width="736" height="52" rx="14" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="264" y="471" class="text-muted" font-size="14">≡</text>
+    <text x="288" y="470" class="text-body" font-weight="700">Corporate Account: Reuben D'sa (CustomerID: 29722)</text>
+    <text x="640" y="470" class="text-muted" font-size="11">$954,021.92 Lifetime Spend • 12 Orders</text>
+    <rect x="890" y="457" width="56" height="18" rx="9" fill="#D1FAE5"/>
+    <text x="900" y="470" class="text-badge" fill="#065F46">Active</text>
+    <text x="960" y="471" class="text-muted">&rsaquo;</text>
+
+    <!-- Card 4: Individual Customer Aggregate (Collapsed) -->
+    <rect x="244" y="504" width="736" height="52" rx="14" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="264" y="535" class="text-muted" font-size="14">≡</text>
+    <text x="288" y="534" class="text-body" font-weight="700">Individual Customer Cohort (18,484 Buyers)</text>
+    <text x="640" y="534" class="text-muted" font-size="11">$29,654,120 Total Spend • 27,659 Total Orders</text>
+    <rect x="890" y="521" width="56" height="18" rx="9" fill="#E0E7FF"/>
+    <text x="900" y="534" class="text-badge" fill="#3730A3">B2C</text>
+    <text x="960" y="535" class="text-muted">&rsaquo;</text>
+
+    <!-- Bottom Filter Action Bar -->
+    <line x1="244" y1="764" x2="980" y2="764" stroke="#F0F2F5"/>
+    <text x="244" y="790" class="text-muted">Customer Filter: Min Spend ($100,000) • Type (B2B Store Accounts) • Territory (All)</text>
+    <rect x="244" y="802" width="144" height="34" rx="10" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="256" y="824" class="text-body" font-size="11">🏢 Account Type (B2B) ⌵</text>
+
+    <rect x="398" y="802" width="140" height="34" rx="10" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="410" y="824" class="text-body" font-size="11">💰 Min Spend ($50K) ⌵</text>
+
+    <rect x="836" y="802" width="144" height="36" rx="12" fill="#FF5A36"/>
+    <text x="860" y="825" font-family="'Inter', sans-serif" font-size="11" font-weight="bold" fill="#FFFFFF">Filter Spenders</text>
+  </g>
+
+  <!-- ==================== RIGHT PANEL ==================== -->
+  <g id="Right-Aside">
+    <text x="1030" y="44" class="text-section">Segment Share</text>
+    <rect x="1208" y="26" width="108" height="28" rx="8" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1218" y="44" class="text-muted" font-size="10" font-weight="600">All Accounts ⌵</text>
+
+    <rect x="1030" y="72" width="286" height="236" rx="16" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1046" y="96" class="text-subtitle">B2B Store Revenue Dominance</text>
+    <text x="1290" y="96" class="text-muted">···</text>
+
+    <text x="1046" y="132" font-family="'Inter', sans-serif" font-size="28" font-weight="bold" fill="#111827">72.3%</text>
+
+    <!-- Segment Breakdown Bars -->
+    <text x="1046" y="162" class="text-muted" font-size="10">Corporate Stores (701 Accounts)</text>
+    <rect x="1046" y="170" width="254" height="14" rx="7" fill="#F3F4F6"/>
+    <rect x="1046" y="170" width="184" height="14" rx="7" fill="#FF5A36"/>
+
+    <text x="1046" y="210" class="text-muted" font-size="10">Individual Consumers (18,484 Accounts)</text>
+    <rect x="1046" y="218" width="254" height="14" rx="7" fill="#F3F4F6"/>
+    <rect x="1046" y="218" width="70" height="14" rx="7" fill="#FFE3DB"/>
+
+    <text x="1046" y="258" class="text-muted" font-size="10">Average B2B Order: $21,052</text>
+    <text x="1046" y="274" class="text-muted" font-size="10">Average B2C Order: $1,072</text>
+
+    <text x="1030" y="344" class="text-section">Identity Resolution Artifacts</text>
+    <text x="1260" y="344" class="text-muted" font-size="10" font-weight="600">SQL Schema &rsaquo;</text>
+
+    <rect x="1030" y="360" width="286" height="40" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1044" y="385" font-size="12">🔍</text>
+    <text x="1068" y="384" class="text-body" font-size="11">customer-coalesce-join.sql</text>
+
+    <rect x="1030" y="408" width="286" height="40" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1044" y="433" font-size="12">🗺️</text>
+    <text x="1068" y="432" class="text-body" font-size="11">territory-customer-density.json</text>
+
+    <rect x="1030" y="456" width="286" height="40" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1044" y="481" font-size="12">🏆</text>
+    <text x="1068" y="480" class="text-body" font-size="11">top-tier-customer-ranking.csv</text>
+
+    <rect x="1030" y="508" width="138" height="64" rx="12" fill="#F3F4F6" stroke="#E5E7EB"/>
+    <text x="1040" y="556" class="text-muted" font-size="9" font-weight="600">Store-Share.png</text>
+
+    <rect x="1178" y="508" width="138" height="64" rx="12" fill="#F3F4F6" stroke="#E5E7EB"/>
+    <text x="1188" y="556" class="text-muted" font-size="9" font-weight="600">Geography-Map.png</text>
+  </g>
+</svg>

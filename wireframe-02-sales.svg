@@ -1,0 +1,217 @@
+<svg width="1340" height="860" viewBox="0 0 1340 860" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .text-title { font-family: 'Inter', -apple-system, sans-serif; font-size: 18px; font-weight: 700; fill: #111827; }
+      .text-subtitle { font-family: 'Inter', -apple-system, sans-serif; font-size: 12px; font-weight: 400; fill: #6B7280; }
+      .text-section { font-family: 'Inter', -apple-system, sans-serif; font-size: 13px; font-weight: 700; fill: #111827; }
+      .text-body { font-family: 'Inter', -apple-system, sans-serif; font-size: 12px; font-weight: 500; fill: #374151; }
+      .text-muted { font-family: 'Inter', -apple-system, sans-serif; font-size: 11px; font-weight: 400; fill: #9CA3AF; }
+      .text-metric { font-family: 'Inter', -apple-system, sans-serif; font-size: 14px; font-weight: 700; fill: #111827; }
+      .text-badge { font-family: 'Inter', -apple-system, sans-serif; font-size: 10px; font-weight: 600; }
+    </style>
+  </defs>
+
+  <rect width="1340" height="860" rx="24" fill="#FFFFFF" stroke="#E5E8ED" stroke-width="2"/>
+
+  <!-- ==================== LEFT SIDEBAR ==================== -->
+  <g id="Left-Sidebar">
+    <line x1="220" y1="0" x2="220" y2="860" stroke="#F0F2F5" stroke-width="1.5"/>
+
+    <rect x="24" y="24" width="32" height="32" rx="10" fill="#FF5A36"/>
+    <text x="35" y="46" font-family="'Inter', sans-serif" font-size="16" font-weight="bold" fill="#FFFFFF">⚡</text>
+    <text x="64" y="46" class="text-title" font-size="15">AdventureWorks</text>
+
+    <rect x="24" y="76" width="172" height="36" rx="10" fill="#F7F8FA" stroke="#EBECEF"/>
+    <circle cx="38" cy="94" r="5" stroke="#9CA3AF" stroke-width="1.5" fill="none"/>
+    <line x1="42" y1="98" x2="46" y2="102" stroke="#9CA3AF" stroke-width="1.5"/>
+    <text x="52" y="98" class="text-muted">Search products...</text>
+
+    <!-- Nav 1: Dashboard -->
+    <rect x="24" y="128" width="172" height="36" rx="10" fill="transparent"/>
+    <rect x="36" y="139" width="14" height="14" rx="2" stroke="#6B7280" stroke-width="1.5" fill="none"/>
+    <text x="60" y="151" class="text-body" fill="#6B7280">Executive Dashboard</text>
+
+    <!-- Nav 2: Sales Report (ACTIVE) -->
+    <rect x="24" y="168" width="172" height="36" rx="10" fill="#FFF2EE" stroke="#FFE3DB"/>
+    <rect x="36" y="179" width="14" height="14" rx="2" fill="#FF5A36"/>
+    <text x="60" y="191" class="text-body" font-weight="700" fill="#FF5A36">1. Sales Report</text>
+
+    <!-- Nav 3: Customer Profile -->
+    <rect x="24" y="208" width="172" height="36" rx="10" fill="transparent"/>
+    <rect x="36" y="219" width="14" height="14" rx="2" stroke="#6B7280" stroke-width="1.5" fill="none"/>
+    <text x="60" y="231" class="text-body" fill="#6B7280">2. Customer Profile</text>
+
+    <!-- Nav 4: Revenue & Loss -->
+    <rect x="24" y="248" width="172" height="36" rx="10" fill="transparent"/>
+    <rect x="36" y="259" width="14" height="14" rx="2" stroke="#6B7280" stroke-width="1.5" fill="none"/>
+    <text x="60" y="271" class="text-body" fill="#6B7280">3. Revenue &amp; Loss</text>
+
+    <!-- Nav 5: Cost Analysis -->
+    <rect x="24" y="288" width="172" height="36" rx="10" fill="transparent"/>
+    <rect x="36" y="299" width="14" height="14" rx="2" stroke="#6B7280" stroke-width="1.5" fill="none"/>
+    <text x="60" y="311" class="text-body" fill="#6B7280">4. Cost Analysis</text>
+
+    <line x1="24" y1="340" x2="196" y2="340" stroke="#F0F2F5" stroke-width="1"/>
+
+    <text x="60" y="371" class="text-body" fill="#6B7280">Data Governance</text>
+    <text x="60" y="407" class="text-body" fill="#6B7280">Query Optimization</text>
+    <text x="60" y="443" class="text-body" fill="#6B7280">RBAC Security</text>
+
+    <rect x="24" y="784" width="172" height="52" rx="14" fill="#F7F8FA" stroke="#EBECEF"/>
+    <circle cx="48" cy="810" r="14" fill="#1E293B"/>
+    <text x="41" y="814" font-family="'Inter', sans-serif" font-size="10" font-weight="bold" fill="#FFFFFF">LV</text>
+    <text x="70" y="806" class="text-body" font-size="11" font-weight="700">Lei Ivan V.</text>
+    <text x="70" y="820" class="text-muted" font-size="10">Consultant Lead</text>
+  </g>
+
+  <!-- ==================== CENTER CONTENT ==================== -->
+  <g id="Center-Content">
+    <line x1="1000" y1="0" x2="1000" y2="860" stroke="#F0F2F5" stroke-width="1.5"/>
+
+    <text x="244" y="44" class="text-subtitle">Analytics / Reporting Modules / <tspan font-weight="bold" fill="#111827">Module 1: Sales Performance</tspan></text>
+
+    <rect x="760" y="24" width="124" height="34" rx="10" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="778" y="46" class="text-body" font-size="11" font-weight="600">Export CSV Data</text>
+
+    <rect x="894" y="24" width="112" height="34" rx="10" fill="#FF5A36"/>
+    <text x="918" y="46" font-family="'Inter', sans-serif" font-size="11" font-weight="bold" fill="#FFFFFF">Save Filter State</text>
+
+    <rect x="1016" y="24" width="34" height="34" rx="10" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1027" y="45" font-family="'Inter', sans-serif" font-size="14" fill="#9CA3AF">···</text>
+
+    <rect x="244" y="80" width="48" height="48" rx="14" fill="#FFF2EE" stroke="#FF5A36"/>
+    <text x="259" y="110" font-size="20">📈</text>
+    <text x="304" y="102" class="text-title">Module 1: Sales Performance &amp; Volume Trends</text>
+    <text x="304" y="120" class="text-subtitle">Product category revenue contribution, monthly volume trends, and high/low performing products</text>
+
+    <!-- Segmented Tab Pills -->
+    <rect x="244" y="148" width="450" height="36" rx="12" fill="#F5F6F8" stroke="#EBECEF"/>
+    <rect x="248" y="152" width="124" height="28" rx="10" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <circle cx="260" cy="166" r="3" fill="#FF5A36"/>
+    <text x="268" y="170" class="text-body" font-size="11" font-weight="700">Category Breakdown</text>
+    <text x="390" y="170" class="text-body" font-size="11" fill="#6B7280">Monthly Trends</text>
+    <text x="500" y="170" class="text-body" font-size="11" fill="#6B7280">Territory Distribution</text>
+    <text x="640" y="170" class="text-body" font-size="11" fill="#6B7280">Top/Bottom</text>
+
+    <text x="244" y="214" class="text-section">Sales Performance by Product Category</text>
+    <text x="930" y="214" class="text-muted" font-size="11" font-weight="600">View Detail &rsaquo;</text>
+
+    <!-- Card 1 (Bikes - EXPANDED ACTIVE) -->
+    <rect x="244" y="228" width="736" height="136" rx="16" fill="#FFFFFF" stroke="#FF5A36" stroke-width="2"/>
+    <text x="264" y="254" font-size="14" fill="#FF5A36">≡</text>
+    <text x="288" y="253" class="text-body" font-weight="700">Bikes Category (Mountain, Road &amp; Touring Lines)</text>
+    <rect x="580" y="240" width="76" height="18" rx="9" fill="#D1FAE5"/>
+    <text x="590" y="253" class="text-badge" fill="#065F46">87.4% Share</text>
+    <text x="958" y="254" class="text-muted">⌵</text>
+
+    <line x1="264" y1="270" x2="960" y2="270" stroke="#F3F4F6"/>
+
+    <text x="264" y="292" class="text-muted" font-size="10">Category Revenue</text>
+    <text x="264" y="310" class="text-metric">$94,651,172</text>
+
+    <text x="440" y="292" class="text-muted" font-size="10">Units Shipped</text>
+    <text x="440" y="310" class="text-metric">90,269 Units</text>
+
+    <text x="616" y="292" class="text-muted" font-size="10">Order Detail Records</text>
+    <text x="616" y="310" class="text-metric">121,317 Rows</text>
+
+    <text x="792" y="292" class="text-muted" font-size="10">Avg Unit Price</text>
+    <text x="792" y="310" class="text-metric text-emerald-600">$1,048.54</text>
+
+    <text x="264" y="344" class="text-muted" font-size="10">Subcategories: Mountain Bikes ($39.8M) • Road Bikes ($36.2M) • Touring Bikes ($18.6M)</text>
+
+    <!-- Card 2: Components (Collapsed) -->
+    <rect x="244" y="376" width="736" height="52" rx="14" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="264" y="407" class="text-muted" font-size="14">≡</text>
+    <text x="288" y="406" class="text-body" font-weight="700">Components Category Performance</text>
+    <text x="640" y="406" class="text-muted" font-size="11">$11,812,593 Revenue • 43,108 Units Sold</text>
+    <rect x="890" y="393" width="56" height="18" rx="9" fill="#D1FAE5"/>
+    <text x="900" y="406" class="text-badge" fill="#065F46">Finished</text>
+    <text x="960" y="407" class="text-muted">&rsaquo;</text>
+
+    <!-- Card 3: Clothing (Collapsed) -->
+    <rect x="244" y="440" width="736" height="52" rx="14" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="264" y="471" class="text-muted" font-size="14">≡</text>
+    <text x="288" y="470" class="text-body" font-weight="700">Clothing Category Performance</text>
+    <text x="640" y="470" class="text-muted" font-size="11">$2,123,495 Revenue • 73,670 Units Sold</text>
+    <rect x="890" y="457" width="56" height="18" rx="9" fill="#D1FAE5"/>
+    <text x="900" y="470" class="text-badge" fill="#065F46">Finished</text>
+    <text x="960" y="471" class="text-muted">&rsaquo;</text>
+
+    <!-- Card 4: Accessories (Collapsed) -->
+    <rect x="244" y="504" width="736" height="52" rx="14" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="264" y="535" class="text-muted" font-size="14">≡</text>
+    <text x="288" y="534" class="text-body" font-weight="700">Accessories Category Performance</text>
+    <text x="640" y="534" class="text-muted" font-size="11">$1,272,058 Revenue • 61,939 Units Sold</text>
+    <rect x="890" y="521" width="56" height="18" rx="9" fill="#D1FAE5"/>
+    <text x="900" y="534" class="text-badge" fill="#065F46">Finished</text>
+    <text x="960" y="535" class="text-muted">&rsaquo;</text>
+
+    <!-- Bottom Filter Action Bar -->
+    <line x1="244" y1="764" x2="980" y2="764" stroke="#F0F2F5"/>
+    <text x="244" y="790" class="text-muted">Sales Filter Parameters: Category (All) • Territory (All Global) • Min Units: 0</text>
+    <rect x="244" y="802" width="134" height="34" rx="10" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="256" y="824" class="text-body" font-size="11">📦 Category (All) ⌵</text>
+
+    <rect x="388" y="802" width="140" height="34" rx="10" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="400" y="824" class="text-body" font-size="11">📅 Period (2011-2014) ⌵</text>
+
+    <rect x="836" y="802" width="144" height="36" rx="12" fill="#FF5A36"/>
+    <text x="860" y="825" font-family="'Inter', sans-serif" font-size="11" font-weight="bold" fill="#FFFFFF">Filter Sales Records</text>
+  </g>
+
+  <!-- ==================== RIGHT PANEL ==================== -->
+  <g id="Right-Aside">
+    <text x="1030" y="44" class="text-section">Sales Trends</text>
+    <rect x="1208" y="26" width="108" height="28" rx="8" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1218" y="44" class="text-muted" font-size="10" font-weight="600">2011-2014 YTD ⌵</text>
+
+    <rect x="1030" y="72" width="286" height="236" rx="16" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1046" y="96" class="text-subtitle">Total Recorded Sales</text>
+    <text x="1290" y="96" class="text-muted">···</text>
+
+    <text x="1046" y="132" font-family="'Inter', sans-serif" font-size="28" font-weight="bold" fill="#111827">$110.3M</text>
+
+    <rect x="1152" y="148" width="68" height="22" rx="6" fill="#111827"/>
+    <text x="1160" y="163" font-family="'Inter', sans-serif" font-size="9" font-weight="bold" fill="#FFFFFF">$43.9M <tspan fill="#34D399">+30%</tspan></text>
+
+    <rect x="1058" y="228" width="16" height="48" rx="8" fill="#FFE3DB"/>
+    <text x="1056" y="290" class="text-muted" font-size="9">2011</text>
+
+    <rect x="1102" y="200" width="16" height="76" rx="8" fill="#FFE3DB"/>
+    <text x="1100" y="290" class="text-muted" font-size="9">2012</text>
+
+    <rect x="1146" y="174" width="16" height="102" rx="8" fill="#FF5A36"/>
+    <text x="1144" y="290" class="text-body" font-size="9" font-weight="bold">2013</text>
+
+    <rect x="1190" y="218" width="16" height="58" rx="8" fill="#FFE3DB"/>
+    <text x="1188" y="290" class="text-muted" font-size="9">2014*</text>
+
+    <rect x="1234" y="244" width="16" height="32" rx="8" fill="#FFE3DB"/>
+    <text x="1232" y="290" class="text-muted" font-size="9">Est</text>
+
+    <rect x="1278" y="232" width="16" height="44" rx="8" fill="#FFE3DB"/>
+    <text x="1276" y="290" class="text-muted" font-size="9">Tgt</text>
+
+    <text x="1030" y="344" class="text-section">SQL &amp; Performance Artifacts</text>
+    <text x="1260" y="344" class="text-muted" font-size="10" font-weight="600">Query Plan &rsaquo;</text>
+
+    <rect x="1030" y="360" width="286" height="40" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1044" y="385" font-size="12">⚡</text>
+    <text x="1068" y="384" class="text-body" font-size="11">sales-category-aggregation.sql</text>
+
+    <rect x="1030" y="408" width="286" height="40" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1044" y="433" font-size="12">📊</text>
+    <text x="1068" y="432" class="text-body" font-size="11">salesorderheader-index-plan.xml</text>
+
+    <rect x="1030" y="456" width="286" height="40" rx="12" fill="#FFFFFF" stroke="#E5E7EB"/>
+    <text x="1044" y="481" font-size="12">📋</text>
+    <text x="1068" y="480" class="text-body" font-size="11">top-100-selling-products.csv</text>
+
+    <rect x="1030" y="508" width="138" height="64" rx="12" fill="#F3F4F6" stroke="#E5E7EB"/>
+    <text x="1040" y="556" class="text-muted" font-size="9" font-weight="600">Sales-By-Territory.png</text>
+
+    <rect x="1178" y="508" width="138" height="64" rx="12" fill="#F3F4F6" stroke="#E5E7EB"/>
+    <text x="1188" y="556" class="text-muted" font-size="9" font-weight="600">Monthly-Trend.png</text>
+  </g>
+</svg>

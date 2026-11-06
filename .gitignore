@@ -1,0 +1,40 @@
+# Byte-compiled / optimized / Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.env
+.env
+venv/
+.venv/
+env/
+ENV/
+
+# Database files
+*.bak
+*.mdf
+*.ldf
+*.sqlite3
+db.sqlite3
+db.sqlite3-journal
+
+# Django
+local_settings.py
+media/
+staticfiles/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace

@@ -82,7 +82,7 @@
                 <span class="text-slate-400 text-xs">&nearr;</span>
             </div>
             <div class="text-xl font-bold text-slate-900 mt-2">
-                {% if revenue_summary.DiscountLoss %}${{ revenue_summary.DiscountLoss|floatformat:0 }}{% else %}$412K{% endif %}
+                {% if total_scrap_loss %}${{ total_scrap_loss|floatformat:0 }}{% else %}$412K{% endif %}
             </div>
             <div class="text-[10px] text-amber-600 font-medium mt-1">2.1% of production cost</div>
         </div>

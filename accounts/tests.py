@@ -24,10 +24,12 @@ class RBACTestCase(TestCase):
         UserProfile.objects.create(user=self.employee_user, role=Role.EMPLOYEE)
 
     def test_unauthenticated_redirect(self):
-        """Unauthenticated requests must redirect to login."""
-        response = self.client.get(reverse('dashboard'))
-        self.assertEqual(response.status_code, 302)
-        self.assertIn(reverse('login'), response.url)
+        """Unauthenticated requests across all protected routes must redirect to login."""
+        protected_routes = ['dashboard', 'report_sales', 'report_customers', 'report_revenue_loss', 'report_cost']
+        for route in protected_routes:
+            response = self.client.get(reverse(route))
+            self.assertEqual(response.status_code, 302, f"Route '{route}' did not redirect anonymous user.")
+            self.assertIn(reverse('login'), response.url)
 
     def test_employee_access_limits(self):
         """Employee can access Sales and Customers, but is denied on Revenue/Loss and Cost."""

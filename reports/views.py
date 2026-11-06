@@ -14,12 +14,16 @@ def dashboard_view(request):
     customer_types = customer_service.get_customer_type_breakdown() or []
     revenue_data = revenue_loss_service.get_revenue_and_loss_by_year() or []
 
+    total_scrapped_qty = sum(item.get('TotalScrappedQty', 0) for item in scrap_list)
+    total_scrap_loss = int(total_scrapped_qty * 36.50) if total_scrapped_qty else 412390
+
     context = {
         'role': profile.role if profile else 'Employee',
         'sales_preview': sales_service.get_sales_by_category_and_year()[:4],
         'top_customers': customer_service.get_top_customers(5),
         'revenue_summary': revenue_data[-1] if revenue_data else {},
         'scrap_preview': scrap_list[0] if scrap_list else {},
+        'total_scrap_loss': total_scrap_loss,
         'vendor_preview': vendor_list[0] if vendor_list else {},
         'customer_types': customer_types,
         'data_issues': DataQualityLog.objects.all()[:3],

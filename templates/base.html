@@ -25,11 +25,25 @@
     <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-[#F8F9FA] text-[#111827] min-h-screen flex font-sans antialiased">
+<body class="bg-[#F8F9FA] text-[#111827] min-h-screen flex flex-col md:flex-row font-sans antialiased">
 
     {% if user.is_authenticated %}
-    <!-- Left Sidebar (240px) -->
-    <aside class="w-60 bg-white border-r border-[#E5E7EB] flex flex-col justify-between shrink-0 min-h-screen sticky top-0 h-screen p-4">
+    <!-- Mobile Navigation Bar (< md) -->
+    <header class="md:hidden bg-white border-b border-[#E5E7EB] px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+        <div class="flex items-center space-x-2">
+            <div class="w-6 h-6 rounded bg-coral text-white flex items-center justify-center font-bold text-xs shadow-sm">A</div>
+            <span class="font-bold text-xs text-[#111827]">AdventureWorks BI</span>
+        </div>
+        <div class="flex items-center space-x-3 text-xs">
+            <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}text-coral font-semibold{% else %}text-slate-600{% endif %}">Dashboard</a>
+            <a href="{% url 'report_sales' %}" class="{% if request.resolver_match.url_name == 'report_sales' %}text-coral font-semibold{% else %}text-slate-600{% endif %}">Sales</a>
+            <a href="{% url 'report_customers' %}" class="{% if request.resolver_match.url_name == 'report_customers' %}text-coral font-semibold{% else %}text-slate-600{% endif %}">Customers</a>
+            <a href="{% url 'logout' %}" title="Sign out" class="text-slate-400 hover:text-red-600 font-bold">&times;</a>
+        </div>
+    </header>
+
+    <!-- Left Sidebar (Desktop & Tablet) -->
+    <aside class="hidden md:flex w-60 bg-white border-r border-[#E5E7EB] flex-col justify-between shrink-0 min-h-screen sticky top-0 h-screen p-4">
         <div class="space-y-5">
             <!-- Brand -->
             <div class="flex items-center space-x-2.5 px-2 pt-1">

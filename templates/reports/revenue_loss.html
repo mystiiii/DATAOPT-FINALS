@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block title %}Revenue and Loss Report - AdventureWorks BI{% endblock %}
 
@@ -7,10 +8,6 @@
     <!-- Top Workspace Toolbar -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-[#E5E7EB] gap-3">
         <div class="flex items-center space-x-2 text-xs text-slate-500">
-            <span>Home</span>
-            <span>/</span>
-            <span>Reports</span>
-            <span>/</span>
             <span class="font-medium text-slate-900">Revenue & Loss</span>
         </div>
         <div class="flex items-center space-x-2 text-xs">
@@ -123,11 +120,11 @@
                             <span class="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-amber-50 text-amber-700">Investigating</span>
                             {% endif %}
                         </div>
-                        <p class="text-[10px] text-slate-400 mt-0.5">{{ s.ScrapOrders }} manufacturing work orders affected</p>
+                        <p class="text-[10px] text-slate-400 mt-0.5">{{ s.ScrapOrders|intcomma }} manufacturing work orders affected</p>
                     </div>
                 </div>
                 <div class="text-right">
-                    <p class="font-mono font-bold text-slate-900 text-xs">{{ s.TotalScrappedQty }} units</p>
+                    <p class="font-mono font-bold text-slate-900 text-xs">{{ s.TotalScrappedQty|intcomma }} units</p>
                     <span class="text-[10px] text-red-600">Material loss</span>
                 </div>
             </div>
@@ -168,33 +165,6 @@
         </div>
         <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200">
             <span>Thermoform vs Damage vs Trim</span>
-        </div>
-    </div>
-
-    <!-- Attachments -->
-    <div class="space-y-3">
-        <span class="text-xs font-bold text-slate-900">Reconciliation Documents</span>
-        <div class="space-y-2 text-xs">
-            <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition bg-[#FAFAFA]">
-                <div class="flex items-center space-x-2 truncate">
-                    <span class="text-red-500 font-bold text-[10px] bg-red-50 px-1.5 py-0.5 rounded">PDF</span>
-                    <div class="truncate">
-                        <p class="text-slate-800 text-[11px] font-medium truncate">Scrap-Inspection-Log.pdf</p>
-                        <p class="text-[9px] text-slate-400">QA Report &middot; 1.5 MB</p>
-                    </div>
-                </div>
-                <span class="text-slate-400 cursor-pointer text-xs">&darr;</span>
-            </div>
-            <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition bg-[#FAFAFA]">
-                <div class="flex items-center space-x-2 truncate">
-                    <span class="text-emerald-600 font-bold text-[10px] bg-emerald-50 px-1.5 py-0.5 rounded">XLS</span>
-                    <div class="truncate">
-                        <p class="text-slate-800 text-[11px] font-medium truncate">Discount-Approval-Matrix.xlsx</p>
-                        <p class="text-[9px] text-slate-400">Finance Matrix &middot; 380 KB</p>
-                    </div>
-                </div>
-                <span class="text-slate-400 cursor-pointer text-xs">&darr;</span>
-            </div>
         </div>
     </div>
 </div>

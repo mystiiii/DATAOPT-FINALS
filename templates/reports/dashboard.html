@@ -1,17 +1,14 @@
 {% extends "base.html" %}
+{% load humanize %}
 
-{% block title %}Executive Operations & Performance - AdventureWorks BI{% endblock %}
+{% block title %}Dashboard - AdventureWorks BI{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
     <!-- Top Workspace Toolbar -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-[#E5E7EB] gap-3">
         <div class="flex items-center space-x-2 text-xs text-slate-500">
-            <span>Home</span>
-            <span>/</span>
-            <span>Executive</span>
-            <span>/</span>
-            <span class="font-medium text-slate-900">Operations & Performance</span>
+            <span class="font-medium text-slate-900">Dashboard</span>
         </div>
         <div class="flex items-center space-x-2 text-xs">
             <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-medium flex items-center space-x-1.5 transition shadow-sm">
@@ -101,7 +98,6 @@
                 <h2 class="text-xs font-bold text-slate-900">Business at a glance</h2>
                 <p class="text-[11px] text-slate-400">Key operating modules, in one view</p>
             </div>
-            <span class="text-[11px] text-slate-500 cursor-pointer hover:underline">Customize view</span>
         </div>
 
         <!-- 1. Sales Overview Card -->
@@ -188,7 +184,7 @@
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700">Review Needed</span>
                     </div>
                     <p class="text-[11px] text-slate-400 mt-0.5">
-                        {% if scrap_preview.ScrapReason %}{{ scrap_preview.ScrapReason }}: {{ scrap_preview.TotalScrappedQty }} units scrapped{% else %}Scrap rate above the 1.8% operating threshold{% endif %}
+                        {% if scrap_preview.ScrapReason %}{{ scrap_preview.ScrapReason }}: {{ scrap_preview.TotalScrappedQty|intcomma }} units scrapped{% else %}Scrap rate above the 1.8% operating threshold{% endif %}
                     </p>
                 </div>
             </div>
@@ -210,12 +206,12 @@
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">Healthy</span>
                     </div>
                     <p class="text-[11px] text-slate-400 mt-0.5">
-                        {% if vendor_preview.VendorName %}Top supplier: {{ vendor_preview.VendorName }} (${{ vendor_preview.TotalSpent|floatformat:0 }}){% else %}Supplier spend and purchase-price variance{% endif %}
+                        {% if vendor_preview.VendorName %}Top supplier: {{ vendor_preview.VendorName }} (${{ vendor_preview.TotalSpent|floatformat:0|intcomma }}){% else %}Supplier spend and purchase-price variance{% endif %}
                     </p>
                 </div>
             </div>
             <div class="flex items-center space-x-2 text-xs font-semibold text-slate-700">
-                <span>{% if vendor_preview.TotalSpent %}${{ vendor_preview.TotalSpent|floatformat:0 }}{% else %}$18.6M{% endif %} spend</span>
+                <span>{% if vendor_preview.TotalSpent %}${{ vendor_preview.TotalSpent|floatformat:0|intcomma }}{% else %}$18.6M{% endif %} spend</span>
                 <span class="text-slate-400">&gt;</span>
             </div>
         </a>
@@ -246,112 +242,200 @@
 
 {% block right_rail %}
 <div class="space-y-6">
-    <!-- Top Filter Header -->
+    <!-- Top Filter Header with Interactive Select -->
     <div class="flex items-center justify-between">
         <span class="text-xs font-bold text-slate-900">Statistics</span>
-        <div class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 bg-slate-50 font-medium flex items-center space-x-1.5">
-            <span>Year To Date</span>
-            <span class="text-[9px] text-slate-400">&darr;</span>
+        <div class="relative">
+            <select id="statPeriodSelect" onchange="updateRightRailStats(this.value)" class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 bg-slate-50 font-medium focus:outline-none focus:ring-1 focus:ring-coral cursor-pointer">
+                <option value="ytd" selected>Year To Date</option>
+                <option value="fy2013">Full Year 2013</option>
+                <option value="fy2012">Full Year 2012</option>
+                <option value="all">All-Time (2011–2014)</option>
+            </select>
         </div>
     </div>
 
-    <!-- KPI Summary Card with 6-month Bar Chart -->
+    <!-- KPI Summary Card with Interactive Bar Chart -->
     <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E5E7EB] space-y-3">
         <div class="flex justify-between items-start">
-            <span class="text-[11px] font-semibold text-slate-500">Total Gross Revenue</span>
-            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">+38% YoY</span>
+            <button type="button" id="metricToggleBtn" onclick="toggleRevenueMetric()" class="text-[11px] font-semibold text-slate-600 hover:text-coral transition flex items-center space-x-1" title="Click to switch between Gross and Net Revenue">
+                <span id="statMetricLabel">Total Gross Revenue</span>
+                <span class="text-[9px] text-slate-400">&curarr;</span>
+            </button>
+            <span id="statYoYBadge" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded transition">+38% YoY</span>
         </div>
-        <div class="text-2xl font-bold text-slate-900">$80.3M</div>
+        <div id="statBigFigure" class="text-2xl font-bold text-slate-900 transition">$80.3M</div>
 
         <!-- Chart Canvas -->
         <div class="h-36 pt-1">
             <canvas id="rightRailChart"></canvas>
         </div>
         <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200">
-            <span>Jan–Jun 2019</span>
-            <span>Revenue in USD</span>
+            <span id="statPeriodFooter">Jan–Jun 2014</span>
+            <span id="statUnitFooter">Revenue in USD</span>
         </div>
-    </div>
-
-    <!-- Attachments List -->
-    <div class="space-y-3">
-        <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-slate-900">Attachments <span class="text-slate-400 font-normal">03</span></span>
-            <span class="text-[11px] text-coral hover:underline cursor-pointer">View all &gt;</span>
-        </div>
-        <div class="space-y-2 text-xs">
-            <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition bg-[#FAFAFA]">
-                <div class="flex items-center space-x-2 truncate">
-                    <span class="text-red-500 font-bold text-[10px] bg-red-50 px-1.5 py-0.5 rounded">PDF</span>
-                    <div class="truncate">
-                        <p class="text-slate-800 text-[11px] font-medium truncate">FY2019-Quarterly-Review.pdf</p>
-                        <p class="text-[9px] text-slate-400">PDF document &middot; 2.4 MB</p>
-                    </div>
-                </div>
-                <span class="text-slate-400 hover:text-slate-700 cursor-pointer text-xs">&darr;</span>
-            </div>
-            <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition bg-[#FAFAFA]">
-                <div class="flex items-center space-x-2 truncate">
-                    <span class="text-emerald-600 font-bold text-[10px] bg-emerald-50 px-1.5 py-0.5 rounded">XLS</span>
-                    <div class="truncate">
-                        <p class="text-slate-800 text-[11px] font-medium truncate">Executive-Summary.xlsx</p>
-                        <p class="text-[9px] text-slate-400">Spreadsheet &middot; 840 KB</p>
-                    </div>
-                </div>
-                <span class="text-slate-400 hover:text-slate-700 cursor-pointer text-xs">&darr;</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Board Reporting Note -->
-    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
-        <div class="flex items-center space-x-1.5 text-slate-700 font-semibold text-[11px]">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            <span>Board reporting ready</span>
-        </div>
-        <p class="text-[10px] text-slate-500 leading-relaxed">
-            Includes consolidated financials and operating performance across all business units.
-        </p>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-const railCtx = document.getElementById('rightRailChart').getContext('2d');
-new Chart(railCtx, {
-    type: 'bar',
-    data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-        datasets: [{
-            data: [12.4, 14.1, 15.8, 18.7, 16.2, 17.5],
-            backgroundColor: [
-                'rgba(255, 91, 38, 0.25)',
-                'rgba(255, 91, 38, 0.25)',
-                'rgba(255, 91, 38, 0.25)',
-                '#FF5B26', // Highlight April in solid coral
-                'rgba(255, 91, 38, 0.25)',
-                'rgba(255, 91, 38, 0.25)'
-            ],
-            borderRadius: 6
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                callbacks: {
-                    label: function(context) { return '$' + context.raw + 'M'; }
-                }
-            }
+const statsDataset = {
+    gross: {
+        ytd: {
+            figure: '$80.3M',
+            badge: '+38% YoY',
+            badgeClass: 'text-emerald-700 bg-emerald-50',
+            period: 'Jan–Jun 2014',
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            values: [12.4, 14.1, 15.8, 18.7, 16.2, 17.5],
+            highlightIndex: 3
         },
-        scales: {
-            x: { grid: { display: false } },
-            y: { display: false }
+        fy2013: {
+            figure: '$43.9M',
+            badge: '+32.2% YoY',
+            badgeClass: 'text-emerald-700 bg-emerald-50',
+            period: 'Q1–Q4 2013',
+            labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+            values: [9.2, 11.5, 12.8, 10.4],
+            highlightIndex: 2
+        },
+        fy2012: {
+            figure: '$33.2M',
+            badge: '+163.5% YoY',
+            badgeClass: 'text-emerald-700 bg-emerald-50',
+            period: 'Q1–Q4 2012',
+            labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+            values: [6.1, 8.4, 9.9, 8.8],
+            highlightIndex: 2
+        },
+        all: {
+            figure: '$110.4M',
+            badge: '4-Yr Total',
+            badgeClass: 'text-emerald-700 bg-emerald-50',
+            period: 'FY2011–FY2014',
+            labels: ['2011', '2012', '2013', '2014'],
+            values: [12.6, 33.2, 43.9, 20.7],
+            highlightIndex: 2
+        }
+    },
+    net: {
+        ytd: {
+            figure: '$79.8M',
+            badge: '+37.6% YoY',
+            badgeClass: 'text-emerald-700 bg-emerald-50',
+            period: 'Jan–Jun 2014',
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            values: [12.3, 14.0, 15.7, 18.6, 16.1, 17.4],
+            highlightIndex: 3
+        },
+        fy2013: {
+            figure: '$43.6M',
+            badge: '+31.8% YoY',
+            badgeClass: 'text-emerald-700 bg-emerald-50',
+            period: 'Q1–Q4 2013',
+            labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+            values: [9.1, 11.4, 12.7, 10.4],
+            highlightIndex: 2
+        },
+        fy2012: {
+            figure: '$33.0M',
+            badge: '+162% YoY',
+            badgeClass: 'text-emerald-700 bg-emerald-50',
+            period: 'Q1–Q4 2012',
+            labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+            values: [6.0, 8.3, 9.8, 8.9],
+            highlightIndex: 2
+        },
+        all: {
+            figure: '$109.8M',
+            badge: 'Net Realized',
+            badgeClass: 'text-emerald-700 bg-emerald-50',
+            period: 'FY2011–FY2014',
+            labels: ['2011', '2012', '2013', '2014'],
+            values: [12.5, 33.0, 43.6, 20.7],
+            highlightIndex: 2
         }
     }
-});
+};
+
+let currentMetric = 'gross';
+let currentPeriod = 'ytd';
+let rightRailChart = null;
+
+function buildColors(count, highlight) {
+    const bg = [];
+    for (let i = 0; i < count; i++) {
+        bg.push(i === highlight ? '#FF5B26' : 'rgba(255, 91, 38, 0.25)');
+    }
+    return bg;
+}
+
+function initRightRailChart() {
+    const data = statsDataset[currentMetric][currentPeriod];
+    const ctx = document.getElementById('rightRailChart').getContext('2d');
+    rightRailChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                data: data.values,
+                backgroundColor: buildColors(data.values.length, data.highlightIndex),
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            onClick: (e, elements) => {
+                if (elements && elements.length > 0) {
+                    const idx = elements[0].index;
+                    const val = data.values[idx];
+                    const label = data.labels[idx];
+                    document.getElementById('statBigFigure').textContent = '$' + val + 'M';
+                    document.getElementById('statPeriodFooter').textContent = label + ' ' + (currentPeriod === 'all' ? '' : data.period);
+                    rightRailChart.data.datasets[0].backgroundColor = buildColors(data.values.length, idx);
+                    rightRailChart.update();
+                }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) { return '$' + ctx.raw.toLocaleString() + 'M'; }
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                y: { display: false }
+            }
+        }
+    });
+}
+
+function updateRightRailStats(period) {
+    currentPeriod = period;
+    const data = statsDataset[currentMetric][currentPeriod];
+    document.getElementById('statBigFigure').textContent = data.figure;
+    document.getElementById('statYoYBadge').textContent = data.badge;
+    document.getElementById('statYoYBadge').className = 'text-[10px] font-semibold px-1.5 py-0.5 rounded transition ' + data.badgeClass;
+    document.getElementById('statPeriodFooter').textContent = data.period;
+
+    if (rightRailChart) {
+        rightRailChart.data.labels = data.labels;
+        rightRailChart.data.datasets[0].data = data.values;
+        rightRailChart.data.datasets[0].backgroundColor = buildColors(data.values.length, data.highlightIndex);
+        rightRailChart.update();
+    }
+}
+
+function toggleRevenueMetric() {
+    currentMetric = currentMetric === 'gross' ? 'net' : 'gross';
+    document.getElementById('statMetricLabel').textContent = currentMetric === 'gross' ? 'Total Gross Revenue' : 'Realized Net Revenue';
+    updateRightRailStats(currentPeriod);
+}
+
+document.addEventListener('DOMContentLoaded', initRightRailChart);
 </script>
 {% endblock %}

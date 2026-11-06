@@ -35,10 +35,12 @@ def dashboard_view(request):
 def sales_report_view(request):
     sales_data = sales_service.get_sales_by_category_and_year()
     top_products = sales_service.get_top_selling_products(10)
+    territory_sales = sales_service.get_territory_sales()
     presets = SavedReportPreset.objects.filter(module='sales')
     return render(request, 'reports/sales.html', {
         'sales_data': sales_data,
         'top_products': top_products,
+        'territory_sales': territory_sales,
         'presets': presets,
     })
 
@@ -47,10 +49,12 @@ def sales_report_view(request):
 def customer_report_view(request):
     top_customers = customer_service.get_top_customers(10)
     customer_types = customer_service.get_customer_type_breakdown()
+    geo_distribution = customer_service.get_customer_geographic_distribution()
     presets = SavedReportPreset.objects.filter(module='customers')
     return render(request, 'reports/customers.html', {
         'top_customers': top_customers,
         'customer_types': customer_types,
+        'geo_distribution': geo_distribution,
         'presets': presets,
     })
 
@@ -71,10 +75,12 @@ def revenue_loss_report_view(request):
 def cost_report_view(request):
     margins = cost_service.get_product_margins(15)
     vendor_spend = cost_service.get_vendor_purchasing_spend(10)
+    cost_history = cost_service.get_standard_cost_history()
     presets = SavedReportPreset.objects.filter(module='cost')
     return render(request, 'reports/cost.html', {
         'margins': margins,
         'vendor_spend': vendor_spend,
+        'cost_history': cost_history,
         'presets': presets,
     })
 

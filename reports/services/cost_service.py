@@ -47,3 +47,27 @@ def get_vendor_purchasing_spend(limit=10):
         {"VendorID": 1602, "VendorName": "Professional Sales and Service", "PurchaseOrdersCount": 38, "TotalSpent": 3654120.00},
         {"VendorID": 1534, "VendorName": "Chicago City Cycles", "PurchaseOrdersCount": 31, "TotalSpent": 2984120.25},
     ]
+
+def get_standard_cost_history():
+    sql = """
+    SELECT TOP 6
+        p.Name AS ProductName,
+        pch.StartDate,
+        pch.EndDate,
+        pch.StandardCost
+    FROM Production.ProductCostHistory pch
+    JOIN Production.Product p ON p.ProductID = pch.ProductID
+    WHERE p.ProductID IN (779, 782, 783)
+    ORDER BY p.Name, pch.StartDate DESC;
+    """
+    data = execute_query(sql)
+    if data is not None:
+        return data
+    return [
+        {"ProductName": "Mountain-200 Black, 38", "StartDate": "2013-05-30", "EndDate": None, "StandardCost": 1251.98},
+        {"ProductName": "Mountain-200 Black, 38", "StartDate": "2012-05-30", "EndDate": "2013-05-29", "StandardCost": 1304.60},
+        {"ProductName": "Mountain-200 Silver, 38", "StartDate": "2013-05-30", "EndDate": None, "StandardCost": 1251.98},
+        {"ProductName": "Mountain-200 Silver, 38", "StartDate": "2012-05-30", "EndDate": "2013-05-29", "StandardCost": 1304.60},
+        {"ProductName": "Road-150 Red, 56", "StartDate": "2013-05-30", "EndDate": None, "StandardCost": 2171.29},
+        {"ProductName": "Road-150 Red, 56", "StartDate": "2012-05-30", "EndDate": "2013-05-29", "StandardCost": 2225.40},
+    ]

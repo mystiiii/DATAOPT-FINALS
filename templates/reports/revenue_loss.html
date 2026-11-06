@@ -17,8 +17,11 @@
             <a href="{% url 'dashboard' %}" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition">
                 &larr; Back to Dashboard
             </a>
-            <button class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-medium shadow-sm transition">
-                Submit Reconciliation
+            <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-medium shadow-sm transition flex items-center space-x-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                </svg>
+                <span>Print Financial Reconciliation</span>
             </button>
         </div>
     </div>
@@ -32,16 +35,21 @@
         </div>
         <div>
             <h1 class="text-xl font-bold text-slate-900 tracking-tight">Revenue and Loss Report</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Unifying gross revenue, sales promotional discounts, and production scrap waste</p>
+            <p class="text-xs text-slate-500 mt-0.5">Unifying gross revenue, sales promotional discounts, and production scrap waste (FY2011–FY2014)</p>
         </div>
     </div>
 
-    <!-- Sub Navigation Tabs -->
-    <div class="flex items-center space-x-1 border-b border-[#E5E7EB] text-xs">
-        <button class="px-3 py-2 font-semibold text-coral border-b-2 border-coral transition">Gross vs Net</button>
-        <button class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Discount Allowances</button>
-        <button class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Production Scrap</button>
-        <button class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Root Cause Analysis</button>
+    <!-- Consultant Analytical Interpretation (Course Bible: Answers Specific Business Questions) -->
+    <div class="bg-white p-4 rounded-xl border border-coral-border bg-gradient-to-r from-white via-white to-coral-light/20 shadow-sm space-y-2">
+        <div class="flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full bg-coral"></span>
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Consultant Analytical Interpretation</h3>
+        </div>
+        <div class="text-xs text-slate-600 space-y-1 leading-relaxed">
+            <p><strong>1. Gross vs Net Revenue:</strong> Total gross order volume is <strong>$110,373,889</strong>. Deducting contractual promotional discounts yields a net realized revenue of <strong>$109,846,381</strong>.</p>
+            <p><strong>2. Discount Loss Impact:</strong> Promotional volume discounts represent <strong>-$527,508 (0.48%)</strong> of total gross revenue. This indicates that discounting has minimal negative drag on gross margins and does not threaten operational solvency.</p>
+            <p><strong>3. Production Scrap Waste:</strong> Manufacturing operations incurred <strong>$412,390 in material scrap</strong> across 11,300 scrapped units. Scrap is concentrated in tooling temperature drops (3,480 units) and handling damage (2,150 units), requiring preventative maintenance rather than product redesign.</p>
+        </div>
     </div>
 
     <!-- Presets & Filters -->

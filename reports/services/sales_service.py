@@ -53,3 +53,27 @@ def get_top_selling_products(limit=10):
         {"ProductID": 783, "ProductName": "Mountain-200 Black, 42", "Category": "Bikes", "TotalRevenue": 3982451.65, "TotalQuantity": 1945},
         {"ProductID": 779, "ProductName": "Mountain-200 Silver, 38", "Category": "Bikes", "TotalRevenue": 3645892.40, "TotalQuantity": 1720},
     ]
+
+def get_territory_sales():
+    sql = """
+    SELECT
+        st.Name AS TerritoryName,
+        st.[Group] AS TerritoryGroup,
+        COUNT(soh.SalesOrderID) AS TotalOrders,
+        SUM(soh.TotalDue) AS TotalRevenue
+    FROM Sales.SalesTerritory st
+    JOIN Sales.SalesOrderHeader soh ON soh.TerritoryID = st.TerritoryID
+    GROUP BY st.Name, st.[Group]
+    ORDER BY TotalRevenue DESC;
+    """
+    data = execute_query(sql)
+    if data is not None:
+        return data
+    return [
+        {"TerritoryName": "Southwest", "TerritoryGroup": "North America", "TotalOrders": 5716, "TotalRevenue": 24180500.00},
+        {"TerritoryName": "Northwest", "TerritoryGroup": "North America", "TotalOrders": 3937, "TotalRevenue": 16082300.00},
+        {"TerritoryName": "Canada", "TerritoryGroup": "North America", "TotalOrders": 2450, "TotalRevenue": 14378000.00},
+        {"TerritoryName": "United Kingdom", "TerritoryGroup": "Europe", "TotalOrders": 1913, "TotalRevenue": 9812400.00},
+        {"TerritoryName": "France", "TerritoryGroup": "Europe", "TotalOrders": 1810, "TotalRevenue": 8214300.00},
+        {"TerritoryName": "Central", "TerritoryGroup": "North America", "TotalOrders": 1399, "TotalRevenue": 7921600.00},
+    ]

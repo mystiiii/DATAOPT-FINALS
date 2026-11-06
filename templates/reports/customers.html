@@ -49,6 +49,7 @@
         <form method="post" action="{% url 'save_preset' %}" class="flex items-center space-x-2 w-full md:w-auto">
             {% csrf_token %}
             <input type="hidden" name="module" value="customers">
+            <input type="hidden" name="filter_param" value="all">
             <input type="text" name="name" placeholder="Save customer filter preset..." required
                 class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs w-60 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-coral">
             <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg transition font-medium">
@@ -78,12 +79,17 @@
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">68% Revenue Share</span>
             </div>
             <div class="space-y-1">
-                <p class="text-2xl font-bold text-slate-900">701 <span class="text-xs font-normal text-slate-500">accounts</span></p>
-                <p class="text-xs font-semibold text-slate-700">$93.9M Total Lifetime Volume</p>
+                <p class="text-2xl font-bold text-slate-900">
+                    {% if customer_types.0 %}{{ customer_types.0.TotalCustomers }}{% else %}701{% endif %}
+                    <span class="text-xs font-normal text-slate-500">accounts</span>
+                </p>
+                <p class="text-xs font-semibold text-slate-700">
+                    {% if customer_types.0 %}${{ customer_types.0.TotalRevenue|floatformat:0 }}{% else %}$93.9M{% endif %} Total Lifetime Volume
+                </p>
             </div>
             <div class="pt-2 border-t border-slate-100 flex justify-between text-[11px] text-slate-500">
                 <span>Avg Order: <strong class="text-slate-800">$24,670</strong></span>
-                <span>3,806 Total Orders</span>
+                <span>{% if customer_types.0 %}{{ customer_types.0.TotalOrders }}{% else %}3,806{% endif %} Total Orders</span>
             </div>
         </div>
 
@@ -94,12 +100,17 @@
                 <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700">32% Revenue Share</span>
             </div>
             <div class="space-y-1">
-                <p class="text-2xl font-bold text-slate-900">18,484 <span class="text-xs font-normal text-slate-500">active buyers</span></p>
-                <p class="text-xs font-semibold text-slate-700">$29.3M Total Lifetime Volume</p>
+                <p class="text-2xl font-bold text-slate-900">
+                    {% if customer_types.1 %}{{ customer_types.1.TotalCustomers }}{% else %}18,484{% endif %}
+                    <span class="text-xs font-normal text-slate-500">active buyers</span>
+                </p>
+                <p class="text-xs font-semibold text-slate-700">
+                    {% if customer_types.1 %}${{ customer_types.1.TotalRevenue|floatformat:0 }}{% else %}$29.3M{% endif %} Total Lifetime Volume
+                </p>
             </div>
             <div class="pt-2 border-t border-slate-100 flex justify-between text-[11px] text-slate-500">
                 <span>Avg Order: <strong class="text-slate-800">$1,060</strong></span>
-                <span>27,659 Total Orders</span>
+                <span>{% if customer_types.1 %}{{ customer_types.1.TotalOrders }}{% else %}27,659{% endif %} Total Orders</span>
             </div>
         </div>
     </div>

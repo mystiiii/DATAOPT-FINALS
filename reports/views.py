@@ -9,11 +9,19 @@ from .services import sales_service, customer_service, revenue_loss_service, cos
 @login_required
 def dashboard_view(request):
     profile = getattr(request.user, 'profile', None)
+    scrap_list = revenue_loss_service.get_production_scrap_loss() or []
+    vendor_list = cost_service.get_vendor_purchasing_spend(1) or []
+    customer_types = customer_service.get_customer_type_breakdown() or []
+    revenue_data = revenue_loss_service.get_revenue_and_loss_by_year() or []
+
     context = {
         'role': profile.role if profile else 'Employee',
         'sales_preview': sales_service.get_sales_by_category_and_year()[:4],
         'top_customers': customer_service.get_top_customers(5),
-        'revenue_summary': revenue_loss_service.get_revenue_and_loss_by_year()[-1] if revenue_loss_service.get_revenue_and_loss_by_year() else {},
+        'revenue_summary': revenue_data[-1] if revenue_data else {},
+        'scrap_preview': scrap_list[0] if scrap_list else {},
+        'vendor_preview': vendor_list[0] if vendor_list else {},
+        'customer_types': customer_types,
         'data_issues': DataQualityLog.objects.all()[:3],
     }
     return render(request, 'reports/dashboard.html', context)

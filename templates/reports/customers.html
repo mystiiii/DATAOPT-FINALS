@@ -36,19 +36,6 @@
         </div>
     </div>
 
-    <!-- Key Takeaways -->
-    <div class="bg-white p-4 rounded-xl border border-coral-border bg-gradient-to-r from-white via-white to-coral-light/20 shadow-sm space-y-2">
-        <div class="flex items-center space-x-2">
-            <span class="w-2 h-2 rounded-full bg-coral"></span>
-            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Key Takeaways</h3>
-        </div>
-        <div class="text-xs text-slate-600 space-y-1.5 leading-relaxed">
-            <p>The 5 largest accounts are all retail stores: Better Large Sporting Goods led with $989,184 over 12 orders, followed by Metropolitan Bicycle Supply at $961,675. Bulk orders averaged roughly $80,000 each.</p>
-            <p>Stores make up 3.6% of accounts (701 stores) but generate 76% of revenue ($93.9M). The 18,484 individual buyers account for the remaining 24% ($29.3M), averaging $1,060 per order.</p>
-            <p>Most revenue came from California ($19.4M), Washington ($14.2M), and Texas ($9.6M), along with overseas buyers in Australia ($9.1M) and the UK ($8.5M).</p>
-        </div>
-    </div>
-
     <!-- Presets & Filters -->
     <div class="bg-white p-3.5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
         <form method="post" action="{% url 'save_preset' %}" class="flex items-center space-x-2 w-full md:w-auto">
@@ -219,17 +206,31 @@
         </div>
     </div>
 
-    <!-- Summary KPI Card -->
+    <!-- Summary KPI Card (Interactive) -->
     <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E5E7EB] space-y-2">
-        <span class="text-[11px] font-semibold text-slate-500">Total Customer Accounts</span>
-        <div class="text-2xl font-bold text-slate-900">19,820</div>
-        <p class="text-xs text-emerald-600 font-medium">+14% Active accounts YoY</p>
+        <span class="text-[11px] font-semibold text-slate-500">Customer Segment (Click bar to inspect)</span>
+        <div id="custSegmentName" class="text-xl font-bold text-slate-900 transition">Store Retailers (B2B)</div>
+        <p id="custSegmentRevenue" class="text-sm font-semibold text-coral transition">$93.9M <span id="custSegmentBadge" class="text-[10px] text-emerald-600 font-normal">(76% Revenue Share &middot; 701 stores)</span></p>
         
         <div class="h-32 pt-2">
             <canvas id="custChart"></canvas>
         </div>
         <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200">
-            <span>B2B Store vs B2C Consumer Growth</span>
+            <span id="custFooterLabel">B2B Store vs B2C Consumer</span>
+            <span>Click bars to filter</span>
+        </div>
+    </div>
+
+    <!-- Key Takeaways (Moved to Right Rail) -->
+    <div class="bg-white p-3.5 rounded-xl border border-coral-border bg-gradient-to-br from-white via-white to-coral-light/25 shadow-sm space-y-2">
+        <div class="flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full bg-coral"></span>
+            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Key Takeaways</h3>
+        </div>
+        <div class="text-[11px] text-slate-600 space-y-1.5 leading-relaxed">
+            <p>The 5 largest accounts are all retail stores: Better Large Sporting Goods led with $989,184 over 12 orders, followed by Metropolitan Bicycle Supply at $961,675. Bulk orders averaged roughly $80,000 each.</p>
+            <p>Stores make up 3.6% of accounts (701 stores) but generate 76% of revenue ($93.9M). The 18,484 individual buyers account for the remaining 24% ($29.3M), averaging $1,060 per order.</p>
+            <p>Most revenue came from California ($19.4M), Washington ($14.2M), and Texas ($9.6M), along with overseas buyers in Australia ($9.1M) and the UK ($8.5M).</p>
         </div>
     </div>
 </div>
@@ -237,26 +238,54 @@
 
 {% block scripts %}
 <script>
+const custSegmentData = [
+    { code: 'B2B Stores', label: 'Store (B2B)', revenue: '$93.9M', value: 93.9, badge: '76% Revenue Share &middot; 701 accounts' },
+    { code: 'B2C Individuals', label: 'Indiv (B2C)', revenue: '$29.3M', value: 29.3, badge: '24% Revenue Share &middot; 18,484 accounts' },
+    { code: 'California', label: 'California', revenue: '$19.4M', value: 19.4, badge: 'Top US State &middot; 4,210 accounts' },
+    { code: 'Washington', label: 'Washington', revenue: '$14.2M', value: 14.2, badge: 'Pacific NW &middot; 3,180 accounts' },
+    { code: 'International', label: 'Global (AU/UK)', revenue: '$17.6M', value: 17.6, badge: 'Australia + UK &middot; 3,490 accounts' }
+];
+
 const cCtx = document.getElementById('custChart').getContext('2d');
-new Chart(cCtx, {
+
+function getCustColors(activeIdx) {
+    return custSegmentData.map((_, i) => i === activeIdx ? '#FF5B26' : 'rgba(255, 91, 38, 0.25)');
+}
+
+const custChart = new Chart(cCtx, {
     type: 'bar',
     data: {
-        labels: ['Store', 'Indiv'],
+        labels: custSegmentData.map(d => d.label),
         datasets: [{
-            data: [93.9, 29.3],
-            backgroundColor: [
-                '#FF5B26', // Store B2B in solid coral
-                'rgba(255, 91, 38, 0.3)'
-            ],
-            borderRadius: 6
+            data: custSegmentData.map(d => d.value),
+            backgroundColor: getCustColors(0),
+            borderRadius: 5
         }]
     },
     options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        onClick: (e, elements) => {
+            if (elements && elements.length > 0) {
+                const idx = elements[0].index;
+                const item = custSegmentData[idx];
+                document.getElementById('custSegmentName').textContent = item.code;
+                document.getElementById('custSegmentRevenue').innerHTML = item.revenue + ' <span class="text-[10px] text-emerald-600 font-normal">(' + item.badge + ')</span>';
+                document.getElementById('custFooterLabel').textContent = item.code + ' Selected';
+                custChart.data.datasets[0].backgroundColor = getCustColors(idx);
+                custChart.update();
+            }
+        },
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(ctx) { return custSegmentData[ctx.dataIndex].code + ': $' + ctx.raw.toLocaleString() + 'M'; }
+                }
+            }
+        },
         scales: {
-            x: { grid: { display: false } },
+            x: { grid: { display: false }, ticks: { font: { size: 9 } } },
             y: { display: false }
         }
     }

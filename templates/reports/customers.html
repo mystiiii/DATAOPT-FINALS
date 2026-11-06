@@ -212,13 +212,37 @@
 
 {% block scripts %}
 <script>
-const custSegmentData = [
-    { code: 'B2B Stores', label: 'Store (B2B)', revenue: '$93.9M', value: 93.9, badge: '76% Revenue Share &middot; 701 accounts' },
-    { code: 'B2C Individuals', label: 'Indiv (B2C)', revenue: '$29.3M', value: 29.3, badge: '24% Revenue Share &middot; 18,484 accounts' },
-    { code: 'California', label: 'California', revenue: '$19.4M', value: 19.4, badge: 'Top US State &middot; 4,210 accounts' },
-    { code: 'Washington', label: 'Washington', revenue: '$14.2M', value: 14.2, badge: 'Pacific NW &middot; 3,180 accounts' },
-    { code: 'International', label: 'Global (AU/UK)', revenue: '$17.6M', value: 17.6, badge: 'Australia + UK &middot; 3,490 accounts' }
-];
+const rawTypes = {{ customer_types_json|safe }};
+const rawGeo = {{ geo_distribution_json|safe }};
+
+const custSegmentData = [];
+if (rawTypes && rawTypes.length > 0) {
+    rawTypes.forEach(t => {
+        const rev = parseFloat(t.TotalRevenue) || 0;
+        const revM = (rev / 1e6).toFixed(1);
+        const isB2B = t.CustomerType.includes('Store') || t.CustomerType.includes('B2B');
+        custSegmentData.push({
+            code: isB2B ? 'Store (B2B)' : 'Individual (B2C)',
+            label: isB2B ? 'B2B' : 'B2C',
+            revenue: '$' + Number(Math.round(rev)).toLocaleString(),
+            value: parseFloat(revM),
+            badge: (t.TotalCustomers || 0).toLocaleString() + ' accounts · ' + (t.TotalOrders || 0).toLocaleString() + ' orders'
+        });
+    });
+}
+if (rawGeo && rawGeo.length > 0) {
+    rawGeo.slice(0, 4).forEach(g => {
+        const rev = parseFloat(g.TotalRevenue) || 0;
+        const revM = (rev / 1e6).toFixed(1);
+        custSegmentData.push({
+            code: g.RegionName,
+            label: g.RegionName.substring(0, 8),
+            revenue: '$' + Number(Math.round(rev)).toLocaleString(),
+            value: parseFloat(revM),
+            badge: g.CountryName + ' · ' + (g.CustomerCount || 0).toLocaleString() + ' customers'
+        });
+    });
+}
 
 const cCtx = document.getElementById('custChart').getContext('2d');
 
@@ -226,43 +250,53 @@ function getCustColors(activeIdx) {
     return custSegmentData.map((_, i) => i === activeIdx ? '#FF5B26' : 'rgba(255, 91, 38, 0.25)');
 }
 
-const custChart = new Chart(cCtx, {
-    type: 'bar',
-    data: {
-        labels: custSegmentData.map(d => d.label),
-        datasets: [{
-            data: custSegmentData.map(d => d.value),
-            backgroundColor: getCustColors(0),
-            borderRadius: 5
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: (e, elements) => {
-            if (elements && elements.length > 0) {
-                const idx = elements[0].index;
-                const item = custSegmentData[idx];
-                document.getElementById('custSegmentName').textContent = item.code;
-                document.getElementById('custSegmentRevenue').innerHTML = item.revenue + ' <span class="text-[10px] text-emerald-600 font-normal">(' + item.badge + ')</span>';
-                document.getElementById('custFooterLabel').textContent = item.code + ' Selected';
-                custChart.data.datasets[0].backgroundColor = getCustColors(idx);
-                custChart.update();
-            }
+if (custSegmentData.length > 0) {
+    const first = custSegmentData[0];
+    document.getElementById('custSegmentName').textContent = first.code;
+    document.getElementById('custSegmentRevenue').innerHTML = first.revenue + ' <span class="text-[10px] text-emerald-600 font-normal">(' + first.badge + ')</span>';
+    document.getElementById('custFooterLabel').textContent = first.code + ' Selected';
+
+    const custChart = new Chart(cCtx, {
+        type: 'bar',
+        data: {
+            labels: custSegmentData.map(d => d.label),
+            datasets: [{
+                data: custSegmentData.map(d => d.value),
+                backgroundColor: getCustColors(0),
+                borderRadius: 5
+            }]
         },
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                callbacks: {
-                    label: function(ctx) { return custSegmentData[ctx.dataIndex].code + ': $' + ctx.raw.toLocaleString() + 'M'; }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            onClick: (e, elements) => {
+                if (elements && elements.length > 0) {
+                    const idx = elements[0].index;
+                    const item = custSegmentData[idx];
+                    document.getElementById('custSegmentName').textContent = item.code;
+                    document.getElementById('custSegmentRevenue').innerHTML = item.revenue + ' <span class="text-[10px] text-emerald-600 font-normal">(' + item.badge + ')</span>';
+                    document.getElementById('custFooterLabel').textContent = item.code + ' Selected';
+                    custChart.data.datasets[0].backgroundColor = getCustColors(idx);
+                    custChart.update();
                 }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) { return custSegmentData[ctx.dataIndex].code + ': $' + ctx.raw.toLocaleString() + 'M'; }
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+                y: { display: false }
             }
-        },
-        scales: {
-            x: { grid: { display: false }, ticks: { font: { size: 9 } } },
-            y: { display: false }
         }
-    }
-});
+    });
+} else {
+    document.getElementById('custSegmentName').textContent = 'No data';
+    document.getElementById('custSegmentRevenue').textContent = '$0';
+}
 </script>
 {% endblock %}

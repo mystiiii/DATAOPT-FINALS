@@ -41,9 +41,9 @@
                 <span class="text-slate-400 text-xs">&nearr;</span>
             </div>
             <div class="text-xl font-bold text-slate-900 mt-2">
-                {% if revenue_summary.GrossAmount %}${{ revenue_summary.GrossAmount|floatformat:0 }}{% else %}$80.3M{% endif %}
+                {% if total_gross %}${{ total_gross|floatformat:0|intcomma }}{% elif revenue_summary.GrossAmount %}${{ revenue_summary.GrossAmount|floatformat:0|intcomma }}{% else %}$0{% endif %}
             </div>
-            <div class="text-[10px] text-emerald-600 font-medium mt-1">+38.0% vs. last year</div>
+            <div class="text-[10px] text-emerald-600 font-medium mt-1">4-Year Total Volume</div>
         </div>
 
         <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
@@ -52,9 +52,9 @@
                 <span class="text-slate-400 text-xs">&nearr;</span>
             </div>
             <div class="text-xl font-bold text-slate-900 mt-2">
-                {% if revenue_summary.NetRevenue %}${{ revenue_summary.NetRevenue|floatformat:0 }}{% else %}$24.8M{% endif %}
+                {% if total_net %}${{ total_net|floatformat:0|intcomma }}{% elif revenue_summary.NetRevenue %}${{ revenue_summary.NetRevenue|floatformat:0|intcomma }}{% else %}$0{% endif %}
             </div>
-            <div class="text-[10px] text-emerald-600 font-medium mt-1">+21.4% vs. last year</div>
+            <div class="text-[10px] text-emerald-600 font-medium mt-1">Net Realized Revenue</div>
         </div>
 
         <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
@@ -63,9 +63,9 @@
                 <span class="text-slate-400 text-xs">&nearr;</span>
             </div>
             <div class="text-xl font-bold text-slate-900 mt-2">
-                {% if total_scrap_loss %}${{ total_scrap_loss|floatformat:0 }}{% else %}$412K{% endif %}
+                {% if total_scrap_loss %}${{ total_scrap_loss|floatformat:0|intcomma }}{% else %}$0{% endif %}
             </div>
-            <div class="text-[10px] text-amber-600 font-medium mt-1">2.1% of production cost</div>
+            <div class="text-[10px] text-amber-600 font-medium mt-1">Scrapped work order costs</div>
         </div>
 
         <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
@@ -74,9 +74,9 @@
                 <span class="text-slate-400 text-xs">&nearr;</span>
             </div>
             <div class="text-xl font-bold text-slate-900 mt-2">
-                {% if customer_types %}{{ customer_types.0.TotalCustomers|add:customer_types.1.TotalCustomers }}{% else %}19,820{% endif %}
+                {% if customer_types %}{{ customer_types.0.TotalCustomers|add:customer_types.1.TotalCustomers|intcomma }}{% else %}0{% endif %}
             </div>
-            <div class="text-[10px] text-emerald-600 font-medium mt-1">+12.6% vs. last year</div>
+            <div class="text-[10px] text-emerald-600 font-medium mt-1">B2B & B2C customer base</div>
         </div>
     </div>
 
@@ -97,45 +97,45 @@
                     <span class="text-xs font-bold text-slate-900">Sales Overview</span>
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">Healthy</span>
                 </div>
-                <span class="text-[11px] text-slate-400">YTD &middot; FY2019</span>
+                <span class="text-[11px] text-slate-400">FY2011–FY2014</span>
             </div>
 
             <!-- Sub Metrics -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs border-y border-slate-100 py-3">
                 <div>
                     <span class="text-[10px] text-slate-400">Orders placed</span>
-                    <p class="font-bold text-slate-900 text-sm mt-0.5">31,465</p>
-                    <span class="text-[10px] text-emerald-600">+18.2% YoY</span>
+                    <p class="font-bold text-slate-900 text-sm mt-0.5">{% if total_orders %}{{ total_orders|intcomma }}{% else %}0{% endif %}</p>
+                    <span class="text-[10px] text-emerald-600">Total historical orders</span>
                 </div>
                 <div>
                     <span class="text-[10px] text-slate-400">Average order</span>
-                    <p class="font-bold text-slate-900 text-sm mt-0.5">$2,552</p>
-                    <span class="text-[10px] text-emerald-600">+16.7% YoY</span>
+                    <p class="font-bold text-slate-900 text-sm mt-0.5">${{ avg_order|floatformat:0|intcomma }}</p>
+                    <span class="text-[10px] text-emerald-600">Across all channels</span>
                 </div>
                 <div>
-                    <span class="text-[10px] text-slate-400">Gross margin</span>
-                    <p class="font-bold text-slate-900 text-sm mt-0.5">30.9%</p>
-                    <span class="text-[10px] text-emerald-600">+2.4 pts YoY</span>
+                    <span class="text-[10px] text-slate-400">Discount Loss</span>
+                    <p class="font-bold text-slate-900 text-sm mt-0.5">${{ total_gross|floatformat:0|intcomma }}</p>
+                    <span class="text-[10px] text-slate-500">Total Lifetime Volume</span>
                 </div>
                 <div>
-                    <span class="text-[10px] text-slate-400">Target attainment</span>
-                    <p class="font-bold text-slate-900 text-sm mt-0.5">108.2%</p>
-                    <span class="text-[10px] text-slate-500">Above plan</span>
+                    <span class="text-[10px] text-slate-400">Net Realized</span>
+                    <p class="font-bold text-slate-900 text-sm mt-0.5">${{ total_net|floatformat:0|intcomma }}</p>
+                    <span class="text-[10px] text-emerald-600">After line discounts</span>
                 </div>
             </div>
 
             <!-- Channel Split Progress Bar -->
             <div class="space-y-1.5">
                 <div class="flex justify-between text-[11px] text-slate-600 font-medium">
-                    <span>Reseller (B2B): 68% &middot; $54.6M</span>
-                    <span>Internet (B2C): 32% &middot; $25.7M</span>
+                    <span>Store Retailers (B2B): {{ b2b_pct }}% &middot; ${{ b2b_rev|floatformat:0|intcomma }}</span>
+                    <span>Individual (B2C): {{ b2c_pct }}% &middot; ${{ b2c_rev|floatformat:0|intcomma }}</span>
                 </div>
                 <div class="w-full h-2 rounded-full bg-slate-100 flex overflow-hidden">
-                    <div class="h-full bg-coral rounded-l-full" style="width: 68%"></div>
-                    <div class="h-full bg-coral-border rounded-r-full" style="width: 32%"></div>
+                    <div class="h-full bg-coral rounded-l-full" style="width: {{ b2b_pct }}%"></div>
+                    <div class="h-full bg-coral-border rounded-r-full" style="width: {{ b2c_pct }}%"></div>
                 </div>
                 <div class="flex justify-between items-center pt-1 text-[11px]">
-                    <span class="text-slate-400">Revenue is 8.2% ahead of plan, led by reseller growth.</span>
+                    <span class="text-slate-400">Stores drive the majority of sales volume across commercial accounts.</span>
                     <a href="{% url 'report_sales' %}" class="text-coral hover:underline font-semibold flex items-center space-x-1">
                         <span>View sales detail</span>
                         <span>&rarr;</span>
@@ -215,11 +215,12 @@
     <div class="flex items-center justify-between">
         <span class="text-xs font-bold text-slate-900">Statistics</span>
         <div class="relative">
-            <select id="statPeriodSelect" onchange="updateRightRailStats(this.value)" class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 bg-slate-50 font-medium focus:outline-none focus:ring-1 focus:ring-coral cursor-pointer">
-                <option value="ytd" selected>Year To Date</option>
-                <option value="fy2013">Full Year 2013</option>
-                <option value="fy2012">Full Year 2012</option>
-                <option value="all">All-Time (2011–2014)</option>
+            <select id="statPeriodSelect" onchange="onPeriodChange(this.value)" class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 bg-slate-50 font-medium focus:outline-none focus:ring-1 focus:ring-coral cursor-pointer">
+                <option value="all" selected>All Years (2011–2014)</option>
+                <option value="2014">FY2014</option>
+                <option value="2013">FY2013</option>
+                <option value="2012">FY2012</option>
+                <option value="2011">FY2011</option>
             </select>
         </div>
     </div>
@@ -231,17 +232,17 @@
                 <span id="statMetricLabel">Total Gross Revenue</span>
                 <span class="text-[9px] text-slate-400">&curarr;</span>
             </button>
-            <span id="statYoYBadge" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded transition">+38% YoY</span>
+            <span id="statYoYBadge" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded transition">4-Year Total</span>
         </div>
-        <div id="statBigFigure" class="text-2xl font-bold text-slate-900 transition">$80.3M</div>
+        <div id="statBigFigure" class="text-2xl font-bold text-slate-900 transition">$0</div>
 
         <!-- Chart Canvas -->
         <div class="h-36 pt-1">
             <canvas id="rightRailChart"></canvas>
         </div>
         <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200">
-            <span id="statPeriodFooter">Jan–Jun 2014</span>
-            <span id="statUnitFooter">Revenue in USD</span>
+            <span id="statPeriodFooter">FY2011–FY2014</span>
+            <span id="statUnitFooter">Live SQL Server Data</span>
         </div>
     </div>
 
@@ -252,7 +253,7 @@
             <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Executive Summary</h3>
         </div>
         <p class="text-[11px] text-slate-600 leading-relaxed">
-            Reseller stores drive 68% ($54.6M) of gross sales across 701 commercial accounts, while 18,484 direct consumers make up 32% ($25.7M). Manufacturing lost $412,390 to scrap, mostly in thermoforming and trim calibration. High-margin accessories (around 62.5%) help balance lower margins on assembled bikes (45.4%).
+            Reseller stores drive {{ b2b_pct }}% (${{ b2b_rev|floatformat:0|intcomma }}) of customer sales across commercial accounts, while direct consumers make up {{ b2c_pct }}% (${{ b2c_rev|floatformat:0|intcomma }}). Total scrap across work orders reached ${{ total_scrap_loss|intcomma }}.
         </p>
     </div>
 </div>
@@ -260,107 +261,101 @@
 
 {% block scripts %}
 <script>
-const statsDataset = {
-    gross: {
-        ytd: {
-            figure: '$80.3M',
-            badge: '+38% YoY',
-            badgeClass: 'text-emerald-700 bg-emerald-50',
-            period: 'Jan–Jun 2014',
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            values: [12.4, 14.1, 15.8, 18.7, 16.2, 17.5],
-            highlightIndex: 3
-        },
-        fy2013: {
-            figure: '$43.9M',
-            badge: '+32.2% YoY',
-            badgeClass: 'text-emerald-700 bg-emerald-50',
-            period: 'Q1–Q4 2013',
-            labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-            values: [9.2, 11.5, 12.8, 10.4],
-            highlightIndex: 2
-        },
-        fy2012: {
-            figure: '$33.2M',
-            badge: '+163.5% YoY',
-            badgeClass: 'text-emerald-700 bg-emerald-50',
-            period: 'Q1–Q4 2012',
-            labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-            values: [6.1, 8.4, 9.9, 8.8],
-            highlightIndex: 2
-        },
-        all: {
-            figure: '$110.4M',
-            badge: '4-Yr Total',
-            badgeClass: 'text-emerald-700 bg-emerald-50',
-            period: 'FY2011–FY2014',
-            labels: ['2011', '2012', '2013', '2014'],
-            values: [12.6, 33.2, 43.9, 20.7],
-            highlightIndex: 2
-        }
-    },
-    net: {
-        ytd: {
-            figure: '$79.8M',
-            badge: '+37.6% YoY',
-            badgeClass: 'text-emerald-700 bg-emerald-50',
-            period: 'Jan–Jun 2014',
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            values: [12.3, 14.0, 15.7, 18.6, 16.1, 17.4],
-            highlightIndex: 3
-        },
-        fy2013: {
-            figure: '$43.6M',
-            badge: '+31.8% YoY',
-            badgeClass: 'text-emerald-700 bg-emerald-50',
-            period: 'Q1–Q4 2013',
-            labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-            values: [9.1, 11.4, 12.7, 10.4],
-            highlightIndex: 2
-        },
-        fy2012: {
-            figure: '$33.0M',
-            badge: '+162% YoY',
-            badgeClass: 'text-emerald-700 bg-emerald-50',
-            period: 'Q1–Q4 2012',
-            labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-            values: [6.0, 8.3, 9.8, 8.9],
-            highlightIndex: 2
-        },
-        all: {
-            figure: '$109.8M',
-            badge: 'Net Realized',
-            badgeClass: 'text-emerald-700 bg-emerald-50',
-            period: 'FY2011–FY2014',
-            labels: ['2011', '2012', '2013', '2014'],
-            values: [12.5, 33.0, 43.6, 20.7],
-            highlightIndex: 2
-        }
-    }
-};
-
+const rawRevenueData = {{ revenue_data_json|safe }};
 let currentMetric = 'gross';
-let currentPeriod = 'ytd';
+let currentPeriod = 'all';
+let selectedBarIdx = null;
 let rightRailChart = null;
 
-function buildColors(count, highlight) {
+function formatDollar(val) {
+    if (val >= 1e6) {
+        return '$' + (val / 1e6).toFixed(1) + 'M';
+    } else if (val >= 1e3) {
+        return '$' + (val / 1e3).toFixed(0) + 'K';
+    }
+    return '$' + Math.round(val).toLocaleString();
+}
+
+function getRevenueValue(item, metric) {
+    if (!item) return 0;
+    return metric === 'gross' ? (parseFloat(item.GrossAmount) || 0) : (parseFloat(item.NetRevenue) || 0);
+}
+
+function getChartColors(count, highlightIdx) {
     const bg = [];
     for (let i = 0; i < count; i++) {
-        bg.push(i === highlight ? '#FF5B26' : 'rgba(255, 91, 38, 0.25)');
+        bg.push(i === highlightIdx ? '#FF5B26' : 'rgba(255, 91, 38, 0.28)');
     }
     return bg;
 }
 
+function renderStatsView() {
+    if (!rawRevenueData || rawRevenueData.length === 0) {
+        document.getElementById('statBigFigure').textContent = '$0';
+        document.getElementById('statYoYBadge').textContent = 'No Data';
+        document.getElementById('statPeriodFooter').textContent = 'Database offline';
+        return;
+    }
+
+    const labels = rawRevenueData.map(d => 'FY' + d.Year);
+    const values = rawRevenueData.map(d => +(getRevenueValue(d, currentMetric) / 1e6).toFixed(2));
+    const totalOrders = rawRevenueData.reduce((acc, d) => acc + (d.OrderCount || 0), 0);
+    const totalSum = rawRevenueData.reduce((acc, d) => acc + getRevenueValue(d, currentMetric), 0);
+
+    let figureText = '';
+    let badgeText = '';
+    let footerText = '';
+    let activeHighlight = selectedBarIdx;
+
+    if (currentPeriod === 'all') {
+        if (selectedBarIdx !== null && selectedBarIdx >= 0 && selectedBarIdx < rawRevenueData.length) {
+            const item = rawRevenueData[selectedBarIdx];
+            const itemVal = getRevenueValue(item, currentMetric);
+            figureText = '$' + Number(Math.round(itemVal)).toLocaleString();
+            badgeText = (item.OrderCount || 0).toLocaleString() + ' orders';
+            footerText = 'FY' + item.Year + ' (' + (itemVal / 1e6).toFixed(1) + 'M)';
+        } else {
+            figureText = formatDollar(totalSum);
+            badgeText = totalOrders.toLocaleString() + ' Total Orders';
+            footerText = 'FY2011–FY2014 Overall';
+            activeHighlight = values.length - 2; // highlight 2013 peak by default
+        }
+    } else {
+        const yearInt = parseInt(currentPeriod, 10);
+        const idx = rawRevenueData.findIndex(d => d.Year === yearInt);
+        activeHighlight = idx >= 0 ? idx : 0;
+        const item = rawRevenueData[activeHighlight];
+        const itemVal = getRevenueValue(item, currentMetric);
+        figureText = '$' + Number(Math.round(itemVal)).toLocaleString();
+        badgeText = (item.OrderCount || 0).toLocaleString() + ' orders';
+        footerText = 'FY' + item.Year + ' Full Year';
+    }
+
+    document.getElementById('statBigFigure').textContent = figureText;
+    document.getElementById('statYoYBadge').textContent = badgeText;
+    document.getElementById('statPeriodFooter').textContent = footerText;
+
+    if (rightRailChart) {
+        rightRailChart.data.labels = labels;
+        rightRailChart.data.datasets[0].data = values;
+        rightRailChart.data.datasets[0].backgroundColor = getChartColors(values.length, activeHighlight);
+        rightRailChart.update();
+    }
+}
+
 function initRightRailChart() {
-    const data = statsDataset[currentMetric][currentPeriod];
+    if (!rawRevenueData || rawRevenueData.length === 0) return;
+    const labels = rawRevenueData.map(d => 'FY' + d.Year);
+    const values = rawRevenueData.map(d => +(getRevenueValue(d, currentMetric) / 1e6).toFixed(2));
     const ctx = document.getElementById('rightRailChart').getContext('2d');
+
     rightRailChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: data.labels,
+            labels: labels,
             datasets: [{
-                data: data.values,
-                backgroundColor: buildColors(data.values.length, data.highlightIndex),
+                data: values,
+                backgroundColor: getChartColors(values.length, values.length - 2),
                 borderRadius: 6
             }]
         },
@@ -369,20 +364,17 @@ function initRightRailChart() {
             maintainAspectRatio: false,
             onClick: (e, elements) => {
                 if (elements && elements.length > 0) {
-                    const idx = elements[0].index;
-                    const val = data.values[idx];
-                    const label = data.labels[idx];
-                    document.getElementById('statBigFigure').textContent = '$' + val + 'M';
-                    document.getElementById('statPeriodFooter').textContent = label + ' ' + (currentPeriod === 'all' ? '' : data.period);
-                    rightRailChart.data.datasets[0].backgroundColor = buildColors(data.values.length, idx);
-                    rightRailChart.update();
+                    selectedBarIdx = elements[0].index;
+                    renderStatsView();
                 }
             },
             plugins: {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
-                        label: function(ctx) { return '$' + ctx.raw.toLocaleString() + 'M'; }
+                        label: function(ctx) {
+                            return (currentMetric === 'gross' ? 'Gross: $' : 'Net: $') + ctx.raw.toFixed(2) + 'M';
+                        }
                     }
                 }
             },
@@ -392,28 +384,20 @@ function initRightRailChart() {
             }
         }
     });
+
+    renderStatsView();
 }
 
-function updateRightRailStats(period) {
-    currentPeriod = period;
-    const data = statsDataset[currentMetric][currentPeriod];
-    document.getElementById('statBigFigure').textContent = data.figure;
-    document.getElementById('statYoYBadge').textContent = data.badge;
-    document.getElementById('statYoYBadge').className = 'text-[10px] font-semibold px-1.5 py-0.5 rounded transition ' + data.badgeClass;
-    document.getElementById('statPeriodFooter').textContent = data.period;
-
-    if (rightRailChart) {
-        rightRailChart.data.labels = data.labels;
-        rightRailChart.data.datasets[0].data = data.values;
-        rightRailChart.data.datasets[0].backgroundColor = buildColors(data.values.length, data.highlightIndex);
-        rightRailChart.update();
-    }
+function onPeriodChange(val) {
+    currentPeriod = val;
+    selectedBarIdx = null;
+    renderStatsView();
 }
 
 function toggleRevenueMetric() {
     currentMetric = currentMetric === 'gross' ? 'net' : 'gross';
     document.getElementById('statMetricLabel').textContent = currentMetric === 'gross' ? 'Total Gross Revenue' : 'Realized Net Revenue';
-    updateRightRailStats(currentPeriod);
+    renderStatsView();
 }
 
 document.addEventListener('DOMContentLoaded', initRightRailChart);

@@ -1,22 +1,67 @@
+import os
 import logging
-from django.db import connections
-from django.db.utils import OperationalError, DatabaseError
+from dotenv import load_dotenv
 
+load_dotenv()
 logger = logging.getLogger(__name__)
 
-def execute_query(sql, params=None, db_alias='adventureworks'):
+class DatabaseConnectionError(Exception):
+    """Raised when live SQL Server AdventureWorks connection or query fails."""
+    pass
+
+def get_connection():
     """
-    Safely executes an SQL query on the specified database connection.
-    Returns a list of dictionaries where keys are column names.
+    Connects to the Microsoft SQL Server AdventureWorks database using pymssql.
+    """
+    import pymssql
+    host = os.getenv('DB_HOST', 'localhost')
+    port = int(os.getenv('DB_PORT', 1434))
+    user = os.getenv('DB_USER', 'sa')
+    password = os.getenv('DB_PASSWORD', 'Password123')
+    database = os.getenv('DB_NAME', 'AdventureWorks2019')
+
+    try:
+        return pymssql.connect(
+            server=host,
+            port=port,
+            user=user,
+            password=password,
+            database=database,
+            as_dict=True,
+            timeout=3,
+            login_timeout=3
+        )
+    except Exception as e:
+        logger.error(f"Failed connecting to SQL Server at {host}:{port} ({database}): {e}")
+        raise DatabaseConnectionError(f"Cannot connect to SQL Server database '{database}' on {host}:{port}. Error: {e}")
+
+def execute_query(sql, params=None):
+    """
+    Executes raw SQL query on live AdventureWorks2019 database.
+    Strictly returns database results. Never falls back to mock data.
+    """
+    conn = None
+    try:
+        conn = get_connection()
+        with conn.cursor() as cursor:
+            cursor.execute(sql, params or ())
+            return cursor.fetchall()
+    except DatabaseConnectionError:
+        raise
+    except Exception as e:
+        logger.error(f"SQL execution failure: {e}")
+        raise DatabaseConnectionError(f"Database Query Error: {e}")
+    finally:
+        if conn:
+            conn.close()
+
+def check_connection():
+    """
+    Quick check to verify if the live AdventureWorks database is online.
     """
     try:
-        connection = connections[db_alias]
-        with connection.cursor() as cursor:
-            cursor.execute(sql, params or [])
-            if cursor.description:
-                columns = [col[0] for col in cursor.description]
-                return [dict(zip(columns, row)) for row in cursor.fetchall()]
-            return []
-    except (OperationalError, DatabaseError, Exception) as e:
-        logger.warning(f"Database query on '{db_alias}' failed: {e}. Falling back to empty or mock data.")
-        return None
+        conn = get_connection()
+        conn.close()
+        return True, "Connected to AdventureWorks2019 on SQL Server"
+    except Exception as e:
+        return False, str(e)

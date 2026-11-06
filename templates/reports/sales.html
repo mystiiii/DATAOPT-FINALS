@@ -237,14 +237,20 @@
 
 {% block scripts %}
 <script>
-const territoryData = [
-    { code: 'SW', name: 'Southwest', revenue: '$24,180,500', value: 24.18, badge: '+19% YoY &middot; 5,716 orders' },
-    { code: 'NW', name: 'Northwest', revenue: '$16,082,100', value: 16.08, badge: '+12% YoY &middot; 3,890 orders' },
-    { code: 'NE', name: 'Northeast', revenue: '$10,420,300', value: 10.42, badge: '+8% YoY &middot; 2,450 orders' },
-    { code: 'CA', name: 'Canada', revenue: '$9,850,200', value: 9.85, badge: '+6% YoY &middot; 2,180 orders' },
-    { code: 'UK', name: 'United Kingdom', revenue: '$8,210,400', value: 8.21, badge: '+5% YoY &middot; 1,840 orders' },
-    { code: 'DE', name: 'Germany', revenue: '$5,430,900', value: 5.43, badge: '+4% YoY &middot; 1,220 orders' }
-];
+const rawTerritories = {{ territory_sales_json|safe }};
+const territoryData = (rawTerritories && rawTerritories.length > 0)
+    ? rawTerritories.map(t => {
+        const rev = parseFloat(t.TotalRevenue) || 0;
+        const revM = (rev / 1e6).toFixed(2);
+        return {
+            code: t.TerritoryName.substring(0, 3).toUpperCase(),
+            name: t.TerritoryName,
+            revenue: '$' + Number(Math.round(rev)).toLocaleString(),
+            value: parseFloat(revM),
+            badge: t.TerritoryGroup + ' · ' + Number(t.TotalOrders).toLocaleString() + ' orders'
+        };
+    })
+    : [];
 
 let selectedTerritoryIdx = 0;
 const tCtx = document.getElementById('territoryChart').getContext('2d');
@@ -253,44 +259,54 @@ function getTerritoryColors(activeIdx) {
     return territoryData.map((_, i) => i === activeIdx ? '#FF5B26' : 'rgba(255, 91, 38, 0.25)');
 }
 
-const territoryChart = new Chart(tCtx, {
-    type: 'bar',
-    data: {
-        labels: territoryData.map(t => t.code),
-        datasets: [{
-            data: territoryData.map(t => t.value),
-            backgroundColor: getTerritoryColors(0),
-            borderRadius: 5
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: (e, elements) => {
-            if (elements && elements.length > 0) {
-                const idx = elements[0].index;
-                selectedTerritoryIdx = idx;
-                const item = territoryData[idx];
-                document.getElementById('territoryNameDisplay').textContent = item.name;
-                document.getElementById('territoryRevenueDisplay').innerHTML = item.revenue + ' <span class="text-[10px] text-emerald-600 font-normal">(' + item.badge + ')</span>';
-                document.getElementById('territoryFooterLabel').textContent = item.name + ' Territory Selected';
-                territoryChart.data.datasets[0].backgroundColor = getTerritoryColors(idx);
-                territoryChart.update();
-            }
+if (territoryData.length > 0) {
+    const first = territoryData[0];
+    document.getElementById('territoryNameDisplay').textContent = first.name;
+    document.getElementById('territoryRevenueDisplay').innerHTML = first.revenue + ' <span class="text-[10px] text-emerald-600 font-normal">(' + first.badge + ')</span>';
+    document.getElementById('territoryFooterLabel').textContent = first.name + ' Territory Selected';
+
+    const territoryChart = new Chart(tCtx, {
+        type: 'bar',
+        data: {
+            labels: territoryData.map(t => t.code),
+            datasets: [{
+                data: territoryData.map(t => t.value),
+                backgroundColor: getTerritoryColors(0),
+                borderRadius: 5
+            }]
         },
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                callbacks: {
-                    label: function(ctx) { return territoryData[ctx.dataIndex].name + ': $' + ctx.raw.toLocaleString() + 'M'; }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            onClick: (e, elements) => {
+                if (elements && elements.length > 0) {
+                    const idx = elements[0].index;
+                    selectedTerritoryIdx = idx;
+                    const item = territoryData[idx];
+                    document.getElementById('territoryNameDisplay').textContent = item.name;
+                    document.getElementById('territoryRevenueDisplay').innerHTML = item.revenue + ' <span class="text-[10px] text-emerald-600 font-normal">(' + item.badge + ')</span>';
+                    document.getElementById('territoryFooterLabel').textContent = item.name + ' Territory Selected';
+                    territoryChart.data.datasets[0].backgroundColor = getTerritoryColors(idx);
+                    territoryChart.update();
                 }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) { return territoryData[ctx.dataIndex].name + ': $' + ctx.raw.toLocaleString() + 'M'; }
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                y: { display: false }
             }
-        },
-        scales: {
-            x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-            y: { display: false }
         }
-    }
-});
+    });
+} else {
+    document.getElementById('territoryNameDisplay').textContent = 'No data';
+    document.getElementById('territoryRevenueDisplay').textContent = '$0';
+}
 </script>
 {% endblock %}

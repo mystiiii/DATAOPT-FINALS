@@ -222,13 +222,20 @@
 
 {% block scripts %}
 <script>
-const vendorChartData = [
-    { code: 'Superior', name: 'Superior Bicycles', spend: '$8.42M', value: 8.42, badge: '182 purchase orders fulfilled' },
-    { code: 'ProAth', name: 'Professional Athletic Consultants', spend: '$7.14M', value: 7.14, badge: '160 purchase orders fulfilled' },
-    { code: 'Chicago', name: 'Chicago Bike Supply', spend: '$6.21M', value: 6.21, badge: '142 purchase orders fulfilled' },
-    { code: 'Comfort', name: 'Comfort Road Cycles', spend: '$5.50M', value: 5.50, badge: '128 purchase orders fulfilled' },
-    { code: 'Norwest', name: 'Northwest Bicycles', spend: '$4.95M', value: 4.95, badge: '115 purchase orders fulfilled' }
-];
+const rawVendors = {{ vendor_spend_json|safe }};
+const vendorChartData = (rawVendors && rawVendors.length > 0)
+    ? rawVendors.slice(0, 6).map(v => {
+        const spent = parseFloat(v.TotalSpent) || 0;
+        const spentM = (spent / 1e6).toFixed(2);
+        return {
+            code: v.VendorName.split(' ')[0],
+            name: v.VendorName,
+            spend: '$' + Number(Math.round(spent)).toLocaleString(),
+            value: parseFloat(spentM),
+            badge: v.PurchaseOrdersCount + ' purchase orders fulfilled'
+        };
+    })
+    : [];
 
 const vCtx = document.getElementById('vendorChart').getContext('2d');
 
@@ -236,43 +243,53 @@ function getVendorColors(activeIdx) {
     return vendorChartData.map((_, i) => i === activeIdx ? '#FF5B26' : 'rgba(255, 91, 38, 0.25)');
 }
 
-const vendorChart = new Chart(vCtx, {
-    type: 'bar',
-    data: {
-        labels: vendorChartData.map(v => v.code),
-        datasets: [{
-            data: vendorChartData.map(v => v.value),
-            backgroundColor: getVendorColors(0),
-            borderRadius: 5
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: (e, elements) => {
-            if (elements && elements.length > 0) {
-                const idx = elements[0].index;
-                const item = vendorChartData[idx];
-                document.getElementById('vendorNameDisplay').textContent = item.name;
-                document.getElementById('vendorSpendDisplay').innerHTML = item.spend + ' <span class="text-[10px] text-emerald-600 font-normal">(' + item.badge + ')</span>';
-                document.getElementById('vendorFooterLabel').textContent = item.name + ' Selected';
-                vendorChart.data.datasets[0].backgroundColor = getVendorColors(idx);
-                vendorChart.update();
-            }
+if (vendorChartData.length > 0) {
+    const first = vendorChartData[0];
+    document.getElementById('vendorNameDisplay').textContent = first.name;
+    document.getElementById('vendorSpendDisplay').innerHTML = first.spend + ' <span class="text-[10px] text-emerald-600 font-normal">(' + first.badge + ')</span>';
+    document.getElementById('vendorFooterLabel').textContent = first.name + ' Selected';
+
+    const vendorChart = new Chart(vCtx, {
+        type: 'bar',
+        data: {
+            labels: vendorChartData.map(v => v.code),
+            datasets: [{
+                data: vendorChartData.map(v => v.value),
+                backgroundColor: getVendorColors(0),
+                borderRadius: 5
+            }]
         },
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                callbacks: {
-                    label: function(ctx) { return vendorChartData[ctx.dataIndex].name + ': $' + ctx.raw.toLocaleString() + 'M'; }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            onClick: (e, elements) => {
+                if (elements && elements.length > 0) {
+                    const idx = elements[0].index;
+                    const item = vendorChartData[idx];
+                    document.getElementById('vendorNameDisplay').textContent = item.name;
+                    document.getElementById('vendorSpendDisplay').innerHTML = item.spend + ' <span class="text-[10px] text-emerald-600 font-normal">(' + item.badge + ')</span>';
+                    document.getElementById('vendorFooterLabel').textContent = item.name + ' Selected';
+                    vendorChart.data.datasets[0].backgroundColor = getVendorColors(idx);
+                    vendorChart.update();
                 }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) { return vendorChartData[ctx.dataIndex].name + ': $' + ctx.raw.toLocaleString() + 'M'; }
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+                y: { display: false }
             }
-        },
-        scales: {
-            x: { grid: { display: false }, ticks: { font: { size: 9 } } },
-            y: { display: false }
         }
-    }
-});
+    });
+} else {
+    document.getElementById('vendorNameDisplay').textContent = 'No data';
+    document.getElementById('vendorSpendDisplay').textContent = '$0';
+}
 </script>
 {% endblock %}

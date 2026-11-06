@@ -147,13 +147,20 @@
 
 {% block scripts %}
 <script>
-const scrapData = [
-    { code: 'Thermo', name: 'Thermoform temp too low', loss: '-$127,020', qty: 3480, badge: '3,480 units &middot; 124 orders' },
-    { code: 'Damage', name: 'Handling & transport damage', loss: '-$78,475', qty: 2150, badge: '2,150 units &middot; 86 orders' },
-    { code: 'Trim', name: 'Trim tool calibration failure', loss: '-$68,985', qty: 1890, badge: '1,890 units &middot; 74 orders' },
-    { code: 'Drill', name: 'Drill bit breakage', loss: '-$43,800', qty: 1200, badge: '1,200 units &middot; 52 orders' },
-    { code: 'Gouge', name: 'Surface finish gouge', loss: '-$31,025', qty: 850, badge: '850 units &middot; 38 orders' }
-];
+const rawScrap = {{ scrap_data_json|safe }};
+const scrapData = (rawScrap && rawScrap.length > 0)
+    ? rawScrap.slice(0, 8).map(s => {
+        const qty = s.TotalScrappedQty || 0;
+        const loss = Math.round(qty * 36.50);
+        return {
+            code: s.ScrapReason.split(' ')[0],
+            name: s.ScrapReason,
+            loss: '-$' + loss.toLocaleString(),
+            qty: qty,
+            badge: qty.toLocaleString() + ' units · ' + s.ScrapOrders + ' orders'
+        };
+    })
+    : [];
 
 const sCtx = document.getElementById('scrapChart').getContext('2d');
 
@@ -161,43 +168,53 @@ function getScrapColors(activeIdx) {
     return scrapData.map((_, i) => i === activeIdx ? '#FF5B26' : 'rgba(255, 91, 38, 0.25)');
 }
 
-const scrapChart = new Chart(sCtx, {
-    type: 'bar',
-    data: {
-        labels: scrapData.map(d => d.code),
-        datasets: [{
-            data: scrapData.map(d => d.qty),
-            backgroundColor: getScrapColors(0),
-            borderRadius: 5
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        onClick: (e, elements) => {
-            if (elements && elements.length > 0) {
-                const idx = elements[0].index;
-                const item = scrapData[idx];
-                document.getElementById('scrapReasonName').textContent = item.name;
-                document.getElementById('scrapLossValue').innerHTML = item.loss + ' <span class="text-[10px] text-slate-500 font-normal">(' + item.badge + ')</span>';
-                document.getElementById('scrapFooterLabel').textContent = item.code + ' Scrap Selected';
-                scrapChart.data.datasets[0].backgroundColor = getScrapColors(idx);
-                scrapChart.update();
-            }
+if (scrapData.length > 0) {
+    const first = scrapData[0];
+    document.getElementById('scrapReasonName').textContent = first.name;
+    document.getElementById('scrapLossValue').innerHTML = first.loss + ' <span class="text-[10px] text-slate-500 font-normal">(' + first.badge + ')</span>';
+    document.getElementById('scrapFooterLabel').textContent = first.code + ' Scrap Selected';
+
+    const scrapChart = new Chart(sCtx, {
+        type: 'bar',
+        data: {
+            labels: scrapData.map(d => d.code),
+            datasets: [{
+                data: scrapData.map(d => d.qty),
+                backgroundColor: getScrapColors(0),
+                borderRadius: 5
+            }]
         },
-        plugins: {
-            legend: { display: false },
-            tooltip: {
-                callbacks: {
-                    label: function(ctx) { return scrapData[ctx.dataIndex].name + ': ' + ctx.raw.toLocaleString() + ' scrapped units'; }
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            onClick: (e, elements) => {
+                if (elements && elements.length > 0) {
+                    const idx = elements[0].index;
+                    const item = scrapData[idx];
+                    document.getElementById('scrapReasonName').textContent = item.name;
+                    document.getElementById('scrapLossValue').innerHTML = item.loss + ' <span class="text-[10px] text-slate-500 font-normal">(' + item.badge + ')</span>';
+                    document.getElementById('scrapFooterLabel').textContent = item.code + ' Scrap Selected';
+                    scrapChart.data.datasets[0].backgroundColor = getScrapColors(idx);
+                    scrapChart.update();
                 }
+            },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(ctx) { return scrapData[ctx.dataIndex].name + ': ' + ctx.raw.toLocaleString() + ' scrapped units'; }
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                y: { display: false }
             }
-        },
-        scales: {
-            x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-            y: { display: false }
         }
-    }
-});
+    });
+} else {
+    document.getElementById('scrapReasonName').textContent = 'No data';
+    document.getElementById('scrapLossValue').textContent = '$0';
+}
 </script>
 {% endblock %}

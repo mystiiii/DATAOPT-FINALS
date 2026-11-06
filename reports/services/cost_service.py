@@ -18,14 +18,7 @@ def get_product_margins(limit=15):
     WHERE p.ListPrice > 0
     ORDER BY MarginPercentage DESC;
     """
-    data = execute_query(sql)
-    if data is not None:
-        return data
-    return [
-        {"ProductID": 864, "ProductName": "Classic Vest, S", "Category": "Clothing", "StandardCost": 23.75, "ListPrice": 63.50, "Margin": 39.75, "MarginPercentage": 62.60},
-        {"ProductID": 865, "ProductName": "Classic Vest, M", "Category": "Clothing", "StandardCost": 23.75, "ListPrice": 63.50, "Margin": 39.75, "MarginPercentage": 62.60},
-        {"ProductID": 712, "ProductName": "AWC Logo Cap", "Category": "Clothing", "StandardCost": 3.40, "ListPrice": 8.99, "Margin": 5.59, "MarginPercentage": 62.18},
-    ]
+    return execute_query(sql)
 
 def get_vendor_purchasing_spend(limit=10):
     sql = f"""
@@ -39,18 +32,11 @@ def get_vendor_purchasing_spend(limit=10):
     GROUP BY v.BusinessEntityID, v.Name
     ORDER BY TotalSpent DESC;
     """
-    data = execute_query(sql)
-    if data is not None:
-        return data
-    return [
-        {"VendorID": 1598, "VendorName": "Superior Bicycles", "PurchaseOrdersCount": 42, "TotalSpent": 4125890.50},
-        {"VendorID": 1602, "VendorName": "Professional Sales and Service", "PurchaseOrdersCount": 38, "TotalSpent": 3654120.00},
-        {"VendorID": 1534, "VendorName": "Chicago City Cycles", "PurchaseOrdersCount": 31, "TotalSpent": 2984120.25},
-    ]
+    return execute_query(sql)
 
-def get_standard_cost_history():
-    sql = """
-    SELECT TOP 6
+def get_standard_cost_history(limit=6):
+    sql = f"""
+    SELECT TOP ({limit})
         p.Name AS ProductName,
         pch.StartDate,
         pch.EndDate,
@@ -58,16 +44,6 @@ def get_standard_cost_history():
     FROM Production.ProductCostHistory pch
     JOIN Production.Product p ON p.ProductID = pch.ProductID
     WHERE p.ProductID IN (779, 782, 783)
-    ORDER BY p.Name, pch.StartDate DESC;
+    ORDER BY p.Name, pch.StartDate;
     """
-    data = execute_query(sql)
-    if data is not None:
-        return data
-    return [
-        {"ProductName": "Mountain-200 Black, 38", "StartDate": "2013-05-30", "EndDate": None, "StandardCost": 1251.98},
-        {"ProductName": "Mountain-200 Black, 38", "StartDate": "2012-05-30", "EndDate": "2013-05-29", "StandardCost": 1304.60},
-        {"ProductName": "Mountain-200 Silver, 38", "StartDate": "2013-05-30", "EndDate": None, "StandardCost": 1251.98},
-        {"ProductName": "Mountain-200 Silver, 38", "StartDate": "2012-05-30", "EndDate": "2013-05-29", "StandardCost": 1304.60},
-        {"ProductName": "Road-150 Red, 56", "StartDate": "2013-05-30", "EndDate": None, "StandardCost": 2171.29},
-        {"ProductName": "Road-150 Red, 56", "StartDate": "2012-05-30", "EndDate": "2013-05-29", "StandardCost": 2225.40},
-    ]
+    return execute_query(sql)

@@ -170,9 +170,14 @@
                     </svg>
                 </a>
             </div>
-            <div class="flex items-center space-x-1.5 mt-2 px-2 text-[10px] text-slate-400">
+            <div class="flex items-center space-x-1.5 mt-2 px-2 text-[10px]">
+                {% if db_error %}
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                <span class="text-rose-600 font-medium">Database offline</span>
+                {% else %}
                 <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                <span>System connected</span>
+                <span class="text-slate-400">SQL Server online</span>
+                {% endif %}
             </div>
         </div>
     </aside>
@@ -180,6 +185,20 @@
 
     <!-- Center Workspace + Right Rail (Main Content Container) -->
     <div class="flex-1 flex flex-col min-w-0">
+        <!-- Persistent Database Connection Error Alert -->
+        {% if db_error %}
+        <div class="mx-6 mt-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-900 text-xs flex items-start space-x-3 shadow-sm">
+            <svg class="w-5 h-5 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <div>
+                <strong class="font-bold text-red-800 text-sm">Database Connection Error</strong>
+                <p class="mt-1 text-red-700 leading-relaxed font-mono text-[11px]">{{ db_error }}</p>
+                <p class="mt-1 text-[11px] text-red-600">Ensure the Microsoft SQL Server container is running on port 1434 with AdventureWorks2019 attached.</p>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Toast Messages -->
         {% if messages %}
         <div class="px-6 pt-4 space-y-2">

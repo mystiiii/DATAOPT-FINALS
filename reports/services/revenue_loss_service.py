@@ -4,6 +4,7 @@ def get_revenue_and_loss_by_year():
     sql = """
     SELECT
         YEAR(soh.OrderDate) AS [Year],
+        COUNT(DISTINCT soh.SalesOrderID) AS OrderCount,
         SUM(sod.OrderQty * sod.UnitPrice) AS GrossAmount,
         SUM(sod.OrderQty * sod.UnitPrice * sod.UnitPriceDiscount) AS DiscountLoss,
         SUM(sod.LineTotal) AS NetRevenue
@@ -12,15 +13,7 @@ def get_revenue_and_loss_by_year():
     GROUP BY YEAR(soh.OrderDate)
     ORDER BY [Year];
     """
-    data = execute_query(sql)
-    if data is not None:
-        return data
-    return [
-        {"Year": 2011, "GrossAmount": 12646112.16, "DiscountLoss": 4439.95, "NetRevenue": 12641672.21},
-        {"Year": 2012, "GrossAmount": 33710896.94, "DiscountLoss": 186595.62, "NetRevenue": 33524301.32},
-        {"Year": 2013, "GrossAmount": 43922050.71, "DiscountLoss": 299571.67, "NetRevenue": 43622479.05},
-        {"Year": 2014, "GrossAmount": 20094829.50, "DiscountLoss": 36900.69, "NetRevenue": 20057928.81},
-    ]
+    return execute_query(sql)
 
 def get_production_scrap_loss():
     sql = """
@@ -34,11 +27,4 @@ def get_production_scrap_loss():
     GROUP BY sr.Name
     ORDER BY TotalScrappedQty DESC;
     """
-    data = execute_query(sql)
-    if data is not None:
-        return data
-    return [
-        {"ScrapReason": "Thermoform temperature too low", "ScrapOrders": 124, "TotalScrappedQty": 3480},
-        {"ScrapReason": "Handling damage", "ScrapOrders": 89, "TotalScrappedQty": 2150},
-        {"ScrapReason": "Trim error", "ScrapOrders": 67, "TotalScrappedQty": 1890},
-    ]
+    return execute_query(sql)

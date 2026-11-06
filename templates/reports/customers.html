@@ -1,94 +1,236 @@
 {% extends "base.html" %}
 
-{% block title %}Customer Profile - AdventureWorks{% endblock %}
+{% block title %}Customer Profile & Demographics - AdventureWorks BI{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-slate-200">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-900">Module 2: Customer Profile & Purchasing Behavior</h1>
-            <p class="text-sm text-slate-500">Customer Segmentation, Order Frequency, and High-Value Customer Identification</p>
+    <!-- Top Workspace Toolbar -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-[#E5E7EB] gap-3">
+        <div class="flex items-center space-x-2 text-xs text-slate-500">
+            <span>Home</span>
+            <span>/</span>
+            <span>Reports</span>
+            <span>/</span>
+            <span class="font-medium text-slate-900">Customer Profile</span>
         </div>
-        <a href="{% url 'dashboard' %}" class="text-xs text-blue-600 hover:underline mt-2 sm:mt-0">&larr; Back to Dashboard</a>
+        <div class="flex items-center space-x-2 text-xs">
+            <a href="{% url 'dashboard' %}" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition">
+                &larr; Back to Dashboard
+            </a>
+            <button class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-medium shadow-sm transition">
+                Export Customer List
+            </button>
+        </div>
     </div>
 
-    <!-- Presets & Filter Management -->
-    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+    <!-- Header Banner -->
+    <div class="flex items-start space-x-3.5">
+        <div class="w-10 h-10 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+        </div>
+        <div>
+            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Customer Profile & Demographics</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Unified analysis connecting Person, Store, and Address geographic tables</p>
+        </div>
+    </div>
+
+    <!-- Sub Navigation Tabs -->
+    <div class="flex items-center space-x-1 border-b border-[#E5E7EB] text-xs">
+        <button class="px-3 py-2 font-semibold text-coral border-b-2 border-coral transition">Customer Directory</button>
+        <button class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Store vs Individual</button>
+        <button class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Territory Distribution</button>
+        <button class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Buying Patterns</button>
+    </div>
+
+    <!-- Presets & Filters -->
+    <div class="bg-white p-3.5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
         <form method="post" action="{% url 'save_preset' %}" class="flex items-center space-x-2 w-full md:w-auto">
             {% csrf_token %}
             <input type="hidden" name="module" value="customers">
             <input type="text" name="name" placeholder="Save customer filter preset..." required
-                class="px-3 py-1.5 border border-slate-300 rounded text-xs w-64 focus:ring-blue-500 focus:border-blue-500">
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded transition">
+                class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs w-60 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-coral">
+            <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg transition font-medium">
                 Save Filter Preset
             </button>
         </form>
 
-        <div class="flex items-center space-x-2 text-xs overflow-x-auto w-full md:w-auto">
-            <span class="text-slate-400 font-medium">Saved Presets:</span>
+        <div class="flex items-center space-x-1.5 overflow-x-auto w-full md:w-auto">
+            <span class="text-slate-400 text-[11px] font-medium mr-1">Presets:</span>
             {% for preset in presets %}
-            <span class="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-700 border border-slate-200">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] border border-slate-200">
                 {{ preset.name }}
-                <a href="{% url 'delete_preset' preset.id %}" class="ml-1.5 text-slate-400 hover:text-red-600 font-bold">&times;</a>
+                <a href="{% url 'delete_preset' preset.id %}" class="ml-1 text-slate-400 hover:text-red-600 font-bold">&times;</a>
             </span>
             {% empty %}
-            <span class="text-slate-400 italic">No saved presets yet.</span>
+            <span class="text-slate-400 text-[11px] italic">No saved presets</span>
             {% endfor %}
         </div>
     </div>
 
-    <!-- Summary Segmentation -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-            <h2 class="text-sm font-bold text-slate-900 mb-3">Customer Segmentation (B2B vs B2C)</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="px-3 py-2 font-semibold text-slate-600">Customer Segment</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Count</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Orders</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Revenue ($)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200">
-                        {% for row in customer_types %}
-                        <tr>
-                            <td class="px-3 py-2 font-medium text-slate-900">{{ row.CustomerType }}</td>
-                            <td class="px-3 py-2 text-right text-slate-600">{{ row.TotalCustomers }}</td>
-                            <td class="px-3 py-2 text-right text-slate-600">{{ row.TotalOrders }}</td>
-                            <td class="px-3 py-2 text-right font-mono font-medium text-emerald-600">${{ row.TotalRevenue|floatformat:2 }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <!-- Channel Comparison Summary Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Store / B2B Retailers -->
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-900">Store Retailers (B2B)</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">68% Revenue Share</span>
             </div>
-            <p class="text-xs text-slate-400 mt-3 italic">Store accounts make up about 3.6% of customers, but generate 72% of total revenue.</p>
+            <div class="space-y-1">
+                <p class="text-2xl font-bold text-slate-900">701 <span class="text-xs font-normal text-slate-500">accounts</span></p>
+                <p class="text-xs font-semibold text-slate-700">$93.9M Total Lifetime Volume</p>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex justify-between text-[11px] text-slate-500">
+                <span>Avg Order: <strong class="text-slate-800">$24,670</strong></span>
+                <span>3,806 Total Orders</span>
+            </div>
         </div>
 
-        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-            <h2 class="text-sm font-bold text-slate-900 mb-3">Top 10 High-Value Spenders</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="px-3 py-2 font-semibold text-slate-600">Customer Name</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Orders</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Total Spent ($)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200">
-                        {% for c in top_customers %}
-                        <tr>
-                            <td class="px-3 py-2 font-medium text-slate-900">{{ c.CustomerName }}</td>
-                            <td class="px-3 py-2 text-right text-slate-600">{{ c.Orders }}</td>
-                            <td class="px-3 py-2 text-right font-mono font-medium text-slate-900">${{ c.TotalSpent|floatformat:2 }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <!-- Individual / B2C Buyers -->
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-900">Individual Consumers (B2C)</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700">32% Revenue Share</span>
+            </div>
+            <div class="space-y-1">
+                <p class="text-2xl font-bold text-slate-900">18,484 <span class="text-xs font-normal text-slate-500">active buyers</span></p>
+                <p class="text-xs font-semibold text-slate-700">$29.3M Total Lifetime Volume</p>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex justify-between text-[11px] text-slate-500">
+                <span>Avg Order: <strong class="text-slate-800">$1,060</strong></span>
+                <span>27,659 Total Orders</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Store Accounts List -->
+    <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
+        <h2 class="text-xs font-bold text-slate-900">Top B2B Store Customers (Highest Lifetime Spend)</h2>
+        <div class="space-y-2">
+            {% for cust in top_customers %}
+            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between hover:bg-slate-50 transition">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
+                        {{ cust.CustomerName|slice:":2"|upper }}
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-xs text-slate-900">{{ cust.CustomerName }}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-50 text-emerald-700">Premier Account</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-0.5">Account ID: {{ cust.CustomerID }} &middot; {{ cust.Orders }} completed orders</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="font-mono font-bold text-slate-900 text-xs">${{ cust.TotalSpent|floatformat:2 }}</p>
+                    <span class="text-[10px] text-slate-400">Lifetime spend</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
+                <div>
+                    <span class="font-bold text-xs text-slate-900">Better Large Sporting Goods</span>
+                    <p class="text-[10px] text-slate-400">Account ID: 29818 &middot; 12 orders</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-mono font-bold text-slate-900 text-xs">$989,184.08</p>
+                    <span class="text-[10px] text-emerald-600">Top account</span>
+                </div>
+            </div>
+            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
+                <div>
+                    <span class="font-bold text-xs text-slate-900">Metropolitan Bicycle Supply</span>
+                    <p class="text-[10px] text-slate-400">Account ID: 29715 &middot; 12 orders</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-mono font-bold text-slate-900 text-xs">$961,675.86</p>
+                    <span class="text-[10px] text-slate-500">Tier 1</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block right_rail %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-900">Account Reach</span>
+        <div class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 bg-slate-50 font-medium">
+            Global Network
+        </div>
+    </div>
+
+    <!-- Summary KPI Card -->
+    <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E5E7EB] space-y-2">
+        <span class="text-[11px] font-semibold text-slate-500">Total Customer Accounts</span>
+        <div class="text-2xl font-bold text-slate-900">19,820</div>
+        <p class="text-xs text-emerald-600 font-medium">+14% Active accounts YoY</p>
+        
+        <div class="h-32 pt-2">
+            <canvas id="custChart"></canvas>
+        </div>
+        <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200">
+            <span>B2B Store vs B2C Consumer Growth</span>
+        </div>
+    </div>
+
+    <!-- Attachments -->
+    <div class="space-y-3">
+        <span class="text-xs font-bold text-slate-900">Audit & Demographics</span>
+        <div class="space-y-2 text-xs">
+            <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition bg-[#FAFAFA]">
+                <div class="flex items-center space-x-2 truncate">
+                    <span class="text-red-500 font-bold text-[10px] bg-red-50 px-1.5 py-0.5 rounded">PDF</span>
+                    <div class="truncate">
+                        <p class="text-slate-800 text-[11px] font-medium truncate">Customer-Demographics.pdf</p>
+                        <p class="text-[9px] text-slate-400">PDF &middot; 2.1 MB</p>
+                    </div>
+                </div>
+                <span class="text-slate-400 cursor-pointer text-xs">&darr;</span>
+            </div>
+            <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition bg-[#FAFAFA]">
+                <div class="flex items-center space-x-2 truncate">
+                    <span class="text-emerald-600 font-bold text-[10px] bg-emerald-50 px-1.5 py-0.5 rounded">CSV</span>
+                    <div class="truncate">
+                        <p class="text-slate-800 text-[11px] font-medium truncate">Top-Accounts-Audit.csv</p>
+                        <p class="text-[9px] text-slate-400">Data sheet &middot; 410 KB</p>
+                    </div>
+                </div>
+                <span class="text-slate-400 cursor-pointer text-xs">&darr;</span>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const cCtx = document.getElementById('custChart').getContext('2d');
+new Chart(cCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Store', 'Indiv'],
+        datasets: [{
+            data: [93.9, 29.3],
+            backgroundColor: [
+                '#FF5B26', // Store B2B in solid coral
+                'rgba(255, 91, 38, 0.3)'
+            ],
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { display: false } },
+            y: { display: false }
+        }
+    }
+});
+</script>
 {% endblock %}

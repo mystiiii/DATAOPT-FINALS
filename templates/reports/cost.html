@@ -1,95 +1,252 @@
 {% extends "base.html" %}
 
-{% block title %}Cost Report - AdventureWorks{% endblock %}
+{% block title %}Cost and Margin Analysis - AdventureWorks BI{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-slate-200">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-900">Module 4: Business Cost & Margin Analysis</h1>
-            <p class="text-sm text-slate-500">Standard Costs vs List Prices, Profit Margins, and Vendor Purchasing Spend</p>
+    <!-- Top Workspace Toolbar -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-[#E5E7EB] gap-3">
+        <div class="flex items-center space-x-2 text-xs text-slate-500">
+            <span>Home</span>
+            <span>/</span>
+            <span>Reports</span>
+            <span>/</span>
+            <span class="font-medium text-slate-900">Cost & Margin</span>
         </div>
-        <a href="{% url 'dashboard' %}" class="text-xs text-blue-600 hover:underline mt-2 sm:mt-0">&larr; Back to Dashboard</a>
+        <div class="flex items-center space-x-2 text-xs">
+            <a href="{% url 'dashboard' %}" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition">
+                &larr; Back to Dashboard
+            </a>
+            <button class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-medium shadow-sm transition">
+                Generate PO Audit
+            </button>
+        </div>
     </div>
 
-    <!-- Presets & Filter Management -->
-    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+    <!-- Header Banner -->
+    <div class="flex items-start space-x-3.5">
+        <div class="w-10 h-10 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+            </svg>
+        </div>
+        <div>
+            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Cost and Margin Analysis</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Comparing standard manufacturing costs, list prices, margins, and vendor purchasing spend</p>
+        </div>
+    </div>
+
+    <!-- Sub Navigation Tabs -->
+    <div class="flex items-center space-x-1 border-b border-[#E5E7EB] text-xs">
+        <button class="px-3 py-2 font-semibold text-coral border-b-2 border-coral transition">Product Margins</button>
+        <button class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Standard Cost History</button>
+        <button class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Vendor Spend</button>
+        <button class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Purchase Orders</button>
+    </div>
+
+    <!-- Presets & Filters -->
+    <div class="bg-white p-3.5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
         <form method="post" action="{% url 'save_preset' %}" class="flex items-center space-x-2 w-full md:w-auto">
             {% csrf_token %}
             <input type="hidden" name="module" value="cost">
-            <input type="text" name="name" placeholder="Save cost report preset..." required
-                class="px-3 py-1.5 border border-slate-300 rounded text-xs w-64 focus:ring-blue-500 focus:border-blue-500">
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded transition">
+            <input type="text" name="name" placeholder="Save margin analysis preset..." required
+                class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs w-60 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-coral">
+            <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg transition font-medium">
                 Save Filter Preset
             </button>
         </form>
 
-        <div class="flex items-center space-x-2 text-xs overflow-x-auto w-full md:w-auto">
-            <span class="text-slate-400 font-medium">Saved Presets:</span>
+        <div class="flex items-center space-x-1.5 overflow-x-auto w-full md:w-auto">
+            <span class="text-slate-400 text-[11px] font-medium mr-1">Presets:</span>
             {% for preset in presets %}
-            <span class="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-700 border border-slate-200">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] border border-slate-200">
                 {{ preset.name }}
-                <a href="{% url 'delete_preset' preset.id %}" class="ml-1.5 text-slate-400 hover:text-red-600 font-bold">&times;</a>
+                <a href="{% url 'delete_preset' preset.id %}" class="ml-1 text-slate-400 hover:text-red-600 font-bold">&times;</a>
             </span>
             {% empty %}
-            <span class="text-slate-400 italic">No saved presets yet.</span>
+            <span class="text-slate-400 text-[11px] italic">No saved presets</span>
             {% endfor %}
         </div>
     </div>
 
-    <!-- Cost Detail Tables -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-            <h2 class="text-sm font-bold text-slate-900 mb-3">Top Product Profit Margins</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="px-3 py-2 font-semibold text-slate-600">Product Name</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600">Category</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Cost ($)</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Price ($)</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Margin (%)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200">
-                        {% for row in margins %}
-                        <tr>
-                            <td class="px-3 py-2 font-medium text-slate-900">{{ row.ProductName }}</td>
-                            <td class="px-3 py-2 text-slate-500">{{ row.Category }}</td>
-                            <td class="px-3 py-2 text-right text-slate-600 font-mono">${{ row.StandardCost|floatformat:2 }}</td>
-                            <td class="px-3 py-2 text-right text-slate-900 font-mono">${{ row.ListPrice|floatformat:2 }}</td>
-                            <td class="px-3 py-2 text-right font-mono font-bold text-emerald-600">{{ row.MarginPercentage }}%</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+    <!-- Product Margin Table -->
+    <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
+        <h2 class="text-xs font-bold text-slate-900">Product Profit Margins (Standard Cost vs List Price)</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-100 text-left text-xs">
+                <thead>
+                    <tr class="text-[11px] text-slate-400">
+                        <th class="pb-2 font-medium">Product Name</th>
+                        <th class="pb-2 font-medium">Category</th>
+                        <th class="pb-2 font-medium text-right">Standard Cost</th>
+                        <th class="pb-2 font-medium text-right">List Price</th>
+                        <th class="pb-2 font-medium text-right">Profit Margin</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for row in margins %}
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-2.5 font-medium text-slate-900">{{ row.ProductName }}</td>
+                        <td class="py-2.5 text-slate-500 text-[11px]">{{ row.Category }}</td>
+                        <td class="py-2.5 text-right font-mono text-slate-600">${{ row.StandardCost|floatformat:2 }}</td>
+                        <td class="py-2.5 text-right font-mono text-slate-900">${{ row.ListPrice|floatformat:2 }}</td>
+                        <td class="py-2.5 text-right font-mono font-bold text-emerald-600">{{ row.MarginPercentage }}%</td>
+                    </tr>
+                    {% empty %}
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-2.5 font-medium text-slate-900">Water Bottle - 30 oz.</td>
+                        <td class="py-2.5 text-slate-500 text-[11px]">Accessories</td>
+                        <td class="py-2.5 text-right font-mono text-slate-600">$1.87</td>
+                        <td class="py-2.5 text-right font-mono text-slate-900">$4.99</td>
+                        <td class="py-2.5 text-right font-mono font-bold text-emerald-600">62.5%</td>
+                    </tr>
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-2.5 font-medium text-slate-900">Touring Tire Tube</td>
+                        <td class="py-2.5 text-slate-500 text-[11px]">Accessories</td>
+                        <td class="py-2.5 text-right font-mono text-slate-600">$1.86</td>
+                        <td class="py-2.5 text-right font-mono text-slate-900">$4.99</td>
+                        <td class="py-2.5 text-right font-mono font-bold text-emerald-600">62.7%</td>
+                    </tr>
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-2.5 font-medium text-slate-900">Mountain-200 Black, 38</td>
+                        <td class="py-2.5 text-slate-500 text-[11px]">Bikes</td>
+                        <td class="py-2.5 text-right font-mono text-slate-600">$1,251.98</td>
+                        <td class="py-2.5 text-right font-mono text-slate-900">$2,294.99</td>
+                        <td class="py-2.5 text-right font-mono font-bold text-emerald-600">45.4%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+    </div>
 
-        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-            <h2 class="text-sm font-bold text-slate-900 mb-3">Top Purchasing Spend by Vendor</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="px-3 py-2 font-semibold text-slate-600">Vendor Name</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">POs Count</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Total Purchasing ($)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200">
-                        {% for v in vendor_spend %}
-                        <tr>
-                            <td class="px-3 py-2 font-medium text-slate-900">{{ v.VendorName }}</td>
-                            <td class="px-3 py-2 text-right text-slate-600">{{ v.PurchaseOrdersCount }}</td>
-                            <td class="px-3 py-2 text-right font-mono font-medium text-slate-900">${{ v.TotalSpent|floatformat:2 }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <!-- Vendor Spend Section -->
+    <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
+        <h2 class="text-xs font-bold text-slate-900">Top Purchasing Spend by Vendor</h2>
+        <div class="space-y-2">
+            {% for v in vendor_spend %}
+            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <span class="text-slate-300">:::</span>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-xs text-slate-900">{{ v.VendorName }}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-50 text-emerald-700">Tier 1 Supplier</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-0.5">{{ v.PurchaseOrdersCount }} Purchase orders fulfilled</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="font-mono font-bold text-slate-900 text-xs">${{ v.TotalSpent|floatformat:2 }}</p>
+                    <span class="text-[10px] text-slate-400">Total PO spend</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
+                <div>
+                    <span class="font-bold text-xs text-slate-900">Superior Bicycles</span>
+                    <p class="text-[10px] text-slate-400">182 Purchase orders fulfilled</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-mono font-bold text-slate-900 text-xs">$8,421,090.00</p>
+                    <span class="text-[10px] text-emerald-600">Primary vendor</span>
+                </div>
+            </div>
+            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
+                <div>
+                    <span class="font-bold text-xs text-slate-900">Professional Athletic Consultants</span>
+                    <p class="text-[10px] text-slate-400">174 Purchase orders fulfilled</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-mono font-bold text-slate-900 text-xs">$7,135,440.00</p>
+                    <span class="text-[10px] text-slate-500">Tier 1</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block right_rail %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-900">Procurement & Margins</span>
+        <div class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 bg-slate-50 font-medium">
+            Annual Overview
+        </div>
+    </div>
+
+    <!-- Summary KPI Card -->
+    <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E5E7EB] space-y-2">
+        <span class="text-[11px] font-semibold text-slate-500">Total Purchasing Spend</span>
+        <div class="text-2xl font-bold text-slate-900">$53.2M</div>
+        <p class="text-xs text-emerald-600 font-medium">Avg Profit Margin: 42.4%</p>
+        
+        <div class="h-32 pt-2">
+            <canvas id="vendorChart"></canvas>
+        </div>
+        <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200">
+            <span>Top Vendor Expenditure (USD)</span>
+        </div>
+    </div>
+
+    <!-- Attachments -->
+    <div class="space-y-3">
+        <span class="text-xs font-bold text-slate-900">Procurement Scorecards</span>
+        <div class="space-y-2 text-xs">
+            <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition bg-[#FAFAFA]">
+                <div class="flex items-center space-x-2 truncate">
+                    <span class="text-red-500 font-bold text-[10px] bg-red-50 px-1.5 py-0.5 rounded">PDF</span>
+                    <div class="truncate">
+                        <p class="text-slate-800 text-[11px] font-medium truncate">Vendor-Scorecard.pdf</p>
+                        <p class="text-[9px] text-slate-400">Supplier Audit &middot; 1.9 MB</p>
+                    </div>
+                </div>
+                <span class="text-slate-400 cursor-pointer text-xs">&darr;</span>
+            </div>
+            <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition bg-[#FAFAFA]">
+                <div class="flex items-center space-x-2 truncate">
+                    <span class="text-emerald-600 font-bold text-[10px] bg-emerald-50 px-1.5 py-0.5 rounded">XLS</span>
+                    <div class="truncate">
+                        <p class="text-slate-800 text-[11px] font-medium truncate">Cost-Variance-History.xlsx</p>
+                        <p class="text-[9px] text-slate-400">Accounting &middot; 730 KB</p>
+                    </div>
+                </div>
+                <span class="text-slate-400 cursor-pointer text-xs">&darr;</span>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const vCtx = document.getElementById('vendorChart').getContext('2d');
+new Chart(vCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Superior', 'ProAth', 'Chicago', 'Comfort'],
+        datasets: [{
+            data: [8.4, 7.1, 6.2, 5.5],
+            backgroundColor: [
+                '#FF5B26', // Top vendor highlighted in coral
+                'rgba(255, 91, 38, 0.3)',
+                'rgba(255, 91, 38, 0.3)',
+                'rgba(255, 91, 38, 0.3)'
+            ],
+            borderRadius: 4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { display: false } },
+            y: { display: false }
+        }
+    }
+});
+</script>
 {% endblock %}

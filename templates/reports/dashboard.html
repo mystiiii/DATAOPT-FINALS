@@ -1,132 +1,350 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - AdventureWorks{% endblock %}
+{% block title %}Executive Operations & Performance - AdventureWorks BI{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
-    <!-- Header -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-slate-200">
+    <!-- Top Workspace Toolbar -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-[#E5E7EB] gap-3">
+        <div class="flex items-center space-x-2 text-xs text-slate-500">
+            <span>Home</span>
+            <span>/</span>
+            <span>Executive</span>
+            <span>/</span>
+            <span class="font-medium text-slate-900">Operations & Performance</span>
+        </div>
+        <div class="flex items-center space-x-2 text-xs">
+            <button class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 flex items-center space-x-1.5 transition">
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                <span>Download Report</span>
+            </button>
+            <button class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-medium flex items-center space-x-1.5 transition shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+                </svg>
+                <span>Share Section</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Header Banner -->
+    <div class="flex items-start space-x-3.5">
+        <div class="w-10 h-10 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+        </div>
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">Dashboard</h1>
-            <p class="text-sm text-slate-500">Summary across sales, customer profiles, revenue, and costs</p>
-        </div>
-        <div class="mt-2 sm:mt-0 flex space-x-2">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                Role: {{ role }}
-            </span>
+            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Executive Operations & Performance</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Centralized company health across sales, production, and customer segments</p>
         </div>
     </div>
 
-    <!-- KPI Summary Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Gross sales (2014)</div>
-            <div class="mt-2 text-2xl font-bold text-slate-900">$20,094,829</div>
-            <div class="mt-1 text-xs text-emerald-600 font-medium">Bikes make up 87% of total</div>
-        </div>
-
-        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total customers</div>
-            <div class="mt-2 text-2xl font-bold text-slate-900">19,185</div>
-            <div class="mt-1 text-xs text-slate-500">701 stores, 18,484 individuals</div>
-        </div>
-
-        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Discount share</div>
-            <div class="mt-2 text-2xl font-bold text-amber-600">0.18%</div>
-            <div class="mt-1 text-xs text-slate-500">$36,900 in discounts (2014)</div>
-        </div>
-
-        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Highest margin product</div>
-            <div class="mt-2 text-2xl font-bold text-emerald-600">62.6%</div>
-            <div class="mt-1 text-xs text-slate-500">Classic Vest, S (cost $23.75, price $63.50)</div>
-        </div>
-    </div>
-
-    <!-- Module Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <a href="{% url 'report_sales' %}" class="bg-white p-4 rounded-lg border border-slate-200 hover:border-blue-400 hover:shadow-sm transition block group">
-            <h3 class="font-semibold text-slate-900 group-hover:text-blue-600 flex items-center justify-between">
-                1. Sales report <span>&rarr;</span>
-            </h3>
-            <p class="text-xs text-slate-500 mt-1">Revenue by category, order volume, and top products.</p>
-        </a>
-
-        <a href="{% url 'report_customers' %}" class="bg-white p-4 rounded-lg border border-slate-200 hover:border-blue-400 hover:shadow-sm transition block group">
-            <h3 class="font-semibold text-slate-900 group-hover:text-blue-600 flex items-center justify-between">
-                2. Customer profile <span>&rarr;</span>
-            </h3>
-            <p class="text-xs text-slate-500 mt-1">Top spenders, store accounts versus individual buyers, and location.</p>
-        </a>
-
+    <!-- Sub Navigation Tabs -->
+    <div class="flex items-center space-x-1 border-b border-[#E5E7EB] text-xs">
+        <button class="px-3 py-2 font-semibold text-coral border-b-2 border-coral transition">Company Overview</button>
+        <a href="{% url 'report_sales' %}" class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Sales Health</a>
         {% if user.profile.is_manager %}
-        <a href="{% url 'report_revenue_loss' %}" class="bg-white p-4 rounded-lg border border-slate-200 hover:border-blue-400 hover:shadow-sm transition block group">
-            <h3 class="font-semibold text-slate-900 group-hover:text-blue-600 flex items-center justify-between">
-                3. Revenue and loss <span>&rarr;</span>
-            </h3>
-            <p class="text-xs text-slate-500 mt-1">Gross and net revenue, discounts, and scrapped production.</p>
-        </a>
+        <a href="{% url 'report_revenue_loss' %}" class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Cost & Scrap</a>
+        {% endif %}
+        <span class="px-3 py-2 text-slate-400">Governance & Audit</span>
+    </div>
 
-        <a href="{% url 'report_cost' %}" class="bg-white p-4 rounded-lg border border-slate-200 hover:border-blue-400 hover:shadow-sm transition block group">
-            <h3 class="font-semibold text-slate-900 group-hover:text-blue-600 flex items-center justify-between">
-                4. Cost report <span>&rarr;</span>
-            </h3>
-            <p class="text-xs text-slate-500 mt-1">Product margins, standard costs over time, and vendor spend.</p>
-        </a>
-        {% else %}
-        <div class="bg-slate-100 p-4 rounded-lg border border-slate-200 opacity-60">
-            <h3 class="font-semibold text-slate-600 flex items-center justify-between text-xs">
-                3. Revenue and loss <span class="bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded text-[10px]">Restricted</span>
-            </h3>
-            <p class="text-[11px] text-slate-500 mt-1">Requires manager or administrator role.</p>
+    <!-- Top KPI Grid (4 Metrics) -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Gross Sales</span>
+                <span class="text-slate-400 text-xs">&nearr;</span>
+            </div>
+            <div class="text-xl font-bold text-slate-900 mt-2">$80.3M</div>
+            <div class="text-[10px] text-emerald-600 font-medium mt-1">+38.0% vs. last year</div>
         </div>
 
-        <div class="bg-slate-100 p-4 rounded-lg border border-slate-200 opacity-60">
-            <h3 class="font-semibold text-slate-600 flex items-center justify-between text-xs">
-                4. Cost report <span class="bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded text-[10px]">Restricted</span>
-            </h3>
-            <p class="text-[11px] text-slate-500 mt-1">Requires manager or administrator role.</p>
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Net Profit</span>
+                <span class="text-slate-400 text-xs">&nearr;</span>
+            </div>
+            <div class="text-xl font-bold text-slate-900 mt-2">$24.8M</div>
+            <div class="text-[10px] text-emerald-600 font-medium mt-1">+21.4% vs. last year</div>
         </div>
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Scrap Loss</span>
+                <span class="text-slate-400 text-xs">&nearr;</span>
+            </div>
+            <div class="text-xl font-bold text-slate-900 mt-2">$412K</div>
+            <div class="text-[10px] text-amber-600 font-medium mt-1">2.1% of production cost</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Active Accounts</span>
+                <span class="text-slate-400 text-xs">&nearr;</span>
+            </div>
+            <div class="text-xl font-bold text-slate-900 mt-2">19,820</div>
+            <div class="text-[10px] text-emerald-600 font-medium mt-1">+12.6% vs. last year</div>
+        </div>
+    </div>
+
+    <!-- Business at a Glance Section -->
+    <div class="space-y-3">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-xs font-bold text-slate-900">Business at a glance</h2>
+                <p class="text-[11px] text-slate-400">Key operating modules, in one view</p>
+            </div>
+            <span class="text-[11px] text-slate-500 cursor-pointer hover:underline">Customize view</span>
+        </div>
+
+        <!-- 1. Sales Overview Card -->
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <span class="text-slate-300">:::</span>
+                    <span class="text-xs font-bold text-slate-900">Sales Overview</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">Healthy</span>
+                </div>
+                <span class="text-[11px] text-slate-400">YTD &middot; FY2019</span>
+            </div>
+
+            <!-- Sub Metrics -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs border-y border-slate-100 py-3">
+                <div>
+                    <span class="text-[10px] text-slate-400">Orders placed</span>
+                    <p class="font-bold text-slate-900 text-sm mt-0.5">31,465</p>
+                    <span class="text-[10px] text-emerald-600">+18.2% YoY</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400">Average order</span>
+                    <p class="font-bold text-slate-900 text-sm mt-0.5">$2,552</p>
+                    <span class="text-[10px] text-emerald-600">+16.7% YoY</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400">Gross margin</span>
+                    <p class="font-bold text-slate-900 text-sm mt-0.5">30.9%</p>
+                    <span class="text-[10px] text-emerald-600">+2.4 pts YoY</span>
+                </div>
+                <div>
+                    <span class="text-[10px] text-slate-400">Target attainment</span>
+                    <p class="font-bold text-slate-900 text-sm mt-0.5">108.2%</p>
+                    <span class="text-[10px] text-slate-500">Above plan</span>
+                </div>
+            </div>
+
+            <!-- Channel Split Progress Bar -->
+            <div class="space-y-1.5">
+                <div class="flex justify-between text-[11px] text-slate-600 font-medium">
+                    <span>Reseller (B2B): 68% &middot; $54.6M</span>
+                    <span>Internet (B2C): 32% &middot; $25.7M</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-slate-100 flex overflow-hidden">
+                    <div class="h-full bg-coral rounded-l-full" style="width: 68%"></div>
+                    <div class="h-full bg-coral-border rounded-r-full" style="width: 32%"></div>
+                </div>
+                <div class="flex justify-between items-center pt-1 text-[11px]">
+                    <span class="text-slate-400">Revenue is 8.2% ahead of plan, led by reseller growth.</span>
+                    <a href="{% url 'report_sales' %}" class="text-coral hover:underline font-semibold flex items-center space-x-1">
+                        <span>View sales detail</span>
+                        <span>&rarr;</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Customer Distribution Card -->
+        <a href="{% url 'report_customers' %}" class="bg-white p-3.5 rounded-xl border border-[#E5E7EB] shadow-sm flex items-center justify-between hover:border-coral-border transition block group">
+            <div class="flex items-center space-x-2">
+                <span class="text-slate-300">:::</span>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-bold text-slate-900 group-hover:text-coral transition">Customer Distribution</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">Healthy</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Account reach across 6 territories and 3 segments</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 text-xs font-semibold text-slate-700">
+                <span>19,820 accounts</span>
+                <span class="text-slate-400">&gt;</span>
+            </div>
+        </a>
+
+        <!-- 3. Production Scrap Card -->
+        {% if user.profile.is_manager %}
+        <a href="{% url 'report_revenue_loss' %}" class="bg-white p-3.5 rounded-xl border border-[#E5E7EB] shadow-sm flex items-center justify-between hover:border-coral-border transition block group">
+            <div class="flex items-center space-x-2">
+                <span class="text-slate-300">:::</span>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-bold text-slate-900 group-hover:text-coral transition">Production Scrap</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700">Review Needed</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Scrap rate above the 1.8% operating threshold</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 text-xs font-semibold text-amber-600">
+                <span>$412K loss</span>
+                <span class="text-slate-400">&gt;</span>
+            </div>
+        </a>
+        {% endif %}
+
+        <!-- 4. Vendor Costs Card -->
+        {% if user.profile.is_manager %}
+        <a href="{% url 'report_cost' %}" class="bg-white p-3.5 rounded-xl border border-[#E5E7EB] shadow-sm flex items-center justify-between hover:border-coral-border transition block group">
+            <div class="flex items-center space-x-2">
+                <span class="text-slate-300">:::</span>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-bold text-slate-900 group-hover:text-coral transition">Vendor Costs</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">Healthy</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Supplier spend and purchase-price variance</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2 text-xs font-semibold text-slate-700">
+                <span>$18.6M spend</span>
+                <span class="text-slate-400">&gt;</span>
+            </div>
+        </a>
         {% endif %}
     </div>
 
-    <!-- Data Quality and Schema Limitations -->
-    <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-        <h2 class="text-sm font-bold text-slate-900 mb-3 flex items-center justify-between">
-            <span>Known schema issues and handling</span>
-            <span class="text-xs font-normal text-slate-500">Documented limitations in the source data</span>
-        </h2>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
-                <thead class="bg-slate-50">
-                    <tr>
-                        <th class="px-3 py-2 font-semibold text-slate-600">Severity</th>
-                        <th class="px-3 py-2 font-semibold text-slate-600">Issue</th>
-                        <th class="px-3 py-2 font-semibold text-slate-600">Tables</th>
-                        <th class="px-3 py-2 font-semibold text-slate-600">How reports handle it</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200">
-                    {% for issue in data_issues %}
-                    <tr>
-                        <td class="px-3 py-2 font-mono">
-                            <span class="px-2 py-0.5 rounded text-[10px] {% if issue.severity == 'HIGH' %}bg-red-100 text-red-800{% else %}bg-amber-100 text-amber-800{% endif %}">
-                                {{ issue.severity }}
-                            </span>
-                        </td>
-                        <td class="px-3 py-2 font-medium text-slate-900">{{ issue.issue_title }}</td>
-                        <td class="px-3 py-2 font-mono text-slate-600">{{ issue.affected_tables }}</td>
-                        <td class="px-3 py-2 text-slate-600">{{ issue.handling_strategy }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="px-3 py-4 text-center text-slate-400">No issues logged.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <!-- Bottom Preset Action Bar -->
+    <div class="bg-white p-3.5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div class="flex items-center space-x-2 w-full sm:w-auto">
+            <span class="text-slate-400 font-medium text-[11px]">Preset:</span>
+            <select class="border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-coral">
+                <option>Board overview</option>
+                <option>Quarterly review</option>
+                <option>Operations summary</option>
+            </select>
+        </div>
+        <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+            <button class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 transition">
+                Generate Executive Summary
+            </button>
+            <button class="px-3.5 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-medium shadow-sm transition">
+                Export Board Report
+            </button>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block right_rail %}
+<div class="space-y-6">
+    <!-- Top Filter Header -->
+    <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-900">Statistics</span>
+        <div class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 bg-slate-50 font-medium flex items-center space-x-1.5">
+            <span>Year To Date</span>
+            <span class="text-[9px] text-slate-400">&darr;</span>
+        </div>
+    </div>
+
+    <!-- KPI Summary Card with 6-month Bar Chart -->
+    <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E5E7EB] space-y-3">
+        <div class="flex justify-between items-start">
+            <span class="text-[11px] font-semibold text-slate-500">Total Gross Revenue</span>
+            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">+38% YoY</span>
+        </div>
+        <div class="text-2xl font-bold text-slate-900">$80.3M</div>
+
+        <!-- Chart Canvas -->
+        <div class="h-36 pt-1">
+            <canvas id="rightRailChart"></canvas>
+        </div>
+        <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200">
+            <span>Jan–Jun 2019</span>
+            <span>Revenue in USD</span>
+        </div>
+    </div>
+
+    <!-- Attachments List -->
+    <div class="space-y-3">
+        <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-900">Attachments <span class="text-slate-400 font-normal">03</span></span>
+            <span class="text-[11px] text-coral hover:underline cursor-pointer">View all &gt;</span>
+        </div>
+        <div class="space-y-2 text-xs">
+            <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition bg-[#FAFAFA]">
+                <div class="flex items-center space-x-2 truncate">
+                    <span class="text-red-500 font-bold text-[10px] bg-red-50 px-1.5 py-0.5 rounded">PDF</span>
+                    <div class="truncate">
+                        <p class="text-slate-800 text-[11px] font-medium truncate">FY2019-Quarterly-Review.pdf</p>
+                        <p class="text-[9px] text-slate-400">PDF document &middot; 2.4 MB</p>
+                    </div>
+                </div>
+                <span class="text-slate-400 hover:text-slate-700 cursor-pointer text-xs">&darr;</span>
+            </div>
+            <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition bg-[#FAFAFA]">
+                <div class="flex items-center space-x-2 truncate">
+                    <span class="text-emerald-600 font-bold text-[10px] bg-emerald-50 px-1.5 py-0.5 rounded">XLS</span>
+                    <div class="truncate">
+                        <p class="text-slate-800 text-[11px] font-medium truncate">Executive-Summary.xlsx</p>
+                        <p class="text-[9px] text-slate-400">Spreadsheet &middot; 840 KB</p>
+                    </div>
+                </div>
+                <span class="text-slate-400 hover:text-slate-700 cursor-pointer text-xs">&darr;</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Board Reporting Note -->
+    <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1">
+        <div class="flex items-center space-x-1.5 text-slate-700 font-semibold text-[11px]">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            <span>Board reporting ready</span>
+        </div>
+        <p class="text-[10px] text-slate-500 leading-relaxed">
+            Includes consolidated financials and operating performance across all business units.
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const railCtx = document.getElementById('rightRailChart').getContext('2d');
+new Chart(railCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        datasets: [{
+            data: [12.4, 14.1, 15.8, 18.7, 16.2, 17.5],
+            backgroundColor: [
+                'rgba(255, 91, 38, 0.25)',
+                'rgba(255, 91, 38, 0.25)',
+                'rgba(255, 91, 38, 0.25)',
+                '#FF5B26', // Highlight April in solid coral
+                'rgba(255, 91, 38, 0.25)',
+                'rgba(255, 91, 38, 0.25)'
+            ],
+            borderRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) { return '$' + context.raw + 'M'; }
+                }
+            }
+        },
+        scales: {
+            x: { grid: { display: false } },
+            y: { display: false }
+        }
+    }
+});
+</script>
 {% endblock %}

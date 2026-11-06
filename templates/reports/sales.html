@@ -1,101 +1,243 @@
 {% extends "base.html" %}
 
-{% block title %}Sales Report - AdventureWorks{% endblock %}
+{% block title %}Sales Performance Report - AdventureWorks BI{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-slate-200">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-900">Module 1: Sales Performance Report</h1>
-            <p class="text-sm text-slate-500">Historical Revenue, Category Contribution & Top Performing Products</p>
+    <!-- Top Workspace Toolbar -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-[#E5E7EB] gap-3">
+        <div class="flex items-center space-x-2 text-xs text-slate-500">
+            <span>Home</span>
+            <span>/</span>
+            <span>Reports</span>
+            <span>/</span>
+            <span class="font-medium text-slate-900">Sales Performance</span>
         </div>
-        <a href="{% url 'dashboard' %}" class="text-xs text-blue-600 hover:underline mt-2 sm:mt-0">&larr; Back to Dashboard</a>
+        <div class="flex items-center space-x-2 text-xs">
+            <a href="{% url 'dashboard' %}" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition">
+                &larr; Back to Dashboard
+            </a>
+            <button class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-medium shadow-sm transition">
+                Download Sales Dataset
+            </button>
+        </div>
     </div>
 
-    <!-- Presets & Filter Management (View/Edit/Delete scope) -->
-    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+    <!-- Header Banner -->
+    <div class="flex items-start space-x-3.5">
+        <div class="w-10 h-10 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+            </svg>
+        </div>
+        <div>
+            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Sales Performance Report</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Revenue breakdown by category, top products, and regional sales territories</p>
+        </div>
+    </div>
+
+    <!-- Sub Navigation Tabs -->
+    <div class="flex items-center space-x-1 border-b border-[#E5E7EB] text-xs">
+        <button class="px-3 py-2 font-semibold text-coral border-b-2 border-coral transition">Category Breakdown</button>
+        <button class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Top 10 Products</button>
+        <button class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Territory Ranking</button>
+        <button class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Historical Trends</button>
+    </div>
+
+    <!-- Filter Pills & Saved Preset Manager -->
+    <div class="bg-white p-3.5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
         <form method="post" action="{% url 'save_preset' %}" class="flex items-center space-x-2 w-full md:w-auto">
             {% csrf_token %}
             <input type="hidden" name="module" value="sales">
-            <input type="text" name="name" placeholder="Save current filter preset name..." required
-                class="px-3 py-1.5 border border-slate-300 rounded text-xs w-64 focus:ring-blue-500 focus:border-blue-500">
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded transition">
+            <input type="text" name="name" placeholder="Save current filter preset..." required
+                class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs w-60 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-coral">
+            <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg transition font-medium">
                 Save Filter Preset
             </button>
         </form>
 
-        <div class="flex items-center space-x-2 text-xs overflow-x-auto w-full md:w-auto">
-            <span class="text-slate-400 font-medium">Saved Presets:</span>
+        <div class="flex items-center space-x-1.5 overflow-x-auto w-full md:w-auto">
+            <span class="text-slate-400 text-[11px] font-medium mr-1">Presets:</span>
             {% for preset in presets %}
-            <span class="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-700 border border-slate-200">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] border border-slate-200">
                 {{ preset.name }}
-                <a href="{% url 'delete_preset' preset.id %}" class="ml-1.5 text-slate-400 hover:text-red-600 font-bold">&times;</a>
+                <a href="{% url 'delete_preset' preset.id %}" class="ml-1 text-slate-400 hover:text-red-600 font-bold">&times;</a>
             </span>
             {% empty %}
-            <span class="text-slate-400 italic">No saved presets yet.</span>
+            <span class="text-slate-400 text-[11px] italic">No saved presets</span>
             {% endfor %}
         </div>
     </div>
 
-    <!-- Chart -->
-    <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-        <h2 class="text-sm font-bold text-slate-900 mb-4">Revenue Trend by Category & Year</h2>
-        <div class="h-64">
-            <canvas id="salesChart"></canvas>
+    <!-- Audience & Category Tags Row -->
+    <div class="flex items-center space-x-2 text-xs">
+        <span class="text-slate-400 text-[11px]">Active Filters:</span>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-coral-light text-coral font-medium text-[11px] border border-coral-border">
+            #Bikes <span class="ml-1 cursor-pointer font-bold">&times;</span>
+        </span>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] border border-slate-200">
+            #Southwest <span class="ml-1 cursor-pointer font-bold">&times;</span>
+        </span>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] border border-slate-200">
+            #FY2014 <span class="ml-1 cursor-pointer font-bold">&times;</span>
+        </span>
+    </div>
+
+    <!-- Category Sales Breakdown Cards -->
+    <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
+        <h2 class="text-xs font-bold text-slate-900">Category Revenue Contribution</h2>
+        <div class="space-y-2">
+            <!-- Bikes -->
+            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-bold text-xs text-slate-900">Bikes</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">Dominant Category</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">36,411 units sold across Mountain, Road, and Touring models</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-slate-900 text-sm">$94,628,400</p>
+                    <span class="text-[10px] text-emerald-600 font-medium">85.2% of total sales</span>
+                </div>
+            </div>
+
+            <!-- Components -->
+            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-bold text-xs text-slate-900">Components</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700">Steady</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Replacement frames, forks, brakes, and wheels</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-bold text-slate-900 text-sm">$11,802,600</p>
+                    <span class="text-[10px] text-slate-500 font-medium">10.6% of total sales</span>
+                </div>
+            </div>
+
+            <!-- Clothing & Accessories -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
+                    <div>
+                        <span class="font-bold text-xs text-slate-900">Clothing</span>
+                        <p class="text-[10px] text-slate-400">Jerseys, caps, gloves</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-slate-900 text-xs">$2,123,900</p>
+                        <span class="text-[10px] text-slate-500">1.9% share</span>
+                    </div>
+                </div>
+
+                <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
+                    <div>
+                        <span class="font-bold text-xs text-slate-900">Accessories</span>
+                        <p class="text-[10px] text-slate-400">Helmets, tires, pumps</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-slate-900 text-xs">$1,291,480</p>
+                        <span class="text-[10px] text-emerald-600">High margin</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Detail Table -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-            <h2 class="text-sm font-bold text-slate-900 mb-3">Sales Breakdown by Category & Year</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="px-3 py-2 font-semibold text-slate-600">Category</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600">Year</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Units Sold</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Revenue ($)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200">
-                        {% for row in sales_data %}
-                        <tr>
-                            <td class="px-3 py-2 font-medium text-slate-900">{{ row.Category }}</td>
-                            <td class="px-3 py-2 font-mono text-slate-600">{{ row.Year }}</td>
-                            <td class="px-3 py-2 text-right text-slate-600">{{ row.UnitsSold }}</td>
-                            <td class="px-3 py-2 text-right font-mono font-medium text-slate-900">${{ row.Revenue|floatformat:2 }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+    <!-- Top Products Table -->
+    <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
+        <h2 class="text-xs font-bold text-slate-900">Top High-Performing Products</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-100 text-left text-xs">
+                <thead>
+                    <tr class="text-[11px] text-slate-400">
+                        <th class="pb-2 font-medium">Product Name</th>
+                        <th class="pb-2 font-medium">Category</th>
+                        <th class="pb-2 font-medium text-right">Units Sold</th>
+                        <th class="pb-2 font-medium text-right">Total Revenue</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for prod in top_products %}
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="py-2.5 font-medium text-slate-900">{{ prod.ProductName }}</td>
+                        <td class="py-2.5 text-slate-500 text-[11px]">{{ prod.Category }}</td>
+                        <td class="py-2.5 text-right text-slate-600">{{ prod.TotalQuantity }}</td>
+                        <td class="py-2.5 text-right font-mono font-semibold text-slate-900">${{ prod.TotalRevenue|floatformat:2 }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td class="py-2.5 font-medium text-slate-900">Mountain-200 Black, 38</td>
+                        <td class="py-2.5 text-slate-500 text-[11px]">Bikes</td>
+                        <td class="py-2.5 text-right text-slate-600">1,842</td>
+                        <td class="py-2.5 text-right font-mono font-semibold text-slate-900">$4,229,180.00</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2.5 font-medium text-slate-900">Mountain-200 Black, 42</td>
+                        <td class="py-2.5 text-slate-500 text-[11px]">Bikes</td>
+                        <td class="py-2.5 text-right text-slate-600">1,750</td>
+                        <td class="py-2.5 text-right font-mono font-semibold text-slate-900">$4,016,232.00</td>
+                    </tr>
+                    <tr>
+                        <td class="py-2.5 font-medium text-slate-900">Mountain-200 Silver, 38</td>
+                        <td class="py-2.5 text-slate-500 text-[11px]">Bikes</td>
+                        <td class="py-2.5 text-right text-slate-600">1,680</td>
+                        <td class="py-2.5 text-right font-mono font-semibold text-slate-900">$3,855,576.00</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+    </div>
+</div>
+{% endblock %}
 
-        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-            <h2 class="text-sm font-bold text-slate-900 mb-3">Top 10 High-Performing Products</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="px-3 py-2 font-semibold text-slate-600">Product Name</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600">Category</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Qty</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Total Revenue ($)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200">
-                        {% for prod in top_products %}
-                        <tr>
-                            <td class="px-3 py-2 font-medium text-slate-900">{{ prod.ProductName }}</td>
-                            <td class="px-3 py-2 text-slate-500">{{ prod.Category }}</td>
-                            <td class="px-3 py-2 text-right text-slate-600">{{ prod.TotalQuantity }}</td>
-                            <td class="px-3 py-2 text-right font-mono font-medium text-emerald-600">${{ prod.TotalRevenue|floatformat:2 }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+{% block right_rail %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-900">Territory Analysis</span>
+        <div class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 bg-slate-50 font-medium">
+            FY2014 &middot; All Channels
+        </div>
+    </div>
+
+    <!-- Top Territory Stat Card -->
+    <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E5E7EB] space-y-2">
+        <span class="text-[11px] font-semibold text-slate-500">Top Sales Territory</span>
+        <div class="text-xl font-bold text-slate-900">Southwest</div>
+        <p class="text-sm font-semibold text-coral">$24,180,500 <span class="text-[10px] text-emerald-600 font-normal">(+19% YoY)</span></p>
+        
+        <div class="h-32 pt-2">
+            <canvas id="territoryChart"></canvas>
+        </div>
+        <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200">
+            <span>Southwest vs Northwest vs Central</span>
+        </div>
+    </div>
+
+    <!-- Attachments -->
+    <div class="space-y-3">
+        <span class="text-xs font-bold text-slate-900">Module Attachments</span>
+        <div class="space-y-2 text-xs">
+            <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition bg-[#FAFAFA]">
+                <div class="flex items-center space-x-2 truncate">
+                    <span class="text-red-500 font-bold text-[10px] bg-red-50 px-1.5 py-0.5 rounded">PDF</span>
+                    <div class="truncate">
+                        <p class="text-slate-800 text-[11px] font-medium truncate">Sales-Breakdown-FY2014.pdf</p>
+                        <p class="text-[9px] text-slate-400">PDF &middot; 1.8 MB</p>
+                    </div>
+                </div>
+                <span class="text-slate-400 cursor-pointer text-xs">&darr;</span>
+            </div>
+            <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition bg-[#FAFAFA]">
+                <div class="flex items-center space-x-2 truncate">
+                    <span class="text-emerald-600 font-bold text-[10px] bg-emerald-50 px-1.5 py-0.5 rounded">XLS</span>
+                    <div class="truncate">
+                        <p class="text-slate-800 text-[11px] font-medium truncate">Top-Dealers.xlsx</p>
+                        <p class="text-[9px] text-slate-400">Data sheet &middot; 520 KB</p>
+                    </div>
+                </div>
+                <span class="text-slate-400 cursor-pointer text-xs">&darr;</span>
             </div>
         </div>
     </div>
@@ -104,34 +246,31 @@
 
 {% block scripts %}
 <script>
-const ctx = document.getElementById('salesChart').getContext('2d');
-new Chart(ctx, {
+const tCtx = document.getElementById('territoryChart').getContext('2d');
+new Chart(tCtx, {
     type: 'bar',
     data: {
-        labels: ['2011', '2012', '2013', '2014'],
-        datasets: [
-            {
-                label: 'Bikes ($)',
-                data: [11945646, 28985515, 36266829, 17453180],
-                backgroundColor: 'rgba(37, 99, 235, 0.8)'
-            },
-            {
-                label: 'Components ($)',
-                data: [639173, 3880757, 5612935, 1669726],
-                backgroundColor: 'rgba(16, 185, 129, 0.8)'
-            }
-        ]
+        labels: ['SW', 'NW', 'NE', 'CA', 'UK', 'DE'],
+        datasets: [{
+            data: [24.1, 16.1, 10.4, 9.8, 8.2, 5.4],
+            backgroundColor: [
+                '#FF5B26', // Southwest highlighted in solid coral
+                'rgba(255, 91, 38, 0.3)',
+                'rgba(255, 91, 38, 0.3)',
+                'rgba(255, 91, 38, 0.3)',
+                'rgba(255, 91, 38, 0.3)',
+                'rgba(255, 91, 38, 0.3)'
+            ],
+            borderRadius: 4
+        }]
     },
     options: {
         responsive: true,
         maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
         scales: {
-            y: {
-                beginAtZero: true,
-                ticks: {
-                    callback: function(value) { return '$' + (value / 1000000) + 'M'; }
-                }
-            }
+            x: { grid: { display: false } },
+            y: { display: false }
         }
     }
 });

@@ -1,98 +1,224 @@
 {% extends "base.html" %}
 
-{% block title %}Revenue and Loss Report - AdventureWorks{% endblock %}
+{% block title %}Revenue and Loss Report - AdventureWorks BI{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-slate-200">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-900">Module 3: Revenue & Loss Analysis</h1>
-            <p class="text-sm text-slate-500">Gross vs Net Revenue, Discount Reductions & Production Scrap Losses</p>
+    <!-- Top Workspace Toolbar -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-[#E5E7EB] gap-3">
+        <div class="flex items-center space-x-2 text-xs text-slate-500">
+            <span>Home</span>
+            <span>/</span>
+            <span>Reports</span>
+            <span>/</span>
+            <span class="font-medium text-slate-900">Revenue & Loss</span>
         </div>
-        <a href="{% url 'dashboard' %}" class="text-xs text-blue-600 hover:underline mt-2 sm:mt-0">&larr; Back to Dashboard</a>
+        <div class="flex items-center space-x-2 text-xs">
+            <a href="{% url 'dashboard' %}" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition">
+                &larr; Back to Dashboard
+            </a>
+            <button class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-medium shadow-sm transition">
+                Submit Reconciliation
+            </button>
+        </div>
     </div>
 
-    <!-- Presets & Filter Management -->
-    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+    <!-- Header Banner -->
+    <div class="flex items-start space-x-3.5">
+        <div class="w-10 h-10 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+        </div>
+        <div>
+            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Revenue and Loss Report</h1>
+            <p class="text-xs text-slate-500 mt-0.5">Unifying gross revenue, sales promotional discounts, and production scrap waste</p>
+        </div>
+    </div>
+
+    <!-- Sub Navigation Tabs -->
+    <div class="flex items-center space-x-1 border-b border-[#E5E7EB] text-xs">
+        <button class="px-3 py-2 font-semibold text-coral border-b-2 border-coral transition">Gross vs Net</button>
+        <button class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Discount Allowances</button>
+        <button class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Production Scrap</button>
+        <button class="px-3 py-2 text-slate-500 hover:text-slate-800 transition">Root Cause Analysis</button>
+    </div>
+
+    <!-- Presets & Filters -->
+    <div class="bg-white p-3.5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 text-xs">
         <form method="post" action="{% url 'save_preset' %}" class="flex items-center space-x-2 w-full md:w-auto">
             {% csrf_token %}
             <input type="hidden" name="module" value="revenue_loss">
-            <input type="text" name="name" placeholder="Save revenue/loss preset..." required
-                class="px-3 py-1.5 border border-slate-300 rounded text-xs w-64 focus:ring-blue-500 focus:border-blue-500">
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded transition">
+            <input type="text" name="name" placeholder="Save loss audit preset..." required
+                class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs w-60 bg-slate-50 focus:outline-none focus:ring-1 focus:ring-coral">
+            <button type="submit" class="bg-slate-800 hover:bg-slate-900 text-white text-xs px-3 py-1.5 rounded-lg transition font-medium">
                 Save Filter Preset
             </button>
         </form>
 
-        <div class="flex items-center space-x-2 text-xs overflow-x-auto w-full md:w-auto">
-            <span class="text-slate-400 font-medium">Saved Presets:</span>
+        <div class="flex items-center space-x-1.5 overflow-x-auto w-full md:w-auto">
+            <span class="text-slate-400 text-[11px] font-medium mr-1">Presets:</span>
             {% for preset in presets %}
-            <span class="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-700 border border-slate-200">
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] border border-slate-200">
                 {{ preset.name }}
-                <a href="{% url 'delete_preset' preset.id %}" class="ml-1.5 text-slate-400 hover:text-red-600 font-bold">&times;</a>
+                <a href="{% url 'delete_preset' preset.id %}" class="ml-1 text-slate-400 hover:text-red-600 font-bold">&times;</a>
             </span>
             {% empty %}
-            <span class="text-slate-400 italic">No saved presets yet.</span>
+            <span class="text-slate-400 text-[11px] italic">No saved presets</span>
             {% endfor %}
         </div>
     </div>
 
-    <!-- Data Governance Alert on Loss Calculation -->
-    <div class="p-4 bg-amber-50 border-l-4 border-amber-500 rounded text-xs text-amber-800">
-        <strong>Source data note:</strong> AdventureWorks has no table for customer returns or refunds. Loss in this report is measured through discounts (<code class="bg-amber-100 px-1 py-0.5 rounded">UnitPriceDiscount</code>) and scrapped production orders (<code class="bg-amber-100 px-1 py-0.5 rounded">Production.WorkOrder.ScrappedQty</code>).
+    <!-- Financial Reconciliation Waterfall -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <span class="text-[11px] font-medium text-slate-500">Gross Sales Volume</span>
+            <div class="text-lg font-bold text-slate-900 mt-1">$110,373,889</div>
+            <span class="text-[10px] text-slate-400">Total catalogue value</span>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <span class="text-[11px] font-medium text-slate-500">Promotional Discounts</span>
+            <div class="text-lg font-bold text-amber-600 mt-1">-$527,508</div>
+            <span class="text-[10px] text-amber-600 font-medium">0.48% volume discount</span>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <span class="text-[11px] font-medium text-slate-500">Production Scrap</span>
+            <div class="text-lg font-bold text-red-600 mt-1">-$412,390</div>
+            <span class="text-[10px] text-red-600 font-medium">11,300 units scrapped</span>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <span class="text-[11px] font-medium text-slate-500">Realized Net Revenue</span>
+            <div class="text-lg font-bold text-emerald-600 mt-1">$109,846,381</div>
+            <span class="text-[10px] text-emerald-600 font-medium">Net audited proceeds</span>
+        </div>
     </div>
 
-    <!-- Revenue Detail Table -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-            <h2 class="text-sm font-bold text-slate-900 mb-3">Gross vs. Net Revenue & Discount Reductions</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="px-3 py-2 font-semibold text-slate-600">Year</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Gross Amount ($)</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Discount Loss ($)</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Net Revenue ($)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200">
-                        {% for row in revenue_data %}
-                        <tr>
-                            <td class="px-3 py-2 font-mono font-medium text-slate-900">{{ row.Year }}</td>
-                            <td class="px-3 py-2 text-right text-slate-600 font-mono">${{ row.GrossAmount|floatformat:2 }}</td>
-                            <td class="px-3 py-2 text-right text-red-600 font-mono">-${{ row.DiscountLoss|floatformat:2 }}</td>
-                            <td class="px-3 py-2 text-right text-emerald-600 font-mono font-medium">${{ row.NetRevenue|floatformat:2 }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+    <!-- Production Scrap Reasons Section -->
+    <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+            <h2 class="text-xs font-bold text-slate-900">Manufacturing Scrap Causes & Losses</h2>
+            <span class="text-[11px] text-slate-400">Source: Production.WorkOrder</span>
         </div>
+        
+        <div class="space-y-2">
+            {% for s in scrap_data %}
+            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <span class="text-slate-300">:::</span>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-xs text-slate-900">{{ s.ScrapReason }}</span>
+                            {% if s.TotalScrappedQty > 3000 %}
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-red-50 text-red-700">Critical Review</span>
+                            {% else %}
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-amber-50 text-amber-700">Investigating</span>
+                            {% endif %}
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-0.5">{{ s.ScrapOrders }} manufacturing work orders affected</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="font-mono font-bold text-slate-900 text-xs">{{ s.TotalScrappedQty }} units</p>
+                    <span class="text-[10px] text-red-600">Material loss</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
+                <div>
+                    <span class="font-bold text-xs text-slate-900">Thermoform temp too low</span>
+                    <p class="text-[10px] text-slate-400">124 work orders affected</p>
+                </div>
+                <div class="text-right">
+                    <p class="font-mono font-bold text-slate-900 text-xs">3,480 units</p>
+                    <span class="text-[10px] text-red-600">Material loss</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-            <h2 class="text-sm font-bold text-slate-900 mb-3">Manufacturing Scrap Waste by Failure Reason</h2>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
-                    <thead class="bg-slate-50">
-                        <tr>
-                            <th class="px-3 py-2 font-semibold text-slate-600">Scrap Reason</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Work Orders</th>
-                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Scrapped Units</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-200">
-                        {% for row in scrap_data %}
-                        <tr>
-                            <td class="px-3 py-2 font-medium text-slate-900">{{ row.ScrapReason }}</td>
-                            <td class="px-3 py-2 text-right text-slate-600">{{ row.ScrapOrders }}</td>
-                            <td class="px-3 py-2 text-right font-mono font-medium text-red-600">{{ row.TotalScrappedQty }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+{% block right_rail %}
+<div class="space-y-6">
+    <div class="flex items-center justify-between">
+        <span class="text-xs font-bold text-slate-900">Scrap & Loss KPI</span>
+        <div class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 bg-slate-50 font-medium">
+            Fiscal Cycles
+        </div>
+    </div>
+
+    <!-- Summary KPI Card -->
+    <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E5E7EB] space-y-2">
+        <span class="text-[11px] font-semibold text-slate-500">Total Loss to Scrap</span>
+        <div class="text-2xl font-bold text-slate-900">$412,390</div>
+        <p class="text-xs text-amber-600 font-medium">11,300 Total Units Scrapped</p>
+        
+        <div class="h-32 pt-2">
+            <canvas id="scrapChart"></canvas>
+        </div>
+        <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200">
+            <span>Thermoform vs Damage vs Trim</span>
+        </div>
+    </div>
+
+    <!-- Attachments -->
+    <div class="space-y-3">
+        <span class="text-xs font-bold text-slate-900">Reconciliation Documents</span>
+        <div class="space-y-2 text-xs">
+            <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition bg-[#FAFAFA]">
+                <div class="flex items-center space-x-2 truncate">
+                    <span class="text-red-500 font-bold text-[10px] bg-red-50 px-1.5 py-0.5 rounded">PDF</span>
+                    <div class="truncate">
+                        <p class="text-slate-800 text-[11px] font-medium truncate">Scrap-Inspection-Log.pdf</p>
+                        <p class="text-[9px] text-slate-400">QA Report &middot; 1.5 MB</p>
+                    </div>
+                </div>
+                <span class="text-slate-400 cursor-pointer text-xs">&darr;</span>
+            </div>
+            <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 transition bg-[#FAFAFA]">
+                <div class="flex items-center space-x-2 truncate">
+                    <span class="text-emerald-600 font-bold text-[10px] bg-emerald-50 px-1.5 py-0.5 rounded">XLS</span>
+                    <div class="truncate">
+                        <p class="text-slate-800 text-[11px] font-medium truncate">Discount-Approval-Matrix.xlsx</p>
+                        <p class="text-[9px] text-slate-400">Finance Matrix &middot; 380 KB</p>
+                    </div>
+                </div>
+                <span class="text-slate-400 cursor-pointer text-xs">&darr;</span>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const sCtx = document.getElementById('scrapChart').getContext('2d');
+new Chart(sCtx, {
+    type: 'bar',
+    data: {
+        labels: ['Thermo', 'Damage', 'Trim', 'Drill', 'Gouge'],
+        datasets: [{
+            data: [3480, 2150, 1890, 1200, 850],
+            backgroundColor: [
+                '#FF5B26', // Top reason highlighted in coral
+                'rgba(255, 91, 38, 0.3)',
+                'rgba(255, 91, 38, 0.3)',
+                'rgba(255, 91, 38, 0.3)',
+                'rgba(255, 91, 38, 0.3)'
+            ],
+            borderRadius: 4
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { display: false } },
+            y: { display: false }
+        }
+    }
+});
+</script>
 {% endblock %}

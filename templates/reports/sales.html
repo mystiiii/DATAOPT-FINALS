@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Sales Report - AdventureWorks{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-slate-200">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">Module 1: Sales Performance Report</h1>
+            <p class="text-sm text-slate-500">Historical Revenue, Category Contribution & Top Performing Products</p>
+        </div>
+        <a href="{% url 'dashboard' %}" class="text-xs text-blue-600 hover:underline mt-2 sm:mt-0">&larr; Back to Dashboard</a>
+    </div>
+
+    <!-- Presets & Filter Management (View/Edit/Delete scope) -->
+    <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+        <form method="post" action="{% url 'save_preset' %}" class="flex items-center space-x-2 w-full md:w-auto">
+            {% csrf_token %}
+            <input type="hidden" name="module" value="sales">
+            <input type="text" name="name" placeholder="Save current filter preset name..." required
+                class="px-3 py-1.5 border border-slate-300 rounded text-xs w-64 focus:ring-blue-500 focus:border-blue-500">
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded transition">
+                Save Filter Preset
+            </button>
+        </form>
+
+        <div class="flex items-center space-x-2 text-xs overflow-x-auto w-full md:w-auto">
+            <span class="text-slate-400 font-medium">Saved Presets:</span>
+            {% for preset in presets %}
+            <span class="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                {{ preset.name }}
+                <a href="{% url 'delete_preset' preset.id %}" class="ml-1.5 text-slate-400 hover:text-red-600 font-bold">&times;</a>
+            </span>
+            {% empty %}
+            <span class="text-slate-400 italic">No saved presets yet.</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+        <h2 class="text-sm font-bold text-slate-900 mb-4">Revenue Trend by Category & Year</h2>
+        <div class="h-64">
+            <canvas id="salesChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Detail Table -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+            <h2 class="text-sm font-bold text-slate-900 mb-3">Sales Breakdown by Category & Year</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-3 py-2 font-semibold text-slate-600">Category</th>
+                            <th class="px-3 py-2 font-semibold text-slate-600">Year</th>
+                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Units Sold</th>
+                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Revenue ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for row in sales_data %}
+                        <tr>
+                            <td class="px-3 py-2 font-medium text-slate-900">{{ row.Category }}</td>
+                            <td class="px-3 py-2 font-mono text-slate-600">{{ row.Year }}</td>
+                            <td class="px-3 py-2 text-right text-slate-600">{{ row.UnitsSold }}</td>
+                            <td class="px-3 py-2 text-right font-mono font-medium text-slate-900">${{ row.Revenue|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
+            <h2 class="text-sm font-bold text-slate-900 mb-3">Top 10 High-Performing Products</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
+                    <thead class="bg-slate-50">
+                        <tr>
+                            <th class="px-3 py-2 font-semibold text-slate-600">Product Name</th>
+                            <th class="px-3 py-2 font-semibold text-slate-600">Category</th>
+                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Qty</th>
+                            <th class="px-3 py-2 font-semibold text-slate-600 text-right">Total Revenue ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200">
+                        {% for prod in top_products %}
+                        <tr>
+                            <td class="px-3 py-2 font-medium text-slate-900">{{ prod.ProductName }}</td>
+                            <td class="px-3 py-2 text-slate-500">{{ prod.Category }}</td>
+                            <td class="px-3 py-2 text-right text-slate-600">{{ prod.TotalQuantity }}</td>
+                            <td class="px-3 py-2 text-right font-mono font-medium text-emerald-600">${{ prod.TotalRevenue|floatformat:2 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const ctx = document.getElementById('salesChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['2011', '2012', '2013', '2014'],
+        datasets: [
+            {
+                label: 'Bikes ($)',
+                data: [11945646, 28985515, 36266829, 17453180],
+                backgroundColor: 'rgba(37, 99, 235, 0.8)'
+            },
+            {
+                label: 'Components ($)',
+                data: [639173, 3880757, 5612935, 1669726],
+                backgroundColor: 'rgba(16, 185, 129, 0.8)'
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) { return '$' + (value / 1000000) + 'M'; }
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

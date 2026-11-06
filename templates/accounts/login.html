@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Sign In - AdventureWorks Analytics{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto my-12 bg-white p-8 rounded-xl shadow-sm border border-slate-200">
+    <div class="text-center mb-6">
+        <h1 class="text-2xl font-bold text-slate-900">Sign In</h1>
+        <p class="text-sm text-slate-500 mt-1">AdventureWorks Reporting System (DATAOPT)</p>
+    </div>
+
+    <form method="post" action="{% url 'login' %}" class="space-y-4">
+        {% csrf_token %}
+        <div>
+            <label for="username" class="block text-sm font-medium text-slate-700">Username</label>
+            <input type="text" name="username" id="username" required
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+
+        <div>
+            <label for="password" class="block text-sm font-medium text-slate-700">Password</label>
+            <input type="password" name="password" id="password" required
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+
+        <button type="submit"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md shadow transition text-sm">
+            Sign In to Dashboard
+        </button>
+    </form>
+
+    <!-- Demo Role Fast-Fill for Graders and Reviewers -->
+    <div class="mt-8 pt-6 border-t border-slate-200">
+        <h2 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3 text-center">
+            Role-Based Demo Accounts
+        </h2>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+            <button onclick="fillLogin('admin', 'Admin123!')" class="p-2 border border-slate-200 rounded hover:bg-slate-50 text-left">
+                <span class="font-bold text-slate-800 block">Administrator</span>
+                <span class="text-slate-400">admin / Admin123!</span>
+            </button>
+            <button onclick="fillLogin('manager', 'Manager123!')" class="p-2 border border-slate-200 rounded hover:bg-slate-50 text-left">
+                <span class="font-bold text-slate-800 block">Manager</span>
+                <span class="text-slate-400">manager / Manager123!</span>
+            </button>
+            <button onclick="fillLogin('supervisor', 'Supervisor123!')" class="p-2 border border-slate-200 rounded hover:bg-slate-50 text-left">
+                <span class="font-bold text-slate-800 block">Supervisor</span>
+                <span class="text-slate-400">supervisor / Supervisor123!</span>
+            </button>
+            <button onclick="fillLogin('employee', 'Employee123!')" class="p-2 border border-slate-200 rounded hover:bg-slate-50 text-left">
+                <span class="font-bold text-slate-800 block">Employee</span>
+                <span class="text-slate-400">employee / Employee123!</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function fillLogin(u, p) {
+    document.getElementById('username').value = u;
+    document.getElementById('password').value = p;
+}
+</script>
+{% endblock %}

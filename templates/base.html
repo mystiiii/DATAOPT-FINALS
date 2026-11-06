@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AdventureWorks Analytics System{% endblock %}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-900 text-white shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'dashboard' %}" class="flex items-center space-x-2">
+                    <span class="text-xl font-bold tracking-tight text-blue-400">AdventureWorks</span>
+                    <span class="text-xs uppercase bg-blue-900 text-blue-200 px-2 py-0.5 rounded font-mono">Analytics</span>
+                </a>
+            </div>
+
+            {% if user.is_authenticated %}
+            <nav class="hidden md:flex space-x-4 text-sm font-medium">
+                <a href="{% url 'dashboard' %}" class="hover:text-blue-400 px-3 py-2 rounded-md">Dashboard</a>
+                <a href="{% url 'report_sales' %}" class="hover:text-blue-400 px-3 py-2 rounded-md">Sales</a>
+                <a href="{% url 'report_customers' %}" class="hover:text-blue-400 px-3 py-2 rounded-md">Customers</a>
+                
+                {% if user.profile.is_manager %}
+                <a href="{% url 'report_revenue_loss' %}" class="hover:text-blue-400 px-3 py-2 rounded-md">Revenue & Loss</a>
+                <a href="{% url 'report_cost' %}" class="hover:text-blue-400 px-3 py-2 rounded-md">Cost</a>
+                {% endif %}
+            </nav>
+
+            <div class="flex items-center space-x-4">
+                <div class="text-right hidden sm:block">
+                    <div class="text-xs text-slate-400">Role: <span class="font-semibold text-emerald-400">{{ user.profile.role }}</span></div>
+                    <div class="text-sm font-medium">{{ user.username }}</div>
+                </div>
+                <a href="{% url 'logout' %}" class="text-xs bg-slate-800 hover:bg-red-600 px-3 py-1.5 rounded transition">Logout</a>
+            </div>
+            {% else %}
+            <a href="{% url 'login' %}" class="text-sm bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded font-medium transition">Sign In</a>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Messages -->
+        {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+            <div class="p-4 rounded-md text-sm {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-8 text-center text-xs text-slate-500">
+        DATAOPT Group 2 (BTIS1) • AdventureWorks Data Optimization & Analytics Platform • Read-Only Source Integration
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -94,14 +94,31 @@ def sales_report_view(request):
         sales_data = sales_service.get_sales_by_category_and_year() or []
         top_products = sales_service.get_top_selling_products(10) or []
         territory_sales = sales_service.get_territory_sales() or []
+
+        category_summary = {}
+        total_cat_rev = sum(item.get('Revenue', 0) for item in sales_data)
+        for item in sales_data:
+            cat = item.get('Category')
+            rev = item.get('Revenue', 0)
+            units = item.get('UnitsSold', 0)
+            if cat not in category_summary:
+                category_summary[cat] = {'Category': cat, 'Revenue': 0, 'UnitsSold': 0}
+            category_summary[cat]['Revenue'] += rev
+            category_summary[cat]['UnitsSold'] += units
+
+        category_list = sorted(category_summary.values(), key=lambda x: x['Revenue'], reverse=True)
+        for c in category_list:
+            c['Share'] = round((float(c['Revenue']) / float(total_cat_rev) * 100), 1) if total_cat_rev else 0
     except DatabaseConnectionError as e:
         db_error = str(e)
         messages.error(request, f"Database Error: {e}")
         sales_data, top_products, territory_sales = [], [], []
+        category_list = []
 
     presets = SavedReportPreset.objects.filter(module='sales')
     return render(request, 'reports/sales.html', {
         'sales_data': sales_data,
+        'category_list': category_list,
         'sales_data_json': serialize_for_json(sales_data),
         'top_products': top_products,
         'territory_sales': territory_sales,
@@ -141,10 +158,17 @@ def revenue_loss_report_view(request):
     try:
         revenue_data = revenue_loss_service.get_revenue_and_loss_by_year() or []
         scrap_data = revenue_loss_service.get_production_scrap_loss() or []
+        total_gross = sum(item.get('GrossAmount', 0) for item in revenue_data)
+        total_discount = sum(item.get('DiscountLoss', 0) for item in revenue_data)
+        total_net = sum(item.get('NetRevenue', 0) for item in revenue_data)
+        total_scrapped_qty = sum(item.get('TotalScrappedQty', 0) for item in scrap_data)
+        total_scrap_loss = int(total_scrapped_qty * 36.50) if total_scrapped_qty else 0
     except DatabaseConnectionError as e:
         db_error = str(e)
         messages.error(request, f"Database Error: {e}")
         revenue_data, scrap_data = [], []
+        total_gross, total_discount, total_net = 0, 0, 0
+        total_scrapped_qty, total_scrap_loss = 0, 0
 
     presets = SavedReportPreset.objects.filter(module='revenue_loss')
     return render(request, 'reports/revenue_loss.html', {
@@ -152,6 +176,11 @@ def revenue_loss_report_view(request):
         'revenue_data_json': serialize_for_json(revenue_data),
         'scrap_data': scrap_data,
         'scrap_data_json': serialize_for_json(scrap_data),
+        'total_gross': total_gross,
+        'total_discount': total_discount,
+        'total_net': total_net,
+        'total_scrapped_qty': total_scrapped_qty,
+        'total_scrap_loss': total_scrap_loss,
         'presets': presets,
         'db_error': db_error,
     })

@@ -40,60 +40,31 @@
     <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
         <h2 class="text-xs font-bold text-slate-900">Category Revenue Contribution</h2>
         <div class="space-y-2">
-            <!-- Bikes -->
+            {% for cat in category_list %}
             <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
                 <div>
                     <div class="flex items-center space-x-2">
-                        <span class="font-bold text-xs text-slate-900">Bikes</span>
+                        <span class="font-bold text-xs text-slate-900">{{ cat.Category }}</span>
+                        {% if forloop.first %}
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">Dominant Category</span>
-                    </div>
-                    <p class="text-[11px] text-slate-400 mt-0.5">36,411 units sold across Mountain, Road, and Touring models</p>
-                </div>
-                <div class="text-right">
-                    <p class="font-bold text-slate-900 text-sm">$94,628,400</p>
-                    <span class="text-[10px] text-emerald-600 font-medium">85.2% of total sales</span>
-                </div>
-            </div>
-
-            <!-- Components -->
-            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
-                <div>
-                    <div class="flex items-center space-x-2">
-                        <span class="font-bold text-xs text-slate-900">Components</span>
+                        {% elif forloop.last %}
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600">Niche Category</span>
+                        {% else %}
                         <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700">Steady</span>
+                        {% endif %}
                     </div>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Replacement frames, forks, brakes, and wheels</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">{{ cat.UnitsSold|intcomma }} units sold across models</p>
                 </div>
                 <div class="text-right">
-                    <p class="font-bold text-slate-900 text-sm">$11,802,600</p>
-                    <span class="text-[10px] text-slate-500 font-medium">10.6% of total sales</span>
+                    <p class="font-bold text-slate-900 text-sm">${{ cat.Revenue|floatformat:0|intcomma }}</p>
+                    <span class="text-[10px] text-emerald-600 font-medium">{{ cat.Share }}% of category sales</span>
                 </div>
             </div>
-
-            <!-- Clothing & Accessories -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
-                    <div>
-                        <span class="font-bold text-xs text-slate-900">Clothing</span>
-                        <p class="text-[10px] text-slate-400">Jerseys, caps, gloves</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-bold text-slate-900 text-xs">$2,123,900</p>
-                        <span class="text-[10px] text-slate-500">1.9% share</span>
-                    </div>
-                </div>
-
-                <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
-                    <div>
-                        <span class="font-bold text-xs text-slate-900">Accessories</span>
-                        <p class="text-[10px] text-slate-400">Helmets, tires, pumps</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="font-bold text-slate-900 text-xs">$1,291,480</p>
-                        <span class="text-[10px] text-emerald-600">High margin</span>
-                    </div>
-                </div>
+            {% empty %}
+            <div class="p-6 text-center text-xs text-slate-400">
+                No category sales records found in database.
             </div>
+            {% endfor %}
         </div>
     </div>
 
@@ -120,22 +91,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td class="py-2.5 font-medium text-slate-900">Mountain-200 Black, 38</td>
-                        <td class="py-2.5 text-slate-500 text-[11px]">Bikes</td>
-                        <td class="py-2.5 text-right text-slate-600">1,842</td>
-                        <td class="py-2.5 text-right font-mono font-semibold text-slate-900">$4,229,180.00</td>
-                    </tr>
-                    <tr>
-                        <td class="py-2.5 font-medium text-slate-900">Mountain-200 Black, 42</td>
-                        <td class="py-2.5 text-slate-500 text-[11px]">Bikes</td>
-                        <td class="py-2.5 text-right text-slate-600">1,750</td>
-                        <td class="py-2.5 text-right font-mono font-semibold text-slate-900">$4,016,232.00</td>
-                    </tr>
-                    <tr>
-                        <td class="py-2.5 font-medium text-slate-900">Mountain-200 Silver, 38</td>
-                        <td class="py-2.5 text-slate-500 text-[11px]">Bikes</td>
-                        <td class="py-2.5 text-right text-slate-600">1,680</td>
-                        <td class="py-2.5 text-right font-mono font-semibold text-slate-900">$3,855,576.00</td>
+                        <td colspan="4" class="py-6 text-center text-slate-400">No products found in database.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -182,11 +138,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td class="py-2.5 font-medium text-slate-900">Southwest</td>
-                        <td class="py-2.5 text-slate-500 text-[11px]">North America</td>
-                        <td class="py-2.5 text-right text-slate-600">5,716</td>
-                        <td class="py-2.5 text-right font-mono font-semibold text-slate-900">$24,180,500.00</td>
-                        <td class="py-2.5 text-right"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">Best Performing</span></td>
+                        <td colspan="5" class="py-6 text-center text-slate-400">No territory sales records found in database.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -201,21 +153,21 @@
     <div class="flex items-center justify-between">
         <span class="text-xs font-bold text-slate-900">Territory Analysis</span>
         <div class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 bg-slate-50 font-medium">
-            FY2014 &middot; All Channels
+            {% if territory_sales %}All Channels{% else %}Offline{% endif %}
         </div>
     </div>
 
     <!-- Top Territory Stat Card (Interactive) -->
     <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E5E7EB] space-y-2">
         <span class="text-[11px] font-semibold text-slate-500">Sales Territory (Click bar to inspect)</span>
-        <div id="territoryNameDisplay" class="text-xl font-bold text-slate-900 transition">Southwest</div>
-        <p id="territoryRevenueDisplay" class="text-sm font-semibold text-coral transition">$24,180,500 <span id="territoryBadgeDisplay" class="text-[10px] text-emerald-600 font-normal">(+19% YoY &middot; 5,716 orders)</span></p>
+        <div id="territoryNameDisplay" class="text-xl font-bold text-slate-900 transition">{% if territory_sales %}Southwest{% else %}No data{% endif %}</div>
+        <p id="territoryRevenueDisplay" class="text-sm font-semibold text-coral transition">{% if territory_sales %}$0{% else %}$0{% endif %}</p>
         
         <div class="h-32 pt-2">
             <canvas id="territoryChart"></canvas>
         </div>
         <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200">
-            <span id="territoryFooterLabel">SW vs NW vs NE vs CA vs UK vs DE</span>
+            <span id="territoryFooterLabel">{% if territory_sales %}Select a territory{% else %}Database offline{% endif %}</span>
             <span>Click bars to filter</span>
         </div>
     </div>
@@ -227,9 +179,14 @@
             <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Key Takeaways</h3>
         </div>
         <div class="text-[11px] text-slate-600 space-y-1.5 leading-relaxed">
-            <p>Bikes brought in 85.2% ($94.6M) of total sales, led by the Mountain-200 line ($4.2M). Components brought in 10.6% ($11.8M), and clothing plus accessories made up the rest.</p>
-            <p>Annual sales rose from $12.6M in 2011 to $43.9M in 2013, then reached $20.1M in the first half of 2014.</p>
-            <p>Southwest was the top territory with $24.18M across 5,716 orders, followed by Northwest at $16.08M. Central was the lowest at $7.92M across 1,399 orders.</p>
+            {% if db_error or not territory_sales %}
+            <p class="text-slate-400 italic">No takeaways available: database is disconnected.</p>
+            {% else %}
+            {% if category_list %}
+            <p>{{ category_list.0.Category }} brought in {{ category_list.0.Share }}% (${{ category_list.0.Revenue|floatformat:0|intcomma }}) of total sales across {{ category_list.0.UnitsSold|intcomma }} units sold.</p>
+            {% endif %}
+            <p>Southwest was the top territory with ${{ territory_sales.0.TotalRevenue|floatformat:0|intcomma }} across {{ territory_sales.0.TotalOrders|intcomma }} orders.</p>
+            {% endif %}
         </div>
     </div>
 </div>

@@ -40,22 +40,22 @@
     <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
             <span class="text-[11px] font-medium text-slate-500">Gross Sales Volume</span>
-            <div class="text-lg font-bold text-slate-900 mt-1">$110,373,889</div>
+            <div class="text-lg font-bold text-slate-900 mt-1">{% if total_gross %}${{ total_gross|floatformat:0|intcomma }}{% else %}$0{% endif %}</div>
             <span class="text-[10px] text-slate-400">Total catalogue value</span>
         </div>
         <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
             <span class="text-[11px] font-medium text-slate-500">Promotional Discounts</span>
-            <div class="text-lg font-bold text-amber-600 mt-1">-$527,508</div>
-            <span class="text-[10px] text-amber-600 font-medium">0.48% volume discount</span>
+            <div class="text-lg font-bold text-amber-600 mt-1">{% if total_discount %}-${{ total_discount|floatformat:0|intcomma }}{% else %}$0{% endif %}</div>
+            <span class="text-[10px] text-amber-600 font-medium">Volume discount</span>
         </div>
         <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
             <span class="text-[11px] font-medium text-slate-500">Production Scrap</span>
-            <div class="text-lg font-bold text-red-600 mt-1">-$412,390</div>
-            <span class="text-[10px] text-red-600 font-medium">11,300 units scrapped</span>
+            <div class="text-lg font-bold text-red-600 mt-1">{% if total_scrap_loss %}-${{ total_scrap_loss|floatformat:0|intcomma }}{% else %}$0{% endif %}</div>
+            <span class="text-[10px] text-red-600 font-medium">{% if total_scrapped_qty %}{{ total_scrapped_qty|intcomma }} units scrapped{% else %}0 units scrapped{% endif %}</span>
         </div>
         <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
             <span class="text-[11px] font-medium text-slate-500">Realized Net Revenue</span>
-            <div class="text-lg font-bold text-emerald-600 mt-1">$109,846,381</div>
+            <div class="text-lg font-bold text-emerald-600 mt-1">{% if total_net %}${{ total_net|floatformat:0|intcomma }}{% else %}$0{% endif %}</div>
             <span class="text-[10px] text-emerald-600 font-medium">Net audited proceeds</span>
         </div>
     </div>
@@ -90,15 +90,8 @@
                 </div>
             </div>
             {% empty %}
-            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
-                <div>
-                    <span class="font-bold text-xs text-slate-900">Thermoform temp too low</span>
-                    <p class="text-[10px] text-slate-400">124 work orders affected</p>
-                </div>
-                <div class="text-right">
-                    <p class="font-mono font-bold text-slate-900 text-xs">3,480 units</p>
-                    <span class="text-[10px] text-red-600">Material loss</span>
-                </div>
+            <div class="p-6 text-center text-xs text-slate-400">
+                No scrap records found in database.
             </div>
             {% endfor %}
         </div>
@@ -111,21 +104,21 @@
     <div class="flex items-center justify-between">
         <span class="text-xs font-bold text-slate-900">Scrap & Loss KPI</span>
         <div class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 bg-slate-50 font-medium">
-            Fiscal Cycles
+            {% if scrap_data %}Fiscal Cycles{% else %}Offline{% endif %}
         </div>
     </div>
 
     <!-- Summary KPI Card (Interactive) -->
     <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E5E7EB] space-y-2">
         <span class="text-[11px] font-semibold text-slate-500">Scrap Reason (Click bar to inspect)</span>
-        <div id="scrapReasonName" class="text-xl font-bold text-slate-900 transition">Thermoform temp too low</div>
-        <p id="scrapLossValue" class="text-sm font-semibold text-rose-600 transition">-$127,020 <span id="scrapQtyBadge" class="text-[10px] text-slate-500 font-normal">(3,480 units &middot; 124 orders)</span></p>
+        <div id="scrapReasonName" class="text-xl font-bold text-slate-900 transition">{% if scrap_data %}{{ scrap_data.0.ScrapReason }}{% else %}No data{% endif %}</div>
+        <p id="scrapLossValue" class="text-sm font-semibold text-rose-600 transition">{% if scrap_data %}$0{% else %}$0{% endif %}</p>
         
         <div class="h-32 pt-2">
             <canvas id="scrapChart"></canvas>
         </div>
         <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200">
-            <span id="scrapFooterLabel">Thermo vs Damage vs Trim vs Drill</span>
+            <span id="scrapFooterLabel">{% if scrap_data %}Select a reason{% else %}Database offline{% endif %}</span>
             <span>Click bars to filter</span>
         </div>
     </div>
@@ -137,9 +130,12 @@
             <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Key Takeaways</h3>
         </div>
         <div class="text-[11px] text-slate-600 space-y-1.5 leading-relaxed">
-            <p>Gross order volume reached $110,373,889. After promotional discounts, net revenue was $109,846,381.</p>
-            <p>Promotional discounts totaled $527,508, which is 0.48% of gross revenue, having very little effect on margins.</p>
-            <p>Production scrap cost $412,390 across 11,300 discarded units. Most of the scrap came from tooling temperature drops (3,480 units) and handling damage (2,150 units).</p>
+            {% if db_error or not revenue_data %}
+            <p class="text-slate-400 italic">No takeaways available: database is disconnected.</p>
+            {% else %}
+            <p>Gross order volume reached ${{ total_gross|floatformat:0|intcomma }}. After promotional discounts of ${{ total_discount|floatformat:0|intcomma }}, net revenue was ${{ total_net|floatformat:0|intcomma }}.</p>
+            <p>Production scrap cost ${{ total_scrap_loss|intcomma }} across {{ total_scrapped_qty|intcomma }} discarded units.</p>
+            {% endif %}
         </div>
     </div>
 </div>

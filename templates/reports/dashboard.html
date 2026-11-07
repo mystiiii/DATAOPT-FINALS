@@ -125,6 +125,7 @@
             </div>
 
             <!-- Channel Split Progress Bar -->
+            {% if total_gross %}
             <div class="space-y-1.5">
                 <div class="flex justify-between text-[11px] text-slate-600 font-medium">
                     <span>Store Retailers (B2B): {{ b2b_pct }}% &middot; ${{ b2b_rev|floatformat:0|intcomma }}</span>
@@ -135,13 +136,18 @@
                     <div class="h-full bg-coral-border rounded-r-full" style="width: {{ b2c_pct }}%"></div>
                 </div>
                 <div class="flex justify-between items-center pt-1 text-[11px]">
-                    <span class="text-slate-400">Stores drive the majority of sales volume across commercial accounts.</span>
+                    <span class="text-slate-400">Stores drive commercial order volume.</span>
                     <a href="{% url 'report_sales' %}" class="text-coral hover:underline font-semibold flex items-center space-x-1">
                         <span>View sales detail</span>
                         <span>&rarr;</span>
                     </a>
                 </div>
             </div>
+            {% else %}
+            <div class="p-3 rounded-lg bg-slate-50 border border-slate-100 text-center text-xs text-slate-400">
+                No sales data available (database disconnected)
+            </div>
+            {% endif %}
         </div>
 
         <!-- 2. Customer Distribution Card -->
@@ -151,13 +157,15 @@
                 <div>
                     <div class="flex items-center space-x-2">
                         <span class="text-xs font-bold text-slate-900 group-hover:text-coral transition">Customer Distribution</span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">Healthy</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {% if customer_types %}bg-emerald-50 text-emerald-700{% else %}bg-slate-100 text-slate-500{% endif %}">
+                            {% if customer_types %}Healthy{% else %}No Data{% endif %}
+                        </span>
                     </div>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Account reach across 6 territories and 3 segments</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Account reach across territories and segments</p>
                 </div>
             </div>
             <div class="flex items-center space-x-2 text-xs font-semibold text-slate-700">
-                <span>19,820 accounts</span>
+                <span>{% if customer_types %}{{ customer_types.0.TotalCustomers|add:customer_types.1.TotalCustomers|intcomma }} accounts{% else %}0 accounts{% endif %}</span>
                 <span class="text-slate-400">&gt;</span>
             </div>
         </a>
@@ -170,15 +178,17 @@
                 <div>
                     <div class="flex items-center space-x-2">
                         <span class="text-xs font-bold text-slate-900 group-hover:text-coral transition">Production Scrap</span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700">Review Needed</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {% if total_scrap_loss %}bg-amber-50 text-amber-700{% else %}bg-slate-100 text-slate-500{% endif %}">
+                            {% if total_scrap_loss %}Review Needed{% else %}No Data{% endif %}
+                        </span>
                     </div>
                     <p class="text-[11px] text-slate-400 mt-0.5">
-                        {% if scrap_preview.ScrapReason %}{{ scrap_preview.ScrapReason }}: {{ scrap_preview.TotalScrappedQty|intcomma }} units scrapped{% else %}Scrap rate above the 1.8% operating threshold{% endif %}
+                        {% if scrap_preview.ScrapReason %}{{ scrap_preview.ScrapReason }}: {{ scrap_preview.TotalScrappedQty|intcomma }} units scrapped{% else %}No scrap records found{% endif %}
                     </p>
                 </div>
             </div>
-            <div class="flex items-center space-x-2 text-xs font-semibold text-amber-600">
-                <span>$412K loss</span>
+            <div class="flex items-center space-x-2 text-xs font-semibold {% if total_scrap_loss %}text-amber-600{% else %}text-slate-500{% endif %}">
+                <span>{% if total_scrap_loss %}${{ total_scrap_loss|floatformat:0|intcomma }} loss{% else %}$0 loss{% endif %}</span>
                 <span class="text-slate-400">&gt;</span>
             </div>
         </a>
@@ -192,15 +202,17 @@
                 <div>
                     <div class="flex items-center space-x-2">
                         <span class="text-xs font-bold text-slate-900 group-hover:text-coral transition">Vendor Costs</span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">Healthy</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {% if vendor_preview.TotalSpent %}bg-emerald-50 text-emerald-700{% else %}bg-slate-100 text-slate-500{% endif %}">
+                            {% if vendor_preview.TotalSpent %}Healthy{% else %}No Data{% endif %}
+                        </span>
                     </div>
                     <p class="text-[11px] text-slate-400 mt-0.5">
-                        {% if vendor_preview.VendorName %}Top supplier: {{ vendor_preview.VendorName }} (${{ vendor_preview.TotalSpent|floatformat:0|intcomma }}){% else %}Supplier spend and purchase-price variance{% endif %}
+                        {% if vendor_preview.VendorName %}Top supplier: {{ vendor_preview.VendorName }} (${{ vendor_preview.TotalSpent|floatformat:0|intcomma }}){% else %}No procurement records found{% endif %}
                     </p>
                 </div>
             </div>
             <div class="flex items-center space-x-2 text-xs font-semibold text-slate-700">
-                <span>{% if vendor_preview.TotalSpent %}${{ vendor_preview.TotalSpent|floatformat:0|intcomma }}{% else %}$18.6M{% endif %} spend</span>
+                <span>{% if vendor_preview.TotalSpent %}${{ vendor_preview.TotalSpent|floatformat:0|intcomma }} spend{% else %}$0 spend{% endif %}</span>
                 <span class="text-slate-400">&gt;</span>
             </div>
         </a>
@@ -252,9 +264,13 @@
             <span class="w-2 h-2 rounded-full bg-coral"></span>
             <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Executive Summary</h3>
         </div>
+        {% if db_error or not total_gross %}
+        <p class="text-[11px] text-slate-400 italic">No summary available: database is disconnected.</p>
+        {% else %}
         <p class="text-[11px] text-slate-600 leading-relaxed">
             Reseller stores drive {{ b2b_pct }}% (${{ b2b_rev|floatformat:0|intcomma }}) of customer sales across commercial accounts, while direct consumers make up {{ b2c_pct }}% (${{ b2c_rev|floatformat:0|intcomma }}). Total scrap across work orders reached ${{ total_scrap_loss|intcomma }}.
         </p>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

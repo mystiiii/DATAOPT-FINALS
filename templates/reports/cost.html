@@ -60,26 +60,8 @@
                         <td class="py-2.5 text-right font-mono font-bold text-emerald-600">{{ row.MarginPercentage }}%</td>
                     </tr>
                     {% empty %}
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-2.5 font-medium text-slate-900">Water Bottle - 30 oz.</td>
-                        <td class="py-2.5 text-slate-500 text-[11px]">Accessories</td>
-                        <td class="py-2.5 text-right font-mono text-slate-600">$1.87</td>
-                        <td class="py-2.5 text-right font-mono text-slate-900">$4.99</td>
-                        <td class="py-2.5 text-right font-mono font-bold text-emerald-600">62.5%</td>
-                    </tr>
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-2.5 font-medium text-slate-900">Touring Tire Tube</td>
-                        <td class="py-2.5 text-slate-500 text-[11px]">Accessories</td>
-                        <td class="py-2.5 text-right font-mono text-slate-600">$1.86</td>
-                        <td class="py-2.5 text-right font-mono text-slate-900">$4.99</td>
-                        <td class="py-2.5 text-right font-mono font-bold text-emerald-600">62.7%</td>
-                    </tr>
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-2.5 font-medium text-slate-900">Mountain-200 Black, 38</td>
-                        <td class="py-2.5 text-slate-500 text-[11px]">Bikes</td>
-                        <td class="py-2.5 text-right font-mono text-slate-600">$1,251.98</td>
-                        <td class="py-2.5 text-right font-mono text-slate-900">$2,294.99</td>
-                        <td class="py-2.5 text-right font-mono font-bold text-emerald-600">45.4%</td>
+                    <tr>
+                        <td colspan="5" class="py-6 text-center text-slate-400">No margin data found in database.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -109,25 +91,8 @@
                 </div>
             </div>
             {% empty %}
-            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
-                <div>
-                    <span class="font-bold text-xs text-slate-900">Superior Bicycles</span>
-                    <p class="text-[10px] text-slate-400">182 Purchase orders fulfilled</p>
-                </div>
-                <div class="text-right">
-                    <p class="font-mono font-bold text-slate-900 text-xs">$8,421,090.00</p>
-                    <span class="text-[10px] text-emerald-600">Primary vendor</span>
-                </div>
-            </div>
-            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
-                <div>
-                    <span class="font-bold text-xs text-slate-900">Professional Athletic Consultants</span>
-                    <p class="text-[10px] text-slate-400">174 Purchase orders fulfilled</p>
-                </div>
-                <div class="text-right">
-                    <p class="font-mono font-bold text-slate-900 text-xs">$7,135,440.00</p>
-                    <span class="text-[10px] text-slate-500">Tier 1</span>
-                </div>
+            <div class="p-6 text-center text-xs text-slate-400">
+                No vendor spend records found in database.
             </div>
             {% endfor %}
         </div>
@@ -168,10 +133,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td class="py-2.5 font-medium text-slate-900">Mountain-200 Black, 38</td>
-                        <td class="py-2.5 text-slate-500 text-[11px] font-mono">2013-05-30 &rarr; Present</td>
-                        <td class="py-2.5 text-right font-mono font-semibold text-slate-900">$1,251.98</td>
-                        <td class="py-2.5 text-right"><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">Cost Reduced (-4.0%)</span></td>
+                        <td colspan="4" class="py-6 text-center text-slate-400">No cost history records found in database.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -186,21 +148,21 @@
     <div class="flex items-center justify-between">
         <span class="text-xs font-bold text-slate-900">Procurement & Margins</span>
         <div class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 bg-slate-50 font-medium">
-            Annual Overview
+            {% if vendor_spend %}Annual Overview{% else %}Offline{% endif %}
         </div>
     </div>
 
     <!-- Summary KPI Card (Interactive) -->
     <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E5E7EB] space-y-2">
         <span class="text-[11px] font-semibold text-slate-500">Vendor Spend (Click bar to inspect)</span>
-        <div id="vendorNameDisplay" class="text-xl font-bold text-slate-900 transition">Superior Bicycles</div>
-        <p id="vendorSpendDisplay" class="text-sm font-semibold text-coral transition">$8.42M <span id="vendorBadgeDisplay" class="text-[10px] text-emerald-600 font-normal">(182 purchase orders fulfilled)</span></p>
+        <div id="vendorNameDisplay" class="text-xl font-bold text-slate-900 transition">{% if vendor_spend %}{{ vendor_spend.0.VendorName }}{% else %}No data{% endif %}</div>
+        <p id="vendorSpendDisplay" class="text-sm font-semibold text-coral transition">{% if vendor_spend %}$0{% else %}$0{% endif %}</p>
         
         <div class="h-32 pt-2">
             <canvas id="vendorChart"></canvas>
         </div>
         <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200">
-            <span id="vendorFooterLabel">Top 5 Procurement Vendors</span>
+            <span id="vendorFooterLabel">{% if vendor_spend %}Select a vendor{% else %}Database offline{% endif %}</span>
             <span>Click bars to filter</span>
         </div>
     </div>
@@ -212,9 +174,16 @@
             <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Key Takeaways</h3>
         </div>
         <div class="text-[11px] text-slate-600 space-y-1.5 leading-relaxed">
-            <p>Accessories have the highest margins at roughly 62.5% to 62.7% (such as water bottles and tire tubes). Assembled bikes carry lower margins, with Mountain-200 at 45.4% and Road-150 at 39.3%.</p>
-            <p>Between 2012 and 2013, production costs for the Mountain-200 fell from $1,304.60 to $1,251.98, improving margin by 4.0%.</p>
-            <p>Purchasing spent $53.2M across 4,012 purchase orders. Most spend went to Superior Bicycles ($8.42M over 182 orders) and Professional Athletic Consultants ($7.14M).</p>
+            {% if db_error or not margins %}
+            <p class="text-slate-400 italic">No takeaways available: database is disconnected.</p>
+            {% else %}
+            {% if margins %}
+            <p>Highest margin product: {{ margins.0.ProductName }} ({{ margins.0.MarginPercentage }}% margin).</p>
+            {% endif %}
+            {% if vendor_spend %}
+            <p>Top vendor by spend: {{ vendor_spend.0.VendorName }} (${{ vendor_spend.0.TotalSpent|floatformat:0|intcomma }} across {{ vendor_spend.0.PurchaseOrdersCount|intcomma }} POs).</p>
+            {% endif %}
+            {% endif %}
         </div>
     </div>
 </div>

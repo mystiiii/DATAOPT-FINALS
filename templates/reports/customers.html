@@ -42,20 +42,22 @@
         <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-slate-900">Store Retailers (B2B)</span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">68% Revenue Share</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {% if customer_types.0 %}bg-emerald-50 text-emerald-700{% else %}bg-slate-100 text-slate-500{% endif %}">
+                    {% if customer_types.0 %}B2B Segment{% else %}No Data{% endif %}
+                </span>
             </div>
             <div class="space-y-1">
                 <p class="text-2xl font-bold text-slate-900">
-                    {% if customer_types.0 %}{{ customer_types.0.TotalCustomers|intcomma }}{% else %}701{% endif %}
+                    {% if customer_types.0 %}{{ customer_types.0.TotalCustomers|intcomma }}{% else %}0{% endif %}
                     <span class="text-xs font-normal text-slate-500">accounts</span>
                 </p>
                 <p class="text-xs font-semibold text-slate-700">
-                    {% if customer_types.0 %}${{ customer_types.0.TotalRevenue|floatformat:0|intcomma }}{% else %}$93.9M{% endif %} Total Lifetime Volume
+                    {% if customer_types.0 %}${{ customer_types.0.TotalRevenue|floatformat:0|intcomma }}{% else %}$0{% endif %} Total Lifetime Volume
                 </p>
             </div>
             <div class="pt-2 border-t border-slate-100 flex justify-between text-[11px] text-slate-500">
-                <span>Avg Order: <strong class="text-slate-800">$24,670</strong></span>
-                <span>{% if customer_types.0 %}{{ customer_types.0.TotalOrders|intcomma }}{% else %}3,806{% endif %} Total Orders</span>
+                <span>Total Orders: <strong class="text-slate-800">{% if customer_types.0 %}{{ customer_types.0.TotalOrders|intcomma }}{% else %}0{% endif %}</strong></span>
+                <span>Commercial Retail Accounts</span>
             </div>
         </div>
 
@@ -63,20 +65,22 @@
         <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
             <div class="flex items-center justify-between">
                 <span class="text-xs font-bold text-slate-900">Individual Consumers (B2C)</span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700">32% Revenue Share</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {% if customer_types.1 %}bg-blue-50 text-blue-700{% else %}bg-slate-100 text-slate-500{% endif %}">
+                    {% if customer_types.1 %}B2C Segment{% else %}No Data{% endif %}
+                </span>
             </div>
             <div class="space-y-1">
                 <p class="text-2xl font-bold text-slate-900">
-                    {% if customer_types.1 %}{{ customer_types.1.TotalCustomers|intcomma }}{% else %}18,484{% endif %}
+                    {% if customer_types.1 %}{{ customer_types.1.TotalCustomers|intcomma }}{% else %}0{% endif %}
                     <span class="text-xs font-normal text-slate-500">active buyers</span>
                 </p>
                 <p class="text-xs font-semibold text-slate-700">
-                    {% if customer_types.1 %}${{ customer_types.1.TotalRevenue|floatformat:0|intcomma }}{% else %}$29.3M{% endif %} Total Lifetime Volume
+                    {% if customer_types.1 %}${{ customer_types.1.TotalRevenue|floatformat:0|intcomma }}{% else %}$0{% endif %} Total Lifetime Volume
                 </p>
             </div>
             <div class="pt-2 border-t border-slate-100 flex justify-between text-[11px] text-slate-500">
-                <span>Avg Order: <strong class="text-slate-800">$1,060</strong></span>
-                <span>{% if customer_types.1 %}{{ customer_types.1.TotalOrders|intcomma }}{% else %}27,659{% endif %} Total Orders</span>
+                <span>Total Orders: <strong class="text-slate-800">{% if customer_types.1 %}{{ customer_types.1.TotalOrders|intcomma }}{% else %}0{% endif %}</strong></span>
+                <span>Direct Consumers</span>
             </div>
         </div>
     </div>
@@ -105,25 +109,8 @@
                 </div>
             </div>
             {% empty %}
-            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
-                <div>
-                    <span class="font-bold text-xs text-slate-900">Better Large Sporting Goods</span>
-                    <p class="text-[10px] text-slate-400">Account ID: 29818 &middot; 12 orders</p>
-                </div>
-                <div class="text-right">
-                    <p class="font-mono font-bold text-slate-900 text-xs">$989,184.08</p>
-                    <span class="text-[10px] text-emerald-600">Top account</span>
-                </div>
-            </div>
-            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
-                <div>
-                    <span class="font-bold text-xs text-slate-900">Metropolitan Bicycle Supply</span>
-                    <p class="text-[10px] text-slate-400">Account ID: 29715 &middot; 12 orders</p>
-                </div>
-                <div class="text-right">
-                    <p class="font-mono font-bold text-slate-900 text-xs">$961,675.86</p>
-                    <span class="text-[10px] text-slate-500">Tier 1</span>
-                </div>
+            <div class="p-6 text-center text-xs text-slate-400">
+                No customer records found in database.
             </div>
             {% endfor %}
         </div>
@@ -158,10 +145,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td class="py-2.5 font-medium text-slate-900">California</td>
-                        <td class="py-2.5 text-slate-500 text-[11px]">United States</td>
-                        <td class="py-2.5 text-right text-slate-600">4,210</td>
-                        <td class="py-2.5 text-right font-mono font-semibold text-slate-900">$19,480,100.00</td>
+                        <td colspan="4" class="py-6 text-center text-slate-400">No geographic distribution records found in database.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -176,21 +160,21 @@
     <div class="flex items-center justify-between">
         <span class="text-xs font-bold text-slate-900">Account Reach</span>
         <div class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 bg-slate-50 font-medium">
-            Global Network
+            {% if customer_types %}Global Network{% else %}Offline{% endif %}
         </div>
     </div>
 
     <!-- Summary KPI Card (Interactive) -->
     <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E5E7EB] space-y-2">
         <span class="text-[11px] font-semibold text-slate-500">Customer Segment (Click bar to inspect)</span>
-        <div id="custSegmentName" class="text-xl font-bold text-slate-900 transition">Store Retailers (B2B)</div>
-        <p id="custSegmentRevenue" class="text-sm font-semibold text-coral transition">$93.9M <span id="custSegmentBadge" class="text-[10px] text-emerald-600 font-normal">(76% Revenue Share &middot; 701 stores)</span></p>
+        <div id="custSegmentName" class="text-xl font-bold text-slate-900 transition">{% if customer_types %}Store Retailers (B2B){% else %}No data{% endif %}</div>
+        <p id="custSegmentRevenue" class="text-sm font-semibold text-coral transition">{% if customer_types %}$0{% else %}$0{% endif %}</p>
         
         <div class="h-32 pt-2">
             <canvas id="custChart"></canvas>
         </div>
         <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200">
-            <span id="custFooterLabel">B2B Store vs B2C Consumer</span>
+            <span id="custFooterLabel">{% if customer_types %}Select a segment{% else %}Database offline{% endif %}</span>
             <span>Click bars to filter</span>
         </div>
     </div>
@@ -202,9 +186,16 @@
             <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Key Takeaways</h3>
         </div>
         <div class="text-[11px] text-slate-600 space-y-1.5 leading-relaxed">
-            <p>The 5 largest accounts are all retail stores: Better Large Sporting Goods led with $989,184 over 12 orders, followed by Metropolitan Bicycle Supply at $961,675. Bulk orders averaged roughly $80,000 each.</p>
-            <p>Stores make up 3.6% of accounts (701 stores) but generate 76% of revenue ($93.9M). The 18,484 individual buyers account for the remaining 24% ($29.3M), averaging $1,060 per order.</p>
-            <p>Most revenue came from California ($19.4M), Washington ($14.2M), and Texas ($9.6M), along with overseas buyers in Australia ($9.1M) and the UK ($8.5M).</p>
+            {% if db_error or not customer_types %}
+            <p class="text-slate-400 italic">No takeaways available: database is disconnected.</p>
+            {% else %}
+            {% if top_customers %}
+            <p>The largest account is {{ top_customers.0.CustomerName }} with ${{ top_customers.0.TotalSpent|floatformat:0|intcomma }} over {{ top_customers.0.Orders }} orders.</p>
+            {% endif %}
+            {% if customer_types %}
+            <p>Commercial stores make up {{ customer_types.0.TotalCustomers|intcomma }} accounts generating ${{ customer_types.0.TotalRevenue|floatformat:0|intcomma }}.</p>
+            {% endif %}
+            {% endif %}
         </div>
     </div>
 </div>

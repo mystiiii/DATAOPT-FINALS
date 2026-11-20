@@ -47,3 +47,44 @@ class DataQualityLog(models.Model):
 
     def __str__(self):
         return f"[{self.severity}] {self.issue_title}"
+
+
+class AuditLog(models.Model):
+    ACTION_CHOICES = [
+        ('CREATE', 'Create'),
+        ('EDIT', 'Edit'),
+        ('DELETE', 'Delete'),
+        ('ACCESS_DENIED', 'Access Denied'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='audit_logs')
+    username_snapshot = models.CharField(max_length=150, blank=True, default='')
+    role_snapshot = models.CharField(max_length=50, blank=True, default='')
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    module = models.CharField(max_length=50, blank=True, default='')
+    target_type = models.CharField(max_length=100)
+    target_id = models.CharField(max_length=50, blank=True, default='')
+    details = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        actor = self.username_snapshot or (self.user.username if self.user else 'anonymous')
+        return f"[{self.action}] {actor} -> {self.target_type} ({self.module})"
+
+
+def log_audit_event(user, action, target_type, target_id='', module='', details=''):
+    profile = getattr(user, 'profile', None) if user and getattr(user, 'is_authenticated', False) else None
+    role_name = profile.role if profile else ('Administrator' if getattr(user, 'is_superuser', False) else 'Anonymous')
+    AuditLog.objects.create(
+        user=user if getattr(user, 'is_authenticated', False) else None,
+        username_snapshot=getattr(user, 'username', '') or 'anonymous',
+        role_snapshot=role_name,
+        action=action,
+        module=module,
+        target_type=target_type,
+        target_id=str(target_id) if target_id else '',
+        details=details,
+    )

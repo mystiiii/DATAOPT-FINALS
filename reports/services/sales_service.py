@@ -53,3 +53,56 @@ def get_territory_sales():
     ORDER BY TotalRevenue DESC;
     """
     return execute_query(sql)
+
+def get_monthly_sales_trend():
+    sql = """
+    SELECT
+        YEAR(soh.OrderDate) AS [Year],
+        MONTH(soh.OrderDate) AS [Month],
+        COUNT(DISTINCT soh.SalesOrderID) AS OrderCount,
+        SUM(soh.SubTotal) AS Revenue,
+        SUM(soh.TotalDue) AS TotalDue
+    FROM Sales.SalesOrderHeader soh
+    GROUP BY YEAR(soh.OrderDate), MONTH(soh.OrderDate)
+    ORDER BY [Year], [Month];
+    """
+    return execute_query(sql)
+
+def get_low_performing_products(limit=10):
+    sql = f"""
+    SELECT TOP ({limit})
+        p.ProductID,
+        p.Name AS ProductName,
+        pc.Name AS Category,
+        SUM(sod.LineTotal) AS TotalRevenue,
+        SUM(sod.OrderQty) AS TotalQuantity,
+        SUM(sod.OrderQty * p.StandardCost) AS TotalCost,
+        CASE WHEN SUM(sod.LineTotal) > 0
+             THEN ROUND(((SUM(sod.LineTotal) - SUM(sod.OrderQty * p.StandardCost)) / SUM(sod.LineTotal)) * 100, 1)
+             ELSE 0 END AS MarginPercentage
+    FROM Sales.SalesOrderDetail sod
+    JOIN Production.Product p ON p.ProductID = sod.ProductID
+    JOIN Production.ProductSubcategory ps ON ps.ProductSubcategoryID = p.ProductSubcategoryID
+    JOIN Production.ProductCategory pc ON pc.ProductCategoryID = ps.ProductCategoryID
+    GROUP BY p.ProductID, p.Name, pc.Name
+    HAVING SUM(sod.LineTotal) > 0
+    ORDER BY TotalRevenue ASC;
+    """
+    return execute_query(sql)
+
+def get_sales_by_subcategory(limit=15):
+    sql = f"""
+    SELECT TOP ({limit})
+        ps.Name AS Subcategory,
+        pc.Name AS Category,
+        COUNT(DISTINCT sod.SalesOrderID) AS OrderCount,
+        SUM(sod.OrderQty) AS UnitsSold,
+        SUM(sod.LineTotal) AS Revenue
+    FROM Sales.SalesOrderDetail sod
+    JOIN Production.Product p ON p.ProductID = sod.ProductID
+    JOIN Production.ProductSubcategory ps ON ps.ProductSubcategoryID = p.ProductSubcategoryID
+    JOIN Production.ProductCategory pc ON pc.ProductCategoryID = ps.ProductCategoryID
+    GROUP BY ps.Name, pc.Name
+    ORDER BY Revenue DESC;
+    """
+    return execute_query(sql)

@@ -14,44 +14,49 @@
                 </svg>
             </div>
             <div>
-                <h1 class="text-lg font-bold text-slate-900 tracking-tight">Executive Operations &amp; Performance</h1>
-                <p class="text-xs text-slate-500">Company performance across sales, customers, losses, and manufacturing costs (FY2011–FY2014)</p>
+                <h1 class="text-lg font-bold text-slate-900 tracking-tight">
+                    {% if is_manager %}Company overview{% elif is_supervisor %}Sales and customer overview{% else %}Sales overview{% endif %}
+                </h1>
+                <p class="text-xs text-slate-500">
+                    {% if is_manager %}AdventureWorks totals from 2011 to 2014{% elif is_supervisor %}Regional sales and customer accounts, 2011 to 2014{% else %}Category, product, and territory sales, 2011 to 2014{% endif %}
+                </p>
             </div>
         </div>
 
         <div class="flex flex-wrap items-center gap-2 text-xs">
             <label for="globalYearFilter" class="text-[11px] font-medium text-slate-500">Period:</label>
             <select id="globalYearFilter" onchange="onGlobalYearChange(this.value)" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 bg-white font-medium focus:outline-none focus:ring-1 focus:ring-coral cursor-pointer">
-                <option value="all" selected>All Years (2011–2014)</option>
-                <option value="2014">FY2014</option>
-                <option value="2013">FY2013</option>
-                <option value="2012">FY2012</option>
-                <option value="2011">FY2011</option>
+                <option value="all" selected>All years (2011 to 2014)</option>
+                <option value="2014">2014</option>
+                <option value="2013">2013</option>
+                <option value="2012">2012</option>
+                <option value="2011">2011</option>
             </select>
             <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-medium flex items-center space-x-1.5 transition shadow-sm">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                 </svg>
-                <span>Print Brief</span>
+                <span>Print</span>
             </button>
         </div>
     </div>
 
-    <!-- Top KPI Grid (4 Executive Metrics) -->
+    <!-- Top KPI Grid (Role-Scoped Metrics) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
             <div class="flex justify-between items-start">
-                <span class="text-[11px] font-medium text-slate-500">Gross Sales</span>
+                <span class="text-[11px] font-medium text-slate-500">{% if is_manager %}Gross sales{% else %}Total sales{% endif %}</span>
                 <span id="kpiOrdersBadge" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">{{ total_orders|intcomma }} orders</span>
             </div>
             <div id="kpiGrossValue" class="text-2xl font-bold text-slate-900 mt-2">${{ total_gross|floatformat:0|intcomma }}</div>
             <div id="kpiGrossSub" class="text-[11px] text-slate-500 mt-1">Avg order: ${{ avg_order|floatformat:0|intcomma }}</div>
         </div>
 
+        {% if is_manager %}
         <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
             <div class="flex justify-between items-start">
-                <span class="text-[11px] font-medium text-slate-500">Real Profit (After Costs)</span>
-                <span id="kpiMarginBadge" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700">Net Margin</span>
+                <span class="text-[11px] font-medium text-slate-500">Profit after costs</span>
+                <span id="kpiMarginBadge" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700">Net margin</span>
             </div>
             <div id="kpiProfitValue" class="text-2xl font-bold text-emerald-700 mt-2">${{ total_real_profit|floatformat:0|intcomma }}</div>
             <div id="kpiProfitSub" class="text-[11px] text-slate-500 mt-1">Net revenue: ${{ total_net|floatformat:0|intcomma }}</div>
@@ -59,42 +64,74 @@
 
         <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
             <div class="flex justify-between items-start">
-                <span class="text-[11px] font-medium text-slate-500">Total Losses (Discounts + Scrap)</span>
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700">Leakage</span>
+                <span class="text-[11px] font-medium text-slate-500">Discounts and scrap</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700">Losses</span>
             </div>
             <div id="kpiLossValue" class="text-2xl font-bold text-rose-600 mt-2">${{ total_discount|add:total_scrap_loss|floatformat:0|intcomma }}</div>
-            <div id="kpiLossSub" class="text-[11px] text-slate-500 mt-1">Discounts: ${{ total_discount|floatformat:0|intcomma }} &middot; Scrap: ${{ total_scrap_loss|floatformat:0|intcomma }}</div>
+            <div id="kpiLossSub" class="text-[11px] text-slate-500 mt-1">Discounts: ${{ total_discount|floatformat:0|intcomma }} | Scrap: ${{ total_scrap_loss|floatformat:0|intcomma }}</div>
+        </div>
+        {% else %}
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Units sold</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700">Volume</span>
+            </div>
+            <div id="kpiUnitsValue" class="text-2xl font-bold text-slate-900 mt-2">{{ total_units_sold|intcomma }}</div>
+            <div class="text-[11px] text-slate-500 mt-1">Across 4 categories</div>
         </div>
 
         <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
             <div class="flex justify-between items-start">
-                <span class="text-[11px] font-medium text-slate-500">Active Customers</span>
+                <span class="text-[11px] font-medium text-slate-500">Top category</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral">#1</span>
+            </div>
+            <div class="text-2xl font-bold text-slate-900 mt-2">{% if sales_preview %}{{ sales_preview.0.Category }}{% else %}-{% endif %}</div>
+            <div class="text-[11px] text-slate-500 mt-1"><a href="{% url 'report_sales' %}" class="text-coral hover:underline font-medium">Open sales report</a></div>
+        </div>
+        {% endif %}
+
+        {% if is_supervisor %}
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Active customers</span>
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700">B2B + B2C</span>
             </div>
             <div class="text-2xl font-bold text-slate-900 mt-2">{{ total_customers|intcomma }}</div>
-            <div class="text-[11px] text-slate-500 mt-1">Stores {{ b2b_pct }}% &middot; Individuals {{ b2c_pct }}%</div>
+            <div class="text-[11px] text-slate-500 mt-1">Stores {{ b2b_pct }}%, individuals {{ b2c_pct }}%</div>
         </div>
+        {% else %}
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Sales regions</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700">Worldwide</span>
+            </div>
+            <div class="text-2xl font-bold text-slate-900 mt-2">10</div>
+            <div class="text-[11px] text-slate-500 mt-1">North America, Europe, Pacific</div>
+        </div>
+        {% endif %}
     </div>
 
-    <!-- Chart Row 1: Category Performance & Real Profit + Revenue Waterfall -->
+    <!-- Chart Row 1: Category Performance & Waterfall (Manager) or Monthly Sales (Operational) -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <!-- Chart 1: Sales & Real Profit by Category -->
+        <!-- Chart 1: Sales by Category -->
         <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                    <h2 class="text-sm font-bold text-slate-900">Category Performance &amp; Real Profit</h2>
-                    <p class="text-[11px] text-slate-400">2011–2014 breakdown by product line</p>
+                    <h2 class="text-sm font-bold text-slate-900">{% if is_manager %}Category sales and profit{% else %}Sales by category{% endif %}</h2>
+                    <p class="text-[11px] text-slate-400">Yearly totals by product line (2011 to 2014)</p>
                 </div>
                 <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
                     <button type="button" onclick="setCatMetric('revenue')" id="btnCatRevenue" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Sales $</button>
-                    <button type="button" onclick="setCatMetric('profit')" id="btnCatProfit" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Real Profit $</button>
-                    <button type="button" onclick="setCatMetric('units')" id="btnCatUnits" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Units Sold</button>
+                    {% if is_manager %}
+                    <button type="button" onclick="setCatMetric('profit')" id="btnCatProfit" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Profit $</button>
+                    {% endif %}
+                    <button type="button" onclick="setCatMetric('units')" id="btnCatUnits" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Units</button>
                 </div>
             </div>
 
             <!-- Category Filter Pills -->
             <div class="flex flex-wrap items-center gap-1.5 text-[11px]" id="catFilterPills">
-                <button type="button" onclick="setCatFilter('all')" data-cat="all" class="cat-pill px-2.5 py-0.5 rounded-full bg-coral text-white font-semibold transition">All Categories</button>
+                <button type="button" onclick="setCatFilter('all')" data-cat="all" class="cat-pill px-2.5 py-0.5 rounded-full bg-coral text-white font-semibold transition">All</button>
                 <button type="button" onclick="setCatFilter('Bikes')" data-cat="Bikes" class="cat-pill px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Bikes</button>
                 <button type="button" onclick="setCatFilter('Components')" data-cat="Components" class="cat-pill px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Components</button>
                 <button type="button" onclick="setCatFilter('Clothing')" data-cat="Clothing" class="cat-pill px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Clothing</button>
@@ -106,14 +143,15 @@
             </div>
         </div>
 
-        <!-- Chart 2: Where Revenue Is Lost (Waterfall) -->
+        {% if is_manager %}
+        <!-- Chart 2: Gross Sales to Profit Waterfall -->
         <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
             <div class="flex items-start justify-between gap-2">
                 <div>
-                    <h2 class="text-sm font-bold text-slate-900">Where Revenue Is Lost (Gross to Profit)</h2>
-                    <p id="waterfallSubtitle" class="text-[11px] text-slate-400">Step-by-step bridge for All Years (2011–2014)</p>
+                    <h2 class="text-sm font-bold text-slate-900">Where revenue goes</h2>
+                    <p id="waterfallSubtitle" class="text-[11px] text-slate-400">From gross sales to profit (2011 to 2014)</p>
                 </div>
-                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral border border-coral-border shrink-0">Synced to Period</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral border border-coral-border shrink-0">Matches period</span>
             </div>
 
             <div class="h-64">
@@ -121,28 +159,49 @@
             </div>
 
             <div id="waterfallFootnote" class="text-[11px] text-slate-500 pt-2 border-t border-slate-100 flex justify-between">
-                <span>Shows promo discounts, manufacturing cost (COGS), and factory scrap</span>
-                <a href="{% url 'report_revenue_loss' %}" class="text-coral font-semibold hover:underline">Full Loss Report &rarr;</a>
+                <span>Deducts discounts, manufacturing cost, and factory scrap</span>
+                <a href="{% url 'report_revenue_loss' %}" class="text-coral font-semibold hover:underline">Open revenue &amp; loss</a>
             </div>
         </div>
+        {% else %}
+        <!-- Chart 2 (Operational): Monthly Sales -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="flex items-start justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Monthly sales</h2>
+                    <p id="velocitySubtitle" class="text-[11px] text-slate-400">Order revenue by month (2011 to 2014)</p>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral border border-coral-border shrink-0">Matches period</span>
+            </div>
+
+            <div class="h-64">
+                <canvas id="velocityChart"></canvas>
+            </div>
+
+            <div class="text-[11px] text-slate-500 pt-2 border-t border-slate-100 flex justify-between">
+                <span>2014 orders stop in June</span>
+                <a href="{% url 'report_sales' %}" class="text-coral font-semibold hover:underline">Open sales report</a>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
-    <!-- Chart Row 2: Best & Worst Regions + B2B vs B2C Donut -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <!-- Chart 3: Best and Worst Sales Regions (Wider: 2 cols) -->
-        <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+    <!-- Chart Row 2: Sales Regions + B2B vs B2C Donut (Supervisor+) -->
+    <div class="grid grid-cols-1 {% if is_supervisor %}lg:grid-cols-3{% endif %} gap-5">
+        <!-- Chart 3: Sales Regions -->
+        <div class="{% if is_supervisor %}lg:col-span-2{% endif %} bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                    <h2 class="text-sm font-bold text-slate-900">Best &amp; Worst Sales Regions</h2>
-                    <p class="text-[11px] text-slate-400">All 10 AdventureWorks territories ranked</p>
+                    <h2 class="text-sm font-bold text-slate-900">Sales by region</h2>
+                    <p class="text-[11px] text-slate-400">All 10 AdventureWorks territories</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2 text-[11px]">
                     <div class="inline-flex rounded-lg bg-slate-100 p-0.5 font-medium">
-                        <button type="button" onclick="setTerritoryView('map')" id="btnTerrMap" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Map View</button>
-                        <button type="button" onclick="setTerritoryView('bar')" id="btnTerrBar" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Bar Rank</button>
+                        <button type="button" onclick="setTerritoryView('map')" id="btnTerrMap" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Map</button>
+                        <button type="button" onclick="setTerritoryView('bar')" id="btnTerrBar" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Bars</button>
                     </div>
                     <select id="continentFilter" onchange="renderTerritoryChart()" class="border border-slate-200 rounded-lg px-2 py-1 text-slate-700 bg-slate-50 font-medium focus:outline-none focus:ring-1 focus:ring-coral">
-                        <option value="all">All Continents</option>
+                        <option value="all">All regions</option>
                         <option value="North America">North America</option>
                         <option value="Europe">Europe</option>
                         <option value="Pacific">Pacific</option>
@@ -159,12 +218,13 @@
             </div>
         </div>
 
-        <!-- Chart 4: Retail Stores vs Individual Buyers (1 col) -->
+        {% if is_supervisor %}
+        <!-- Chart 4: Retail Stores vs Individual Buyers (1 col, Supervisor+) -->
         <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
             <div class="space-y-2">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-bold text-slate-900">Stores vs. Individuals</h2>
-                    <a href="{% url 'report_customers' %}" class="text-[11px] text-coral font-semibold hover:underline">Details &rarr;</a>
+                    <h2 class="text-sm font-bold text-slate-900">Stores vs. individuals</h2>
+                    <a href="{% url 'report_customers' %}" class="text-[11px] text-coral font-semibold hover:underline">See customers</a>
                 </div>
                 <div class="inline-flex w-full rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
                     <button type="button" onclick="setCustomerMetric('revenue')" id="btnCustRev" class="flex-1 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Spend $</button>
@@ -194,6 +254,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
     </div>
 
     <!-- Bottom Section: All-in-One Searchable & Sortable Explorer Table -->
@@ -202,7 +263,9 @@
             <!-- Tabs -->
             <div class="flex flex-wrap items-center gap-1.5 text-xs font-medium" id="explorerTabs">
                 <button type="button" onclick="switchExplorerTab('products')" data-tab="products" class="exp-tab px-3 py-1.5 rounded-lg bg-coral text-white font-semibold transition">Top Products</button>
+                {% if is_supervisor %}
                 <button type="button" onclick="switchExplorerTab('customers')" data-tab="customers" class="exp-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Top Customers</button>
+                {% endif %}
                 {% if is_manager %}
                 <button type="button" onclick="switchExplorerTab('scrap')" data-tab="scrap" class="exp-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Factory Scrap</button>
                 <button type="button" onclick="switchExplorerTab('vendors')" data-tab="vendors" class="exp-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Suppliers</button>
@@ -241,6 +304,7 @@
 // Raw data injected from Django view
 const rawRevenueData = {{ revenue_data_json|safe }} || [];
 const rawCatYearData = {{ sales_by_cat_year_json|safe }} || [];
+const rawMonthlyTrend = {{ monthly_trend_json|safe }} || [];
 const rawTerritoryData = {{ territory_sales_json|safe }} || [];
 const rawCustomerTypes = {{ customer_types_json|safe }} || [];
 const rawTopProducts = {{ top_products_json|safe }} || [];
@@ -248,6 +312,8 @@ const rawTopCustomers = {{ top_customers_json|safe }} || [];
 const rawScrapList = {{ scrap_list_json|safe }} || [];
 const rawVendorList = {{ vendor_list_json|safe }} || [];
 
+const IS_MANAGER = {{ is_manager|yesno:"true,false" }};
+const IS_SUPERVISOR = {{ is_supervisor|yesno:"true,false" }};
 const totalScrapLossAll = {{ total_scrap_loss|default:0 }};
 
 // Global state
@@ -266,6 +332,7 @@ let explorerSortAsc = false;
 // Chart instances
 let categoryChart = null;
 let waterfallChart = null;
+let velocityChart = null;
 let territoryChart = null;
 let customerChart = null;
 
@@ -290,18 +357,38 @@ function onGlobalYearChange(yearVal) {
     globalYear = yearVal;
     updateTopKPIs();
     renderCategoryChart();
-    renderWaterfallChart();
+    if (IS_MANAGER) renderWaterfallChart();
+    else renderVelocityChart();
 }
 
 function updateTopKPIs() {
+    const filteredCat = globalYear === 'all'
+        ? rawCatYearData
+        : rawCatYearData.filter(r => String(r.Year) === String(globalYear));
+
+    if (!IS_MANAGER) {
+        const rev = filteredCat.reduce((s, r) => s + (parseFloat(r.Revenue) || 0), 0);
+        const units = filteredCat.reduce((s, r) => s + (parseInt(r.UnitsSold, 10) || 0), 0);
+        const filteredMonthly = globalYear === 'all'
+            ? rawMonthlyTrend
+            : rawMonthlyTrend.filter(r => String(r.Year) === String(globalYear));
+        const orders = filteredMonthly.reduce((s, r) => s + (parseInt(r.OrderCount, 10) || 0), 0);
+        const avgOrder = orders > 0 ? (rev / orders) : 0;
+
+        document.getElementById('kpiGrossValue').textContent = fmtDollar(rev);
+        if (orders > 0) {
+            document.getElementById('kpiOrdersBadge').textContent = fmtInt(orders) + ' orders';
+            document.getElementById('kpiGrossSub').textContent = 'Avg order: ' + fmtDollar(avgOrder);
+        }
+        const unitsEl = document.getElementById('kpiUnitsValue');
+        if (unitsEl) unitsEl.textContent = fmtInt(units);
+        return;
+    }
+
     if (!rawRevenueData.length) return;
     const filteredRev = globalYear === 'all'
         ? rawRevenueData
         : rawRevenueData.filter(r => String(r.Year) === String(globalYear));
-
-    const filteredCat = globalYear === 'all'
-        ? rawCatYearData
-        : rawCatYearData.filter(r => String(r.Year) === String(globalYear));
 
     const gross = filteredRev.reduce((s, r) => s + (parseFloat(r.GrossAmount) || 0), 0);
     const discount = filteredRev.reduce((s, r) => s + (parseFloat(r.DiscountLoss) || 0), 0);
@@ -332,7 +419,7 @@ function updateTopKPIs() {
     document.getElementById('kpiLossSub').textContent = 'Discounts: ' + fmtDollar(discount) + ' · Scrap: ' + fmtDollar(scrapForPeriod);
 }
 
-// 2. Chart 1: Category Performance & Real Profit
+// 2. Chart 1: Category Performance
 const CAT_COLORS = {
     'Bikes': '#FF5B26',
     'Components': '#1E293B',
@@ -344,6 +431,7 @@ function setCatMetric(m) {
     catMetric = m;
     ['revenue', 'profit', 'units'].forEach(key => {
         const btn = document.getElementById('btnCat' + key.charAt(0).toUpperCase() + key.slice(1));
+        if (!btn) return;
         if (key === m) {
             btn.className = 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition';
         } else {
@@ -428,8 +516,11 @@ function renderCategoryChart() {
     });
 }
 
+{% if is_manager %}
 // 3. Chart 2: Where Revenue Is Lost (Waterfall)
 function renderWaterfallChart() {
+    const canvas = document.getElementById('waterfallChart');
+    if (!canvas) return;
     const filteredRev = globalYear === 'all'
         ? rawRevenueData
         : rawRevenueData.filter(r => String(r.Year) === String(globalYear));
@@ -460,15 +551,15 @@ function renderWaterfallChart() {
     const rawAmounts = [gross, -discount, -mfgCost, -scrap, realProfit];
 
     document.getElementById('waterfallSubtitle').textContent = globalYear === 'all'
-        ? 'Step-by-step bridge for All Years (2011–2014)'
-        : 'Step-by-step bridge for FY' + globalYear;
+        ? 'From gross sales to profit (2011 to 2014)'
+        : 'From gross sales to profit in ' + globalYear;
 
-    const ctx = document.getElementById('waterfallChart').getContext('2d');
+    const ctx = canvas.getContext('2d');
     if (waterfallChart) waterfallChart.destroy();
     waterfallChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Gross Sales', 'Discounts', 'Mfg Cost', 'Scrap', 'Real Profit'],
+            labels: ['Gross sales', 'Discounts', 'Mfg cost', 'Scrap', 'Net profit'],
             datasets: [{
                 data: bars,
                 backgroundColor: ['#1E293B', '#F59E0B', '#EF4444', '#DC2626', '#10B981'],
@@ -495,6 +586,46 @@ function renderWaterfallChart() {
                     grid: { color: '#F1F5F9' },
                     ticks: { font: { size: 10 }, callback: v => '$' + v + 'M' }
                 }
+            }
+        }
+    });
+}
+{% endif %}
+
+function renderVelocityChart() {
+    const canvas = document.getElementById('velocityChart');
+    if (!canvas) return;
+    const rows = globalYear === 'all'
+        ? rawMonthlyTrend
+        : rawMonthlyTrend.filter(r => String(r.Year) === String(globalYear));
+
+    document.getElementById('velocitySubtitle').textContent = globalYear === 'all'
+        ? 'Order revenue by month (2011 to 2014)'
+        : 'Order revenue by month in ' + globalYear;
+
+    const ctx = canvas.getContext('2d');
+    if (velocityChart) velocityChart.destroy();
+    velocityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: rows.map(r => `${r.Year}-${String(r.Month).padStart(2, '0')}`),
+            datasets: [{
+                label: 'Sales Revenue',
+                data: rows.map(r => +(parseFloat(r.Revenue) / 1e6).toFixed(2)),
+                borderColor: '#FF5B26',
+                backgroundColor: 'rgba(255, 91, 38, 0.12)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 10 } } },
+                y: { grid: { color: '#F1F5F9' }, ticks: { font: { size: 10 }, callback: v => '$' + v + 'M' } }
             }
         }
     });
@@ -708,6 +839,8 @@ function setCustomerMetric(m) {
 }
 
 function renderCustomerChart() {
+    const canvas = document.getElementById('customerSplitChart');
+    if (!canvas) return;
     const b2b = rawCustomerTypes.find(c => (c.CustomerType || '').includes('Store') || (c.CustomerType || '').includes('B2B')) || {};
     const b2c = rawCustomerTypes.find(c => !((c.CustomerType || '').includes('Store') || (c.CustomerType || '').includes('B2B'))) || {};
 
@@ -738,7 +871,7 @@ function renderCustomerChart() {
     document.getElementById('custCenterLabel').textContent = centerLabel;
     document.getElementById('custCenterValue').textContent = centerVal;
 
-    const ctx = document.getElementById('customerSplitChart').getContext('2d');
+    const ctx = canvas.getContext('2d');
     if (customerChart) customerChart.destroy();
     customerChart = new Chart(ctx, {
         type: 'doughnut',
@@ -776,8 +909,8 @@ const EXPLORER_SCHEMAS = {
             { key: 'ProductName', label: 'Product Name', align: 'left', type: 'str' },
             { key: 'Category', label: 'Category', align: 'left', type: 'str' },
             { key: 'TotalQuantity', label: 'Units Sold', align: 'right', type: 'num', fmt: fmtInt },
-            { key: 'TotalRevenue', label: 'Sales $', align: 'right', type: 'num', fmt: fmtDollar },
-            { key: 'MarginPercentage', label: 'Profit Margin %', align: 'right', type: 'num', fmt: v => Number(v || 0).toFixed(1) + '%' }
+            { key: 'TotalRevenue', label: 'Sales $', align: 'right', type: 'num', fmt: fmtDollar }
+            {% if is_manager %}, { key: 'MarginPercentage', label: 'Profit Margin %', align: 'right', type: 'num', fmt: v => Number(v || 0).toFixed(1) + '%' }{% endif %}
         ],
         getRows: () => rawTopProducts
     },
@@ -884,7 +1017,7 @@ function renderExplorerTable() {
 
     const tbody = document.getElementById('explorerTbody');
     if (!rows.length) {
-        tbody.innerHTML = `<tr><td colspan="${schema.columns.length}" class="py-6 text-center text-slate-400">No matching records found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="${schema.columns.length}" class="py-6 text-center text-slate-400">No matches.</td></tr>`;
         return;
     }
 
@@ -905,9 +1038,10 @@ function renderExplorerTable() {
 document.addEventListener('DOMContentLoaded', () => {
     updateTopKPIs();
     renderCategoryChart();
-    renderWaterfallChart();
+    if (IS_MANAGER) renderWaterfallChart();
+    else renderVelocityChart();
     renderTerritoryChart();
-    renderCustomerChart();
+    if (IS_SUPERVISOR) renderCustomerChart();
     renderExplorerTable();
 });
 </script>

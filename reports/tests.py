@@ -45,6 +45,7 @@ class DashboardAndLayoutTests(TestCase):
         self.emp = User.objects.create_user(username='staff', password='pw')
         UserProfile.objects.create(user=self.emp, role=Role.EMPLOYEE)
 
+    @patch('reports.views.sales_service.get_monthly_sales_trend', return_value=[{'Year': 2013, 'Month': 6, 'OrderCount': 500, 'Revenue': 4000000.0, 'TotalDue': 4200000.0}])
     @patch('reports.views.cost_service.get_vendor_purchasing_spend', return_value=SAMPLE_VENDORS)
     @patch('reports.views.customer_service.get_top_customers', return_value=SAMPLE_TOP_CUSTOMERS)
     @patch('reports.views.sales_service.get_top_selling_products', return_value=SAMPLE_TOP_PRODUCTS)
@@ -73,15 +74,11 @@ class DashboardAndLayoutTests(TestCase):
         self.assertEqual(resp.context['total_scrap_loss'], int(1271 * 36.50))
         self.assertEqual(resp.context['total_real_profit'], 79300000.0 - 45000000.0 - int(1271 * 36.50))
 
-    @patch('reports.views.cost_service.get_vendor_purchasing_spend', return_value=SAMPLE_VENDORS)
-    @patch('reports.views.customer_service.get_top_customers', return_value=SAMPLE_TOP_CUSTOMERS)
+    @patch('reports.views.sales_service.get_monthly_sales_trend', return_value=[{'Year': 2013, 'Month': 6, 'OrderCount': 500, 'Revenue': 4000000.0, 'TotalDue': 4200000.0}])
     @patch('reports.views.sales_service.get_top_selling_products', return_value=SAMPLE_TOP_PRODUCTS)
     @patch('reports.views.sales_service.get_territory_sales', return_value=SAMPLE_TERRITORIES)
     @patch('reports.views.sales_service.get_sales_by_category_and_year', return_value=SAMPLE_CAT_YEAR)
-    @patch('reports.views.revenue_loss_service.get_revenue_and_loss_by_year', return_value=SAMPLE_REVENUE)
-    @patch('reports.views.customer_service.get_customer_type_breakdown', return_value=SAMPLE_CUST_TYPES)
-    @patch('reports.views.revenue_loss_service.get_production_scrap_loss', return_value=SAMPLE_SCRAP)
-    def test_employee_rbac_hides_scrap_and_vendor_tabs(self, *_):
+    def test_employee_rbac_hides_financial_and_customer_data(self, *_):
         self.client.login(username='staff', password='pw')
         resp = self.client.get(reverse('dashboard'))
         self.assertEqual(resp.status_code, 200)
@@ -89,26 +86,51 @@ class DashboardAndLayoutTests(TestCase):
 
         self.assertNotIn('Factory Scrap', html)
         self.assertNotIn('Suppliers', html)
+        self.assertNotIn('Top Customers', html)
+        self.assertNotIn('Real Profit', html)
+        self.assertNotIn('MarginPercentage', html)
         self.assertEqual(resp.context['scrap_list_json'], '[]')
         self.assertEqual(resp.context['vendor_list_json'], '[]')
+        self.assertEqual(resp.context['total_real_profit'], 0)
+        self.assertEqual(resp.context['total_discount'], 0)
+        self.assertIn('velocityChart', html)
 
+    @patch('reports.views.sales_service.get_sales_by_subcategory', return_value=[])
+    @patch('reports.views.sales_service.get_low_performing_products', return_value=[])
+    @patch('reports.views.sales_service.get_monthly_sales_trend', return_value=[])
     @patch('reports.views.sales_service.get_territory_sales', return_value=SAMPLE_TERRITORIES)
     @patch('reports.views.sales_service.get_top_selling_products', return_value=SAMPLE_TOP_PRODUCTS)
     @patch('reports.views.sales_service.get_sales_by_category_and_year', return_value=SAMPLE_CAT_YEAR)
+    @patch('reports.views.customer_service.get_customer_trends_by_year', return_value=[])
+    @patch('reports.views.customer_service.get_purchase_frequency_buckets', return_value=[])
+    @patch('reports.views.customer_service.get_country_customer_distribution', return_value=[])
     @patch('reports.views.customer_service.get_customer_geographic_distribution', return_value=[])
     @patch('reports.views.customer_service.get_customer_type_breakdown', return_value=SAMPLE_CUST_TYPES)
     @patch('reports.views.customer_service.get_top_customers', return_value=SAMPLE_TOP_CUSTOMERS)
+    @patch('reports.views.revenue_loss_service.get_discount_loss_by_category', return_value=[])
+    @patch('reports.views.revenue_loss_service.get_monthly_revenue_and_loss', return_value=[])
     @patch('reports.views.revenue_loss_service.get_production_scrap_loss', return_value=SAMPLE_SCRAP)
     @patch('reports.views.revenue_loss_service.get_revenue_and_loss_by_year', return_value=SAMPLE_REVENUE)
+    @patch('reports.views.cost_service.get_purchasing_spend_by_year', return_value=[])
+    @patch('reports.views.cost_service.get_category_cost_summary', return_value=[])
     @patch('reports.views.cost_service.get_standard_cost_history', return_value=[])
     @patch('reports.views.cost_service.get_vendor_purchasing_spend', return_value=SAMPLE_VENDORS)
     @patch('reports.views.cost_service.get_product_margins', return_value=[])
-    def test_all_module_pages_render_without_third_column(self, *_):
+    def test_all_module_pages_render_polished_charts(self, *_):
         self.client.login(username='boss', password='pw')
-        for url_name in ['report_sales', 'report_customers', 'report_revenue_loss', 'report_cost']:
+        expected_canvases = {
+            'report_sales': ['monthlySalesChart', 'salesCategoryChart', 'salesTerritoryChart', 'productExtremeChart'],
+            'report_customers': ['custSplitChart', 'frequencyChart', 'custGeoChart', 'custTrendChart'],
+            'report_revenue_loss': ['revWaterfallChart', 'revTrendChart', 'catDiscountChart', 'scrapParetoChart'],
+            'report_cost': ['catCostChart', 'costScatterChart', 'vendorSpendChart', 'costHistoryChart'],
+        }
+        for url_name, canvases in expected_canvases.items():
             resp = self.client.get(reverse(url_name))
             self.assertEqual(resp.status_code, 200, msg=f"Failed on {url_name}")
-            self.assertNotIn('lg:w-72 xl:w-80', resp.content.decode())
+            html = resp.content.decode()
+            self.assertNotIn('lg:w-72 xl:w-80', html)
+            for canvas_id in canvases:
+                self.assertIn(canvas_id, html, msg=f"Missing {canvas_id} on {url_name}")
 
 
 class DatabaseHelperConnectionTests(TestCase):

@@ -7,257 +7,442 @@
 <div class="space-y-6">
     <!-- Top Workspace Toolbar -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-[#E5E7EB] gap-3">
-        <div class="flex items-center space-x-2 text-xs text-slate-500">
-            <span class="font-medium text-slate-900">Cost</span>
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-slate-900 tracking-tight">Cost and margins</h1>
+                <p class="text-xs text-slate-500">Product costs vs. list prices, vendor spending, and standard cost changes</p>
+            </div>
         </div>
-        <div class="flex items-center space-x-2 text-xs">
-            <a href="{% url 'dashboard' %}" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition">
-                &larr; Back to Dashboard
-            </a>
+
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+            <label for="costCatFilter" class="text-[11px] font-medium text-slate-500">Category:</label>
+            <select id="costCatFilter" onchange="onCostCatChange(this.value)" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 bg-white font-medium focus:outline-none focus:ring-1 focus:ring-coral cursor-pointer">
+                <option value="all" selected>All categories</option>
+                <option value="Bikes">Bikes</option>
+                <option value="Components">Components</option>
+                <option value="Clothing">Clothing</option>
+                <option value="Accessories">Accessories</option>
+            </select>
             <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-medium shadow-sm transition flex items-center space-x-1.5">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                 </svg>
-                <span>Print Cost Analysis</span>
+                <span>Print</span>
             </button>
         </div>
     </div>
 
-    <!-- Header Banner -->
-    <div class="flex items-start space-x-3.5">
-        <div class="w-10 h-10 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-            </svg>
+    <!-- 4 KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Total COGS sold</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-700">Mfg cost</span>
+            </div>
+            <div id="costKpiCOGS" class="text-2xl font-bold text-slate-900 mt-2">$0</div>
+            <div id="costKpiCatSub" class="text-[11px] text-slate-500 mt-1">All categories</div>
         </div>
-        <div>
-            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Cost and Margin Analysis</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Manufacturing costs, list prices, margins, and vendor procurement spend for FY2011 to FY2014</p>
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Weighted gross margin</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700">Margin</span>
+            </div>
+            <div id="costKpiMargin" class="text-2xl font-bold text-emerald-700 mt-2">0.0%</div>
+            <div id="costKpiRevSub" class="text-[11px] text-slate-500 mt-1">Revenue: $0</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Highest margin item</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral">Catalog</span>
+            </div>
+            <div class="text-base font-bold text-slate-900 mt-2 truncate">{% if margins %}{{ margins.0.ProductName }}{% else %}-{% endif %}</div>
+            <div class="text-[11px] text-slate-500 mt-1">{% if margins %}{{ margins.0.MarginPercentage }}% margin (${{ margins.0.Margin|floatformat:2 }}){% else %}No data{% endif %}</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Top vendor</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700">Purchasing</span>
+            </div>
+            <div class="text-base font-bold text-slate-900 mt-2 truncate">{% if vendor_spend %}{{ vendor_spend.0.VendorName }}{% else %}-{% endif %}</div>
+            <div class="text-[11px] text-slate-500 mt-1">{% if vendor_spend %}${{ vendor_spend.0.TotalSpent|floatformat:0|intcomma }} ({{ vendor_spend.0.PurchaseOrdersCount|intcomma }} POs){% else %}No data{% endif %}</div>
         </div>
     </div>
 
-    <!-- Vendor Spend Chart & Key Takeaways (Moved from Right Rail) -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-2">
-            <div class="flex items-center justify-between">
-                <span class="text-[11px] font-semibold text-slate-500">Vendor Spend (Click bar to inspect)</span>
-                <span class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-0.5 text-slate-700 bg-slate-50 font-medium">
-                    {% if vendor_spend %}Annual Overview{% else %}Offline{% endif %}
-                </span>
-            </div>
-            <div class="flex items-baseline justify-between flex-wrap gap-2">
-                <div id="vendorNameDisplay" class="text-xl font-bold text-slate-900 transition">{% if vendor_spend %}{{ vendor_spend.0.VendorName }}{% else %}No data{% endif %}</div>
-                <p id="vendorSpendDisplay" class="text-sm font-semibold text-coral transition">$0</p>
-            </div>
-            <div class="h-44 pt-2">
-                <canvas id="vendorChart"></canvas>
-            </div>
-            <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-100">
-                <span id="vendorFooterLabel">{% if vendor_spend %}Select a vendor{% else %}Database offline{% endif %}</span>
-                <span>Click bars to inspect</span>
-            </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl border border-coral-border bg-gradient-to-br from-white via-white to-coral-light/25 shadow-sm space-y-2.5 flex flex-col justify-between">
-            <div class="space-y-2">
-                <div class="flex items-center space-x-2">
-                    <span class="w-2 h-2 rounded-full bg-coral"></span>
-                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Key Takeaways</h3>
-                </div>
-                <div class="text-xs text-slate-600 space-y-2 leading-relaxed">
-                    {% if db_error or not margins %}
-                    <p class="text-slate-400 italic">No takeaways available: database is disconnected.</p>
-                    {% else %}
-                    {% if margins %}
-                    <p>Highest margin product: {{ margins.0.ProductName }} ({{ margins.0.MarginPercentage }}% margin).</p>
-                    {% endif %}
-                    {% if vendor_spend %}
-                    <p>Top vendor by spend: {{ vendor_spend.0.VendorName }} (${{ vendor_spend.0.TotalSpent|floatformat:0|intcomma }} across {{ vendor_spend.0.PurchaseOrdersCount|intcomma }} POs).</p>
-                    {% endif %}
-                    {% endif %}
-                </div>
-            </div>
-            <div class="text-[10px] text-slate-400 pt-2 border-t border-coral-border/40">Source: Production.Product &amp; Purchasing.Vendor</div>
-        </div>
-    </div>
-
-    <!-- Product Margin Table -->
-    <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
-        <h2 class="text-xs font-bold text-slate-900">Product Profit Margins (Standard Cost vs List Price)</h2>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-100 text-left text-xs">
-                <thead>
-                    <tr class="text-[11px] text-slate-400">
-                        <th class="pb-2 font-medium">Product Name</th>
-                        <th class="pb-2 font-medium">Category</th>
-                        <th class="pb-2 font-medium text-right">Standard Cost</th>
-                        <th class="pb-2 font-medium text-right">List Price</th>
-                        <th class="pb-2 font-medium text-right">Profit Margin</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    {% for row in margins %}
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-2.5 font-medium text-slate-900">{{ row.ProductName }}</td>
-                        <td class="py-2.5 text-slate-500 text-[11px]">{{ row.Category }}</td>
-                        <td class="py-2.5 text-right font-mono text-slate-600">${{ row.StandardCost|floatformat:2|intcomma }}</td>
-                        <td class="py-2.5 text-right font-mono text-slate-900">${{ row.ListPrice|floatformat:2|intcomma }}</td>
-                        <td class="py-2.5 text-right font-mono font-bold text-emerald-600">{{ row.MarginPercentage }}%</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="py-6 text-center text-slate-400">No margin data found in database.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Vendor Spend Section -->
-    <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
-        <h2 class="text-xs font-bold text-slate-900">Top Purchasing Spend by Vendor</h2>
-        <div class="space-y-2">
-            {% for v in vendor_spend %}
-            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <span class="text-slate-300">:::</span>
-                    <div>
-                        <div class="flex items-center space-x-2">
-                            <span class="font-bold text-xs text-slate-900">{{ v.VendorName }}</span>
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-50 text-emerald-700">Tier 1 Supplier</span>
-                        </div>
-                        <p class="text-[10px] text-slate-400 mt-0.5">{{ v.PurchaseOrdersCount|intcomma }} Purchase orders fulfilled</p>
-                    </div>
-                </div>
-                <div class="text-right">
-                    <p class="font-mono font-bold text-slate-900 text-xs">${{ v.TotalSpent|floatformat:2|intcomma }}</p>
-                    <span class="text-[10px] text-slate-400">Total PO spend</span>
-                </div>
-            </div>
-            {% empty %}
-            <div class="p-6 text-center text-xs text-slate-400">
-                No vendor spend records found in database.
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <!-- Standard Cost Changes Over Time (Direct Bible Answer) -->
-    <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
-        <div class="flex items-center justify-between">
+    <!-- Chart Row 1: Category COGS vs Revenue + Cost vs List Price Scatter -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Chart 1: Category COGS vs Revenue & Margin % -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
             <div>
-                <h2 class="text-xs font-bold text-slate-900">Standard Cost History Over Time (Flagship Models)</h2>
-                <p class="text-[11px] text-slate-400">Historical production cost evolution from Production.ProductCostHistory</p>
+                <h2 class="text-sm font-bold text-slate-900">Category COGS vs. revenue</h2>
+                <p class="text-[11px] text-slate-400">Manufacturing cost compared to sales revenue</p>
             </div>
-            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">Source: Production.ProductCostHistory</span>
+            <div class="h-64">
+                <canvas id="catCostChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 2: Standard Cost vs List Price Scatter -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div>
+                <h2 class="text-sm font-bold text-slate-900">Cost vs. list price</h2>
+                <p class="text-[11px] text-slate-400">Each dot is a product; hover to check cost, list price, and margin</p>
+            </div>
+            <div class="h-64">
+                <canvas id="costScatterChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Row 2: Vendor Spend / Annual POs + Standard Cost History -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Chart 3: Vendor Spend & Annual POs -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Vendor spending</h2>
+                    <p class="text-[11px] text-slate-400">Top suppliers and yearly purchase order totals</p>
+                </div>
+                <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                    <button type="button" onclick="setVendMode('vendors')" id="btnVendTop" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Top vendors</button>
+                    <button type="button" onclick="setVendMode('yearly')" id="btnVendYear" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">By year</button>
+                </div>
+            </div>
+            <div class="h-60">
+                <canvas id="vendorSpendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 4: Standard Cost History Multi-Line -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div>
+                <h2 class="text-sm font-bold text-slate-900">Standard cost history</h2>
+                <p class="text-[11px] text-slate-400">Cost changes on products with more than one price update</p>
+            </div>
+            <div class="h-60">
+                <canvas id="costHistoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Searchable & Sortable Cost Table -->
+    <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-1.5 text-xs font-medium">
+                <button type="button" onclick="switchCostTab('margins')" data-costtab="margins" class="costtab-btn px-3 py-1.5 rounded-lg bg-coral text-white font-semibold transition">Product margins</button>
+                <button type="button" onclick="switchCostTab('vendors')" data-costtab="vendors" class="costtab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Vendor spend</button>
+                <button type="button" onclick="switchCostTab('history')" data-costtab="history" class="costtab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Cost history</button>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+                <input type="text" id="costSearch" oninput="renderCostTable()" placeholder="Search products or vendors..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral w-48 sm:w-60">
+                <select id="costLimit" onchange="renderCostTable()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 font-medium">
+                    <option value="10" selected>Top 10</option>
+                    <option value="20">Top 20</option>
+                    <option value="30">Top 30</option>
+                </select>
+            </div>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-slate-100 text-left text-xs">
-                <thead>
-                    <tr class="text-[11px] text-slate-400">
-                        <th class="pb-2 font-medium">Product Name</th>
-                        <th class="pb-2 font-medium">Effective Period</th>
-                        <th class="pb-2 font-medium text-right">Standard Cost</th>
-                        <th class="pb-2 font-medium text-right">Cost Variance</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    {% for c in cost_history %}
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-2.5 font-medium text-slate-900">{{ c.ProductName }}</td>
-                        <td class="py-2.5 text-slate-500 text-[11px] font-mono">{{ c.StartDate }} &rarr; {% if c.EndDate %}{{ c.EndDate }}{% else %}Present{% endif %}</td>
-                        <td class="py-2.5 text-right font-mono font-semibold text-slate-900">${{ c.StandardCost|floatformat:2|intcomma }}</td>
-                        <td class="py-2.5 text-right">
-                            {% if not c.EndDate %}
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">Cost Reduced (-4.0%)</span>
-                            {% else %}
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600">Initial Release</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="py-6 text-center text-slate-400">No cost history records found in database.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+                <thead id="costThead"></thead>
+                <tbody id="costTbody" class="divide-y divide-slate-100"></tbody>
             </table>
         </div>
     </div>
+
+    {% include "reports/_governance_panel.html" %}
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-const rawVendors = {{ vendor_spend_json|safe }};
-const vendorChartData = (rawVendors && rawVendors.length > 0)
-    ? rawVendors.slice(0, 6).map(v => {
-        const spent = parseFloat(v.TotalSpent) || 0;
-        const spentM = (spent / 1e6).toFixed(2);
-        return {
-            code: v.VendorName.split(' ')[0],
-            name: v.VendorName,
-            spend: '$' + Number(Math.round(spent)).toLocaleString(),
-            value: parseFloat(spentM),
-            badge: v.PurchaseOrdersCount + ' purchase orders fulfilled'
-        };
-    })
-    : [];
+const rawMargins = {{ margins_json|safe }} || [];
+const rawCatCost = {{ category_cost_json|safe }} || [];
+const rawVendors = {{ vendor_spend_json|safe }} || [];
+const rawPOYearly = {{ purchasing_yearly_json|safe }} || [];
+const rawCostHistory = {{ cost_history_json|safe }} || [];
 
-const vCtx = document.getElementById('vendorChart').getContext('2d');
+let costCat = 'all';
+let vendMode = 'vendors';
+let costTab = 'margins';
+let costSortKey = 'MarginPercentage';
+let costSortAsc = false;
 
-function getVendorColors(activeIdx) {
-    return vendorChartData.map((_, i) => i === activeIdx ? '#FF5B26' : 'rgba(255, 91, 38, 0.25)');
+let catCostChart = null, scatterChart = null, vendChart = null, histChart = null;
+
+const fmtDollar = v => '$' + Math.round(v || 0).toLocaleString();
+const fmtDec = v => '$' + Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtInt = v => Math.round(v || 0).toLocaleString();
+
+function applyReportPreset(filterVal) {
+    const sel = document.getElementById('costCatFilter');
+    if ([...sel.options].some(o => o.value === filterVal)) {
+        sel.value = filterVal;
+        onCostCatChange(filterVal);
+    } else {
+        document.getElementById('costSearch').value = filterVal === 'all' ? '' : filterVal;
+        renderCostTable();
+    }
 }
 
-if (vendorChartData.length > 0) {
-    const first = vendorChartData[0];
-    document.getElementById('vendorNameDisplay').textContent = first.name;
-    document.getElementById('vendorSpendDisplay').innerHTML = first.spend + ' <span class="text-[10px] text-emerald-600 font-normal">(' + first.badge + ')</span>';
-    document.getElementById('vendorFooterLabel').textContent = first.name + ' Selected';
+function onCostCatChange(val) {
+    costCat = val;
+    updateCostKPIs();
+    renderScatterChart();
+    renderCostTable();
+}
 
-    const vendorChart = new Chart(vCtx, {
+function updateCostKPIs() {
+    const rows = costCat === 'all' ? rawCatCost : rawCatCost.filter(c => c.Category === costCat);
+    const cogs = rows.reduce((s, r) => s + (parseFloat(r.TotalCOGS) || 0), 0);
+    const rev = rows.reduce((s, r) => s + (parseFloat(r.TotalRevenue) || 0), 0);
+    const margin = rev > 0 ? ((rev - cogs) / rev) * 100 : 0;
+    document.getElementById('costKpiCOGS').textContent = fmtDollar(cogs);
+    document.getElementById('costKpiMargin').textContent = margin.toFixed(1) + '%';
+    document.getElementById('costKpiRevSub').textContent = 'Revenue: ' + fmtDollar(rev);
+    document.getElementById('costKpiCatSub').textContent = costCat === 'all' ? 'All categories' : costCat;
+}
+
+function renderCatCostChart() {
+    const ctx = document.getElementById('catCostChart').getContext('2d');
+    if (catCostChart) catCostChart.destroy();
+    catCostChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: vendorChartData.map(v => v.code),
-            datasets: [{
-                data: vendorChartData.map(v => v.value),
-                backgroundColor: getVendorColors(0),
-                borderRadius: 5
-            }]
+            labels: rawCatCost.map(c => c.Category),
+            datasets: [
+                { label: 'Total Revenue ($M)', data: rawCatCost.map(c => +(parseFloat(c.TotalRevenue) / 1e6).toFixed(2)), backgroundColor: '#1E293B', borderRadius: 4, yAxisID: 'y' },
+                { label: 'Total COGS ($M)', data: rawCatCost.map(c => +(parseFloat(c.TotalCOGS) / 1e6).toFixed(2)), backgroundColor: '#EF4444', borderRadius: 4, yAxisID: 'y' },
+                { label: 'Margin %', data: rawCatCost.map(c => parseFloat(c.MarginPercentage) || 0), type: 'line', borderColor: '#10B981', backgroundColor: '#10B981', tension: 0.2, yAxisID: 'y1' }
+            ]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            onClick: (e, elements) => {
-                if (elements && elements.length > 0) {
-                    const idx = elements[0].index;
-                    const item = vendorChartData[idx];
-                    document.getElementById('vendorNameDisplay').textContent = item.name;
-                    document.getElementById('vendorSpendDisplay').innerHTML = item.spend + ' <span class="text-[10px] text-emerald-600 font-normal">(' + item.badge + ')</span>';
-                    document.getElementById('vendorFooterLabel').textContent = item.name + ' Selected';
-                    vendorChart.data.datasets[0].backgroundColor = getVendorColors(idx);
-                    vendorChart.update();
-                }
-            },
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
+            scales: {
+                x: { grid: { display: false } },
+                y: { grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v + 'M' } },
+                y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => v + '%' } }
+            }
+        }
+    });
+}
+
+const CAT_COLORS = { 'Bikes': '#FF5B26', 'Components': '#1E293B', 'Clothing': '#3B82F6', 'Accessories': '#10B981' };
+
+function renderScatterChart() {
+    const filtered = costCat === 'all' ? rawMargins : rawMargins.filter(m => m.Category === costCat);
+    const groups = {};
+    filtered.forEach(m => {
+        const cat = m.Category || 'Other';
+        if (!groups[cat]) groups[cat] = [];
+        groups[cat].push({
+            x: parseFloat(m.StandardCost) || 0,
+            y: parseFloat(m.ListPrice) || 0,
+            name: m.ProductName,
+            margin: m.MarginPercentage
+        });
+    });
+
+    const datasets = Object.entries(groups).map(([cat, pts]) => ({
+        label: cat,
+        data: pts,
+        backgroundColor: CAT_COLORS[cat] || '#64748B',
+        pointRadius: 5,
+        pointHoverRadius: 7
+    }));
+
+    const ctx = document.getElementById('costScatterChart').getContext('2d');
+    if (scatterChart) scatterChart.destroy();
+    scatterChart = new Chart(ctx, {
+        type: 'scatter',
+        data: { datasets },
+        options: {
+            responsive: true, maintainAspectRatio: false,
             plugins: {
-                legend: { display: false },
+                legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
                 tooltip: {
                     callbacks: {
-                        label: function(ctx) { return vendorChartData[ctx.dataIndex].name + ': $' + ctx.raw.toLocaleString() + 'M'; }
+                        label: c => `${c.raw.name}: Cost ${fmtDec(c.raw.x)} | Price ${fmtDec(c.raw.y)} (${c.raw.margin}% margin)`
                     }
                 }
             },
             scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 9 } } },
-                y: { display: false }
+                x: { title: { display: true, text: 'Standard Cost ($)', font: { size: 10 } }, grid: { color: '#F1F5F9' } },
+                y: { title: { display: true, text: 'List Price ($)', font: { size: 10 } }, grid: { color: '#F1F5F9' } }
             }
         }
     });
-} else {
-    document.getElementById('vendorNameDisplay').textContent = 'No data';
-    document.getElementById('vendorSpendDisplay').textContent = '$0';
 }
+
+function setVendMode(m) {
+    vendMode = m;
+    document.getElementById('btnVendTop').className = m === 'vendors' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    document.getElementById('btnVendYear').className = m === 'yearly' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    renderVendorSpendChart();
+}
+
+function renderVendorSpendChart() {
+    const ctx = document.getElementById('vendorSpendChart').getContext('2d');
+    if (vendChart) vendChart.destroy();
+    if (vendMode === 'vendors') {
+        const rows = rawVendors.slice(0, 8);
+        vendChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: rows.map(v => (v.VendorName || '').slice(0, 18)),
+                datasets: [{ data: rows.map(v => +(parseFloat(v.TotalSpent) / 1e6).toFixed(2)), backgroundColor: rows.map((_, i) => i === 0 ? '#FF5B26' : 'rgba(255, 91, 38, 0.55)'), borderRadius: 4 }]
+            },
+            options: {
+                indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { x: { grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v + 'M' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
+            }
+        });
+    } else {
+        vendChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: rawPOYearly.map(r => 'FY' + r.Year),
+                datasets: [
+                    { label: 'PO SubTotal ($M)', data: rawPOYearly.map(r => +(parseFloat(r.SubTotal) / 1e6).toFixed(2)), backgroundColor: '#1E293B', borderRadius: 4 },
+                    { label: 'Freight ($M)', data: rawPOYearly.map(r => +(parseFloat(r.FreightCost) / 1e6).toFixed(2)), backgroundColor: '#F59E0B', borderRadius: 4 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
+                scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v + 'M' } } }
+            }
+        });
+    }
+}
+
+function renderCostHistoryChart() {
+    const byProd = {};
+    rawCostHistory.forEach(r => {
+        if (!byProd[r.ProductName]) byProd[r.ProductName] = [];
+        byProd[r.ProductName].push(r);
+    });
+    const prodNames = Object.keys(byProd).slice(0, 4);
+    const periods = [...new Set(rawCostHistory.map(r => String(r.StartDate || '').slice(0, 10)))].sort();
+    const palette = ['#FF5B26', '#1E293B', '#3B82F6', '#10B981'];
+
+    const datasets = prodNames.map((name, idx) => ({
+        label: name.slice(0, 22),
+        data: periods.map(p => {
+            const match = byProd[name].find(r => String(r.StartDate || '').slice(0, 10) === p);
+            return match ? parseFloat(match.StandardCost) : null;
+        }),
+        borderColor: palette[idx % palette.length],
+        backgroundColor: palette[idx % palette.length],
+        spanGaps: true,
+        tension: 0.2
+    }));
+
+    const ctx = document.getElementById('costHistoryChart').getContext('2d');
+    if (histChart) histChart.destroy();
+    histChart = new Chart(ctx, {
+        type: 'line',
+        data: { labels: periods, datasets },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+            scales: { x: { grid: { display: false } }, y: { grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v } } }
+        }
+    });
+}
+
+const COST_SCHEMAS = {
+    margins: {
+        defaultSort: 'MarginPercentage',
+        columns: [
+            { key: 'ProductName', label: 'Product Name', align: 'left', type: 'str' },
+            { key: 'Category', label: 'Category', align: 'left', type: 'str' },
+            { key: 'StandardCost', label: 'Standard Cost', align: 'right', type: 'num', fmt: fmtDec },
+            { key: 'ListPrice', label: 'List Price', align: 'right', type: 'num', fmt: fmtDec },
+            { key: 'MarginPercentage', label: 'Margin %', align: 'right', type: 'num', fmt: v => Number(v || 0).toFixed(1) + '%' }
+        ],
+        getRows: () => costCat === 'all' ? rawMargins : rawMargins.filter(m => m.Category === costCat)
+    },
+    vendors: {
+        defaultSort: 'TotalSpent',
+        columns: [
+            { key: 'VendorName', label: 'Vendor Name', align: 'left', type: 'str' },
+            { key: 'PurchaseOrdersCount', label: 'POs Fulfilled', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'TotalSpent', label: 'Total Spend', align: 'right', type: 'num', fmt: fmtDec },
+            { key: 'AvgPO', label: 'Avg PO Spend', align: 'right', type: 'num', fmt: fmtDec }
+        ],
+        getRows: () => rawVendors.map(v => ({ ...v, AvgPO: v.PurchaseOrdersCount > 0 ? parseFloat(v.TotalSpent) / v.PurchaseOrdersCount : 0 }))
+    },
+    history: {
+        defaultSort: 'StartDate',
+        columns: [
+            { key: 'ProductName', label: 'Product Name', align: 'left', type: 'str' },
+            { key: 'StartDate', label: 'Start Date', align: 'left', type: 'str', fmt: v => String(v || '').slice(0, 10) },
+            { key: 'EndDate', label: 'End Date', align: 'left', type: 'str', fmt: v => v ? String(v).slice(0, 10) : 'Present' },
+            { key: 'StandardCost', label: 'Standard Cost', align: 'right', type: 'num', fmt: fmtDec },
+            { key: 'VariancePct', label: 'Variance', align: 'right', type: 'num', fmt: v => v === null || v === undefined ? 'Initial' : (v > 0 ? '+' : '') + Number(v).toFixed(1) + '%' }
+        ],
+        getRows: () => rawCostHistory
+    }
+};
+
+function switchCostTab(tab) {
+    costTab = tab;
+    costSortKey = COST_SCHEMAS[tab].defaultSort;
+    costSortAsc = false;
+    document.querySelectorAll('.costtab-btn').forEach(el => {
+        el.className = el.dataset.costtab === tab ? 'costtab-btn px-3 py-1.5 rounded-lg bg-coral text-white font-semibold transition' : 'costtab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
+    });
+    renderCostTable();
+}
+
+function sortCostBy(key) {
+    if (costSortKey === key) costSortAsc = !costSortAsc;
+    else { costSortKey = key; costSortAsc = false; }
+    renderCostTable();
+}
+
+function renderCostTable() {
+    const schema = COST_SCHEMAS[costTab];
+    const query = (document.getElementById('costSearch').value || '').toLowerCase().trim();
+    const limit = parseInt(document.getElementById('costLimit').value, 10) || 10;
+
+    document.getElementById('costThead').innerHTML = `<tr class="text-[11px] text-slate-400 border-b border-slate-100">` +
+        schema.columns.map(col => {
+            const arrow = costSortKey === col.key ? (costSortAsc ? ' ▲' : ' ▼') : '';
+            return `<th onclick="sortCostBy('${col.key}')" class="pb-2.5 font-semibold cursor-pointer select-none hover:text-coral ${col.align === 'right' ? 'text-right' : 'text-left'}">${col.label}<span class="text-coral">${arrow}</span></th>`;
+        }).join('') + `</tr>`;
+
+    let rows = schema.getRows().filter(r => !query || schema.columns.some(c => String(r[c.key] || '').toLowerCase().includes(query)));
+    const sortCol = schema.columns.find(c => c.key === costSortKey);
+    rows.sort((a, b) => {
+        if (sortCol && sortCol.type === 'str') return costSortAsc ? String(a[costSortKey] || '').localeCompare(String(b[costSortKey] || '')) : String(b[costSortKey] || '').localeCompare(String(a[costSortKey] || ''));
+        return costSortAsc ? ((parseFloat(a[costSortKey]) || 0) - (parseFloat(b[costSortKey]) || 0)) : ((parseFloat(b[costSortKey]) || 0) - (parseFloat(a[costSortKey]) || 0));
+    });
+    rows = rows.slice(0, limit);
+
+    const tbody = document.getElementById('costTbody');
+    if (!rows.length) { tbody.innerHTML = `<tr><td colspan="${schema.columns.length}" class="py-6 text-center text-slate-400">No matches.</td></tr>`; return; }
+    tbody.innerHTML = rows.map(row => `<tr class="hover:bg-slate-50 transition">` +
+        schema.columns.map((col, idx) => `<td class="py-2.5 ${col.align === 'right' ? 'text-right font-mono' : 'text-left'} ${idx === 0 ? 'font-semibold text-slate-900' : 'text-slate-600'}">${col.fmt ? col.fmt(row[col.key]) : (row[col.key] ?? '-')}</td>`).join('') + `</tr>`).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    updateCostKPIs();
+    renderCatCostChart();
+    renderScatterChart();
+    renderVendorSpendChart();
+    renderCostHistoryChart();
+    renderCostTable();
+});
 </script>
 {% endblock %}

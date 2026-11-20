@@ -2,22 +2,30 @@ from django.contrib import admin
 from django.urls import path
 from accounts import views as account_views
 from reports import views as report_views
+from governance import views as governance_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
+
     # Auth URLs
     path('login/', account_views.login_view, name='login'),
     path('logout/', account_views.logout_view, name='logout'),
-    
+
     # Dashboard & Reports
     path('', report_views.dashboard_view, name='dashboard'),
     path('reports/sales/', report_views.sales_report_view, name='report_sales'),
     path('reports/customers/', report_views.customer_report_view, name='report_customers'),
     path('reports/revenue-loss/', report_views.revenue_loss_report_view, name='report_revenue_loss'),
     path('reports/cost/', report_views.cost_report_view, name='report_cost'),
-    
-    # Presets & Governance (View/Edit/Delete application entities)
+
+    # Presets & Annotations Governance
     path('presets/save/', report_views.save_preset_view, name='save_preset'),
+    path('presets/edit/<int:preset_id>/', report_views.edit_preset_view, name='edit_preset'),
     path('presets/delete/<int:preset_id>/', report_views.delete_preset_view, name='delete_preset'),
+    path('annotations/save/', report_views.save_annotation_view, name='save_annotation'),
+    path('annotations/edit/<int:annotation_id>/', report_views.edit_annotation_view, name='edit_annotation'),
+    path('annotations/delete/<int:annotation_id>/', report_views.delete_annotation_view, name='delete_annotation'),
+
+    # Admin-Only Audit & Governance Log
+    path('governance/audit/', governance_views.audit_log_view, name='audit_log'),
 ]

@@ -1,292 +1,499 @@
 {% extends "base.html" %}
 {% load humanize %}
 
-{% block title %}Customer Profile & Demographics - AdventureWorks BI{% endblock %}
+{% block title %}Customer Profile &amp; Demographics - AdventureWorks BI{% endblock %}
 
 {% block content %}
 <div class="space-y-6">
     <!-- Top Workspace Toolbar -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-[#E5E7EB] gap-3">
-        <div class="flex items-center space-x-2 text-xs text-slate-500">
-            <span class="font-medium text-slate-900">Customer Profile</span>
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-slate-900 tracking-tight">Customer profile</h1>
+                <p class="text-xs text-slate-500">Store accounts vs. individual buyers, repeat order habits, and buyer locations</p>
+            </div>
         </div>
-        <div class="flex items-center space-x-2 text-xs">
-            <a href="{% url 'dashboard' %}" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition">
-                &larr; Back to Dashboard
-            </a>
+
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+            <label for="custSegmentFilter" class="text-[11px] font-medium text-slate-500">Segment:</label>
+            <select id="custSegmentFilter" onchange="onCustSegmentChange(this.value)" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 bg-white font-medium focus:outline-none focus:ring-1 focus:ring-coral cursor-pointer">
+                <option value="all" selected>All buyers (B2B + B2C)</option>
+                <option value="B2B">Stores (B2B)</option>
+                <option value="B2C">Individuals (B2C)</option>
+            </select>
             <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-medium shadow-sm transition flex items-center space-x-1.5">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                 </svg>
-                <span>Print Customer Directory</span>
+                <span>Print</span>
             </button>
         </div>
     </div>
 
-    <!-- Header Banner -->
-    <div class="flex items-start space-x-3.5">
-        <div class="w-10 h-10 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-            </svg>
+    <!-- 4 KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Customers</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700">Active</span>
+            </div>
+            <div id="custKpiTotal" class="text-2xl font-bold text-slate-900 mt-2">0</div>
+            <div id="custKpiSegmentSub" class="text-[11px] text-slate-500 mt-1">Stores and individuals</div>
         </div>
-        <div>
-            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Customer Profile & Demographics</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Unified analysis connecting Person, Store, and Address geographic tables</p>
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Lifetime spend</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700">Revenue</span>
+            </div>
+            <div id="custKpiRev" class="text-2xl font-bold text-slate-900 mt-2">$0</div>
+            <div id="custKpiAvgSpend" class="text-[11px] text-slate-500 mt-1">Avg per buyer: $0</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Orders placed</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">Orders</span>
+            </div>
+            <div id="custKpiOrders" class="text-2xl font-bold text-slate-900 mt-2">0</div>
+            <div id="custKpiOrdersPerCust" class="text-[11px] text-slate-500 mt-1">Avg orders/buyer: 0</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Top account</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral">#1</span>
+            </div>
+            <div class="text-lg font-bold text-slate-900 mt-2 truncate">{% if top_customers %}{{ top_customers.0.CustomerName }}{% else %}-{% endif %}</div>
+            <div class="text-[11px] text-slate-500 mt-1">{% if top_customers %}${{ top_customers.0.TotalSpent|floatformat:0|intcomma }} ({{ top_customers.0.Orders }} orders){% else %}No data{% endif %}</div>
         </div>
     </div>
 
-    <!-- Account Reach Chart & Key Takeaways (Moved from Right Rail) -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-2">
-            <div class="flex items-center justify-between">
-                <span class="text-[11px] font-semibold text-slate-500">Customer Segment &amp; Top Regions (Click bar to inspect)</span>
-                <span class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-0.5 text-slate-700 bg-slate-50 font-medium">
-                    {% if customer_types %}Global Network{% else %}Offline{% endif %}
-                </span>
-            </div>
-            <div class="flex items-baseline justify-between flex-wrap gap-2">
-                <div id="custSegmentName" class="text-xl font-bold text-slate-900 transition">{% if customer_types %}Store Retailers (B2B){% else %}No data{% endif %}</div>
-                <p id="custSegmentRevenue" class="text-sm font-semibold text-coral transition">$0</p>
-            </div>
-            <div class="h-44 pt-2">
-                <canvas id="custChart"></canvas>
-            </div>
-            <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-100">
-                <span id="custFooterLabel">{% if customer_types %}Select a segment{% else %}Database offline{% endif %}</span>
-                <span>Click bars to inspect</span>
-            </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl border border-coral-border bg-gradient-to-br from-white via-white to-coral-light/25 shadow-sm space-y-2.5 flex flex-col justify-between">
+    <!-- Chart Row 1: B2B vs B2C Split + Repeat Orders -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <!-- Chart 1: B2B vs B2C Doughnut (1 col) -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
             <div class="space-y-2">
-                <div class="flex items-center space-x-2">
-                    <span class="w-2 h-2 rounded-full bg-coral"></span>
-                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Key Takeaways</h3>
-                </div>
-                <div class="text-xs text-slate-600 space-y-2 leading-relaxed">
-                    {% if db_error or not customer_types %}
-                    <p class="text-slate-400 italic">No takeaways available: database is disconnected.</p>
-                    {% else %}
-                    {% if top_customers %}
-                    <p>The largest account is {{ top_customers.0.CustomerName }} with ${{ top_customers.0.TotalSpent|floatformat:0|intcomma }} over {{ top_customers.0.Orders }} orders.</p>
-                    {% endif %}
-                    {% if customer_types %}
-                    <p>Commercial stores make up {{ customer_types.0.TotalCustomers|intcomma }} accounts generating ${{ customer_types.0.TotalRevenue|floatformat:0|intcomma }}.</p>
-                    {% endif %}
-                    {% endif %}
+                <h2 class="text-sm font-bold text-slate-900">Stores (B2B) vs. individuals (B2C)</h2>
+                <div class="inline-flex w-full rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                    <button type="button" onclick="setCustDonutMetric('revenue')" id="btnCDRev" class="flex-1 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Spend $</button>
+                    <button type="button" onclick="setCustDonutMetric('orders')" id="btnCDOrd" class="flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Orders</button>
+                    <button type="button" onclick="setCustDonutMetric('avg')" id="btnCDAvg" class="flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Avg / buyer</button>
                 </div>
             </div>
-            <div class="text-[10px] text-slate-400 pt-2 border-t border-coral-border/40">Source: Sales.Customer &amp; Person.Address</div>
-        </div>
-    </div>
-
-    <!-- Channel Comparison Summary Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- Store / B2B Retailers -->
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-900">Store Retailers (B2B)</span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {% if customer_types.0 %}bg-emerald-50 text-emerald-700{% else %}bg-slate-100 text-slate-500{% endif %}">
-                    {% if customer_types.0 %}B2B Segment{% else %}No Data{% endif %}
-                </span>
+            <div class="relative h-48 flex items-center justify-center">
+                <canvas id="custSplitChart"></canvas>
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span id="cdCenterLabel" class="text-[10px] font-medium text-slate-400 uppercase">Total Spend</span>
+                    <span id="cdCenterValue" class="text-base font-bold text-slate-900">$0</span>
+                </div>
             </div>
-            <div class="space-y-1">
-                <p class="text-2xl font-bold text-slate-900">
-                    {% if customer_types.0 %}{{ customer_types.0.TotalCustomers|intcomma }}{% else %}0{% endif %}
-                    <span class="text-xs font-normal text-slate-500">accounts</span>
-                </p>
-                <p class="text-xs font-semibold text-slate-700">
-                    {% if customer_types.0 %}${{ customer_types.0.TotalRevenue|floatformat:0|intcomma }}{% else %}$0{% endif %} Total Lifetime Volume
-                </p>
-            </div>
-            <div class="pt-2 border-t border-slate-100 flex justify-between text-[11px] text-slate-500">
-                <span>Total Orders: <strong class="text-slate-800">{% if customer_types.0 %}{{ customer_types.0.TotalOrders|intcomma }}{% else %}0{% endif %}</strong></span>
-                <span>Commercial Retail Accounts</span>
+            <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-[11px]">
+                <div><span class="inline-block w-2 h-2 rounded-full bg-coral mr-1"></span><span class="text-slate-500">B2B:</span> <strong id="cdB2B">-</strong></div>
+                <div><span class="inline-block w-2 h-2 rounded-full bg-slate-800 mr-1"></span><span class="text-slate-500">B2C:</span> <strong id="cdB2C">-</strong></div>
             </div>
         </div>
 
-        <!-- Individual / B2C Buyers -->
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
-            <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-slate-900">Individual Consumers (B2C)</span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {% if customer_types.1 %}bg-blue-50 text-blue-700{% else %}bg-slate-100 text-slate-500{% endif %}">
-                    {% if customer_types.1 %}B2C Segment{% else %}No Data{% endif %}
-                </span>
+        <!-- Chart 2: Purchase Frequency Buckets (2 cols) -->
+        <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Repeat orders</h2>
+                    <p class="text-[11px] text-slate-400">How often buyers reorder and what each group spends</p>
+                </div>
+                <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                    <button type="button" onclick="setFreqMetric('customers')" id="btnFreqCust" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Customers</button>
+                    <button type="button" onclick="setFreqMetric('revenue')" id="btnFreqRev" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Revenue $</button>
+                </div>
             </div>
-            <div class="space-y-1">
-                <p class="text-2xl font-bold text-slate-900">
-                    {% if customer_types.1 %}{{ customer_types.1.TotalCustomers|intcomma }}{% else %}0{% endif %}
-                    <span class="text-xs font-normal text-slate-500">active buyers</span>
-                </p>
-                <p class="text-xs font-semibold text-slate-700">
-                    {% if customer_types.1 %}${{ customer_types.1.TotalRevenue|floatformat:0|intcomma }}{% else %}$0{% endif %} Total Lifetime Volume
-                </p>
-            </div>
-            <div class="pt-2 border-t border-slate-100 flex justify-between text-[11px] text-slate-500">
-                <span>Total Orders: <strong class="text-slate-800">{% if customer_types.1 %}{{ customer_types.1.TotalOrders|intcomma }}{% else %}0{% endif %}</strong></span>
-                <span>Direct Consumers</span>
+            <div class="h-60">
+                <canvas id="frequencyChart"></canvas>
             </div>
         </div>
     </div>
 
-    <!-- Top Store Accounts List -->
-    <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
-        <h2 class="text-xs font-bold text-slate-900">Top B2B Store Customers (Highest Lifetime Spend)</h2>
-        <div class="space-y-2">
-            {% for cust in top_customers %}
-            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between hover:bg-slate-50 transition">
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
-                        {{ cust.CustomerName|slice:":2"|upper }}
-                    </div>
-                    <div>
-                        <div class="flex items-center space-x-2">
-                            <span class="font-bold text-xs text-slate-900">{{ cust.CustomerName }}</span>
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-50 text-emerald-700">Premier Account</span>
-                        </div>
-                        <p class="text-[10px] text-slate-400 mt-0.5">Account ID: {{ cust.CustomerID }} &middot; {{ cust.Orders|intcomma }} completed orders</p>
-                    </div>
+    <!-- Chart Row 2: Customers by Country + Yearly Spend -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Chart 3: Geographic Map / Bar -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Customers by country</h2>
+                    <p class="text-[11px] text-slate-400">Where buyers live and how much they spend</p>
                 </div>
-                <div class="text-right">
-                    <p class="font-mono font-bold text-slate-900 text-xs">${{ cust.TotalSpent|floatformat:2|intcomma }}</p>
-                    <span class="text-[10px] text-slate-400">Lifetime spend</span>
+                <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                    <button type="button" onclick="setGeoView('map')" id="btnGeoMap" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Map</button>
+                    <button type="button" onclick="setGeoView('bar')" id="btnGeoBar" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Bars</button>
                 </div>
             </div>
-            {% empty %}
-            <div class="p-6 text-center text-xs text-slate-400">
-                No customer records found in database.
+            <div class="h-60">
+                <canvas id="custGeoChart"></canvas>
             </div>
-            {% endfor %}
+        </div>
+
+        <!-- Chart 4: Yearly Spend & Active Buyers -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Yearly spend by segment</h2>
+                    <p class="text-[11px] text-slate-400">Stores vs. individuals from 2011 to 2014</p>
+                </div>
+                <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                    <button type="button" onclick="setTrendMetric('revenue')" id="btnCTRev" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Spend $</button>
+                    <button type="button" onclick="setTrendMetric('customers')" id="btnCTCust" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Buyers</button>
+                </div>
+            </div>
+            <div class="h-60">
+                <canvas id="custTrendChart"></canvas>
+            </div>
         </div>
     </div>
 
-    <!-- Geographic Distribution (Where are customers located? - Direct Bible Answer) -->
-    <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-xs font-bold text-slate-900">Customer Geographic Locations (Where Customers are Located)</h2>
-                <p class="text-[11px] text-slate-400">Regional customer clusters joining Person.Address, StateProvince, and CountryRegion</p>
+    <!-- Searchable & Sortable Customer Table -->
+    <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-1.5 text-xs font-medium">
+                <button type="button" onclick="switchCustTab('accounts')" data-ctab="accounts" class="ctab-btn px-3 py-1.5 rounded-lg bg-coral text-white font-semibold transition">Top accounts</button>
+                <button type="button" onclick="switchCustTab('regions')" data-ctab="regions" class="ctab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">States &amp; regions</button>
             </div>
-            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">Source: Person.Address</span>
+            <div class="flex items-center gap-2 text-xs">
+                <input type="text" id="custSearch" oninput="renderCustTable()" placeholder="Search customers or regions..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral w-48 sm:w-60">
+                <select id="custLimit" onchange="renderCustTable()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 font-medium">
+                    <option value="5">Top 5</option>
+                    <option value="10" selected>Top 10</option>
+                    <option value="20">Top 20</option>
+                </select>
+            </div>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-slate-100 text-left text-xs">
-                <thead>
-                    <tr class="text-[11px] text-slate-400">
-                        <th class="pb-2 font-medium">State / Region</th>
-                        <th class="pb-2 font-medium">Country</th>
-                        <th class="pb-2 font-medium text-right">Customer Count</th>
-                        <th class="pb-2 font-medium text-right">Total Lifetime Revenue</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    {% for g in geo_distribution %}
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-2.5 font-medium text-slate-900">{{ g.RegionName }}</td>
-                        <td class="py-2.5 text-slate-500 text-[11px]">{{ g.CountryName }}</td>
-                        <td class="py-2.5 text-right text-slate-600">{{ g.CustomerCount|intcomma }}</td>
-                        <td class="py-2.5 text-right font-mono font-semibold text-slate-900">${{ g.TotalRevenue|floatformat:2|intcomma }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="py-6 text-center text-slate-400">No geographic distribution records found in database.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+                <thead id="custThead"></thead>
+                <tbody id="custTbody" class="divide-y divide-slate-100"></tbody>
             </table>
         </div>
     </div>
+
+    {% include "reports/_governance_panel.html" %}
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-const rawTypes = {{ customer_types_json|safe }};
-const rawGeo = {{ geo_distribution_json|safe }};
+const rawTypes = {{ customer_types_json|safe }} || [];
+const rawTopCustomers = {{ top_customers_json|safe }} || [];
+const rawGeo = {{ geo_distribution_json|safe }} || [];
+const rawCountryGeo = {{ country_geo_json|safe }} || [];
+const rawFreqBuckets = {{ frequency_buckets_json|safe }} || [];
+const rawCustTrends = {{ customer_trends_json|safe }} || [];
 
-const custSegmentData = [];
-if (rawTypes && rawTypes.length > 0) {
-    rawTypes.forEach(t => {
-        const rev = parseFloat(t.TotalRevenue) || 0;
-        const revM = (rev / 1e6).toFixed(1);
-        const isB2B = t.CustomerType.includes('Store') || t.CustomerType.includes('B2B');
-        custSegmentData.push({
-            code: isB2B ? 'Store (B2B)' : 'Individual (B2C)',
-            label: isB2B ? 'B2B' : 'B2C',
-            revenue: '$' + Number(Math.round(rev)).toLocaleString(),
-            value: parseFloat(revM),
-            badge: (t.TotalCustomers || 0).toLocaleString() + ' accounts · ' + (t.TotalOrders || 0).toLocaleString() + ' orders'
-        });
+let custSegment = 'all';
+let donutMetric = 'revenue';
+let freqMetric = 'customers';
+let geoView = 'map';
+let trendMetric = 'revenue';
+let custTab = 'accounts';
+let custSortKey = 'TotalSpent';
+let custSortAsc = false;
+let worldCountriesGeo = null;
+
+let splitChart = null, freqChart = null, geoChart = null, trendChart = null;
+
+const fmtCompact = v => Math.abs(v) >= 1e6 ? '$' + (v / 1e6).toFixed(1) + 'M' : (Math.abs(v) >= 1e3 ? '$' + Math.round(v / 1e3) + 'K' : '$' + Math.round(v).toLocaleString());
+const fmtDollar = v => '$' + Math.round(v || 0).toLocaleString();
+const fmtInt = v => Math.round(v || 0).toLocaleString();
+
+function applyReportPreset(filterVal) {
+    const sel = document.getElementById('custSegmentFilter');
+    if ([...sel.options].some(o => o.value === filterVal)) {
+        sel.value = filterVal;
+        onCustSegmentChange(filterVal);
+    } else {
+        document.getElementById('custSearch').value = filterVal === 'all' ? '' : filterVal;
+        renderCustTable();
+    }
+}
+
+function onCustSegmentChange(val) {
+    custSegment = val;
+    updateCustKPIs();
+    renderCustTrendChart();
+    renderCustTable();
+}
+
+function updateCustKPIs() {
+    const rows = rawTypes.filter(t => {
+        if (custSegment === 'all') return true;
+        const isB2B = (t.CustomerType || '').includes('Store') || (t.CustomerType || '').includes('B2B');
+        return custSegment === 'B2B' ? isB2B : !isB2B;
+    });
+    const totalCust = rows.reduce((s, r) => s + (parseInt(r.TotalCustomers, 10) || 0), 0);
+    const totalRev = rows.reduce((s, r) => s + (parseFloat(r.TotalRevenue) || 0), 0);
+    const totalOrders = rows.reduce((s, r) => s + (parseInt(r.TotalOrders, 10) || 0), 0);
+    document.getElementById('custKpiTotal').textContent = fmtInt(totalCust);
+    document.getElementById('custKpiRev').textContent = fmtDollar(totalRev);
+    document.getElementById('custKpiOrders').textContent = fmtInt(totalOrders);
+    document.getElementById('custKpiAvgSpend').textContent = 'Avg per buyer: ' + fmtDollar(totalCust > 0 ? totalRev / totalCust : 0);
+    document.getElementById('custKpiOrdersPerCust').textContent = 'Avg orders/buyer: ' + (totalCust > 0 ? (totalOrders / totalCust).toFixed(1) : '0.0');
+    document.getElementById('custKpiSegmentSub').textContent = custSegment === 'all' ? 'Stores and individuals' : (custSegment === 'B2B' ? 'Store accounts' : 'Individual buyers');
+}
+
+function setCustDonutMetric(m) {
+    donutMetric = m;
+    const map = { revenue: 'btnCDRev', orders: 'btnCDOrd', avg: 'btnCDAvg' };
+    Object.entries(map).forEach(([k, id]) => {
+        document.getElementById(id).className = k === m ? 'flex-1 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    });
+    renderCustSplitChart();
+}
+
+function renderCustSplitChart() {
+    const b2b = rawTypes.find(c => (c.CustomerType || '').includes('Store') || (c.CustomerType || '').includes('B2B')) || {};
+    const b2c = rawTypes.find(c => !((c.CustomerType || '').includes('Store') || (c.CustomerType || '').includes('B2B'))) || {};
+    let v1 = 0, v2 = 0, lbl = '', cval = '';
+    if (donutMetric === 'revenue') {
+        v1 = parseFloat(b2b.TotalRevenue) || 0; v2 = parseFloat(b2c.TotalRevenue) || 0;
+        lbl = 'Total Spend'; cval = fmtCompact(v1 + v2);
+        document.getElementById('cdB2B').textContent = fmtCompact(v1);
+        document.getElementById('cdB2C').textContent = fmtCompact(v2);
+    } else if (donutMetric === 'orders') {
+        v1 = parseInt(b2b.TotalOrders, 10) || 0; v2 = parseInt(b2c.TotalOrders, 10) || 0;
+        lbl = 'Total Orders'; cval = fmtInt(v1 + v2);
+        document.getElementById('cdB2B').textContent = fmtInt(v1);
+        document.getElementById('cdB2C').textContent = fmtInt(v2);
+    } else {
+        v1 = b2b.TotalCustomers > 0 ? parseFloat(b2b.TotalRevenue) / b2b.TotalCustomers : 0;
+        v2 = b2c.TotalCustomers > 0 ? parseFloat(b2c.TotalRevenue) / b2c.TotalCustomers : 0;
+        lbl = 'B2B Avg'; cval = fmtCompact(v1);
+        document.getElementById('cdB2B').textContent = fmtDollar(v1);
+        document.getElementById('cdB2C').textContent = fmtDollar(v2);
+    }
+    document.getElementById('cdCenterLabel').textContent = lbl;
+    document.getElementById('cdCenterValue').textContent = cval;
+    const ctx = document.getElementById('custSplitChart').getContext('2d');
+    if (splitChart) splitChart.destroy();
+    splitChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels: ['Stores (B2B)', 'Individuals (B2C)'], datasets: [{ data: [v1, v2], backgroundColor: ['#FF5B26', '#1E293B'], borderWidth: 0 }] },
+        options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } }
     });
 }
-if (rawGeo && rawGeo.length > 0) {
-    rawGeo.slice(0, 4).forEach(g => {
-        const rev = parseFloat(g.TotalRevenue) || 0;
-        const revM = (rev / 1e6).toFixed(1);
-        custSegmentData.push({
-            code: g.RegionName,
-            label: g.RegionName.substring(0, 8),
-            revenue: '$' + Number(Math.round(rev)).toLocaleString(),
-            value: parseFloat(revM),
-            badge: g.CountryName + ' · ' + (g.CustomerCount || 0).toLocaleString() + ' customers'
-        });
-    });
+
+function setFreqMetric(m) {
+    freqMetric = m;
+    document.getElementById('btnFreqCust').className = m === 'customers' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    document.getElementById('btnFreqRev').className = m === 'revenue' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    renderFreqChart();
 }
 
-const cCtx = document.getElementById('custChart').getContext('2d');
-
-function getCustColors(activeIdx) {
-    return custSegmentData.map((_, i) => i === activeIdx ? '#FF5B26' : 'rgba(255, 91, 38, 0.25)');
-}
-
-if (custSegmentData.length > 0) {
-    const first = custSegmentData[0];
-    document.getElementById('custSegmentName').textContent = first.code;
-    document.getElementById('custSegmentRevenue').innerHTML = first.revenue + ' <span class="text-[10px] text-emerald-600 font-normal">(' + first.badge + ')</span>';
-    document.getElementById('custFooterLabel').textContent = first.code + ' Selected';
-
-    const custChart = new Chart(cCtx, {
+function renderFreqChart() {
+    const ctx = document.getElementById('frequencyChart').getContext('2d');
+    if (freqChart) freqChart.destroy();
+    freqChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: custSegmentData.map(d => d.label),
+            labels: rawFreqBuckets.map(b => b.FrequencyBucket),
             datasets: [{
-                data: custSegmentData.map(d => d.value),
-                backgroundColor: getCustColors(0),
+                label: freqMetric === 'customers' ? 'Customers' : 'Revenue ($M)',
+                data: rawFreqBuckets.map(b => freqMetric === 'customers' ? (parseInt(b.CustomerCount, 10) || 0) : +(parseFloat(b.TotalRevenue) / 1e6).toFixed(2)),
+                backgroundColor: ['#94A3B8', '#3B82F6', '#10B981', '#F59E0B', '#FF5B26'],
                 borderRadius: 5
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            onClick: (e, elements) => {
-                if (elements && elements.length > 0) {
-                    const idx = elements[0].index;
-                    const item = custSegmentData[idx];
-                    document.getElementById('custSegmentName').textContent = item.code;
-                    document.getElementById('custSegmentRevenue').innerHTML = item.revenue + ' <span class="text-[10px] text-emerald-600 font-normal">(' + item.badge + ')</span>';
-                    document.getElementById('custFooterLabel').textContent = item.code + ' Selected';
-                    custChart.data.datasets[0].backgroundColor = getCustColors(idx);
-                    custChart.update();
-                }
-            },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: function(ctx) { return custSegmentData[ctx.dataIndex].code + ': $' + ctx.raw.toLocaleString() + 'M'; }
-                    }
-                }
-            },
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
             scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 9 } } },
-                y: { display: false }
+                x: { grid: { display: false } },
+                y: { grid: { color: '#F1F5F9' }, ticks: { callback: v => freqMetric === 'customers' ? fmtInt(v) : '$' + v + 'M' } }
             }
         }
     });
-} else {
-    document.getElementById('custSegmentName').textContent = 'No data';
-    document.getElementById('custSegmentRevenue').textContent = '$0';
 }
+
+const COUNTRY_COORDS = {
+    'United States': { lon: -98.5, lat: 39.8 }, 'Canada': { lon: -106.3, lat: 56.1 },
+    'United Kingdom': { lon: -3.4, lat: 55.4 }, 'France': { lon: 2.2, lat: 46.2 },
+    'Germany': { lon: 10.4, lat: 51.2 }, 'Australia': { lon: 133.8, lat: -25.3 }
+};
+
+function setGeoView(v) {
+    geoView = v;
+    document.getElementById('btnGeoMap').className = v === 'map' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    document.getElementById('btnGeoBar').className = v === 'bar' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    renderCustGeoChart();
+}
+
+async function getWorldGeo() {
+    if (worldCountriesGeo) return worldCountriesGeo;
+    const res = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+    const topology = await res.json();
+    worldCountriesGeo = ChartGeo.topojson.feature(topology, topology.objects.countries).features;
+    return worldCountriesGeo;
+}
+
+async function renderCustGeoChart() {
+    const ctx = document.getElementById('custGeoChart').getContext('2d');
+    const sourceRows = rawCountryGeo.length ? rawCountryGeo : rawGeo.map(g => ({ CountryName: g.CountryName, CustomerCount: g.CustomerCount, TotalRevenue: g.TotalRevenue }));
+    if (geoView === 'map' && typeof ChartGeo !== 'undefined') {
+        try {
+            const countries = await getWorldGeo();
+            const mapPoints = sourceRows.filter(r => COUNTRY_COORDS[r.CountryName]).map(r => ({
+                longitude: COUNTRY_COORDS[r.CountryName].lon, latitude: COUNTRY_COORDS[r.CountryName].lat,
+                value: +(parseFloat(r.TotalRevenue) / 1e6).toFixed(2), raw: r
+            }));
+            if (geoChart) geoChart.destroy();
+            geoChart = new Chart(ctx, {
+                type: 'bubbleMap',
+                data: {
+                    labels: mapPoints.map(p => p.raw.CountryName),
+                    datasets: [{
+                        outline: countries, showOutline: true,
+                        outlineBackgroundColor: '#F1F5F9', outlineBorderColor: '#CBD5E1', outlineBorderWidth: 0.6,
+                        backgroundColor: 'rgba(255, 91, 38, 0.72)', borderColor: '#FFF', borderWidth: 1.5, data: mapPoints
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: c => `${mapPoints[c.dataIndex].raw.CountryName}: ${fmtDollar(mapPoints[c.dataIndex].raw.TotalRevenue)} (${fmtInt(mapPoints[c.dataIndex].raw.CustomerCount)} customers)` } }
+                    },
+                    scales: { projection: { axis: 'x', projection: 'equalEarth' }, size: { axis: 'r', size: [6, 22], legend: { display: false } } }
+                }
+            });
+            return;
+        } catch (e) { geoView = 'bar'; }
+    }
+    if (geoChart) geoChart.destroy();
+    geoChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: sourceRows.map(r => r.CountryName),
+            datasets: [{ data: sourceRows.map(r => +(parseFloat(r.TotalRevenue) / 1e6).toFixed(2)), backgroundColor: '#FF5B26', borderRadius: 4 }]
+        },
+        options: {
+            indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v + 'M' } }, y: { grid: { display: false } } }
+        }
+    });
+}
+
+function setTrendMetric(m) {
+    trendMetric = m;
+    document.getElementById('btnCTRev').className = m === 'revenue' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    document.getElementById('btnCTCust').className = m === 'customers' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    renderCustTrendChart();
+}
+
+function renderCustTrendChart() {
+    const years = [...new Set(rawCustTrends.map(t => t.Year))].sort();
+    const b2bData = years.map(y => {
+        const r = rawCustTrends.find(t => t.Year === y && t.CustomerType.includes('B2B'));
+        if (!r) return 0;
+        return trendMetric === 'revenue' ? +(parseFloat(r.TotalRevenue) / 1e6).toFixed(2) : (parseInt(r.ActiveCustomers, 10) || 0);
+    });
+    const b2cData = years.map(y => {
+        const r = rawCustTrends.find(t => t.Year === y && t.CustomerType.includes('B2C'));
+        if (!r) return 0;
+        return trendMetric === 'revenue' ? +(parseFloat(r.TotalRevenue) / 1e6).toFixed(2) : (parseInt(r.ActiveCustomers, 10) || 0);
+    });
+    const datasets = [];
+    if (custSegment === 'all' || custSegment === 'B2B') datasets.push({ label: 'Stores (B2B)', data: b2bData, backgroundColor: '#FF5B26', borderRadius: 4 });
+    if (custSegment === 'all' || custSegment === 'B2C') datasets.push({ label: 'Individuals (B2C)', data: b2cData, backgroundColor: '#1E293B', borderRadius: 4 });
+
+    const ctx = document.getElementById('custTrendChart').getContext('2d');
+    if (trendChart) trendChart.destroy();
+    trendChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: years.map(y => 'FY' + y), datasets },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
+            scales: { x: { grid: { display: false } }, y: { grid: { color: '#F1F5F9' }, ticks: { callback: v => trendMetric === 'revenue' ? '$' + v + 'M' : fmtInt(v) } } }
+        }
+    });
+}
+
+const CUST_SCHEMAS = {
+    accounts: {
+        defaultSort: 'TotalSpent',
+        columns: [
+            { key: 'CustomerName', label: 'Customer Name', align: 'left', type: 'str' },
+            { key: 'CustomerType', label: 'Segment', align: 'left', type: 'str' },
+            { key: 'Orders', label: 'Orders', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'TotalSpent', label: 'Lifetime Spend', align: 'right', type: 'num', fmt: fmtDollar },
+            { key: 'AvgOrder', label: 'Avg Order', align: 'right', type: 'num', fmt: fmtDollar }
+        ],
+        getRows: () => rawTopCustomers
+            .filter(c => custSegment === 'all' || (c.CustomerType || '').includes(custSegment))
+            .map(c => ({ ...c, AvgOrder: c.Orders > 0 ? parseFloat(c.TotalSpent) / c.Orders : 0 }))
+    },
+    regions: {
+        defaultSort: 'TotalRevenue',
+        columns: [
+            { key: 'RegionName', label: 'State / Region', align: 'left', type: 'str' },
+            { key: 'CountryName', label: 'Country', align: 'left', type: 'str' },
+            { key: 'CustomerCount', label: 'Customers', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'TotalRevenue', label: 'Total Revenue', align: 'right', type: 'num', fmt: fmtDollar }
+        ],
+        getRows: () => rawGeo
+    }
+};
+
+function switchCustTab(tab) {
+    custTab = tab;
+    custSortKey = CUST_SCHEMAS[tab].defaultSort;
+    custSortAsc = false;
+    document.querySelectorAll('.ctab-btn').forEach(el => {
+        el.className = el.dataset.ctab === tab ? 'ctab-btn px-3 py-1.5 rounded-lg bg-coral text-white font-semibold transition' : 'ctab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
+    });
+    renderCustTable();
+}
+
+function sortCustBy(key) {
+    if (custSortKey === key) custSortAsc = !custSortAsc;
+    else { custSortKey = key; custSortAsc = false; }
+    renderCustTable();
+}
+
+function renderCustTable() {
+    const schema = CUST_SCHEMAS[custTab];
+    const query = (document.getElementById('custSearch').value || '').toLowerCase().trim();
+    const limit = parseInt(document.getElementById('custLimit').value, 10) || 10;
+
+    document.getElementById('custThead').innerHTML = `<tr class="text-[11px] text-slate-400 border-b border-slate-100">` +
+        schema.columns.map(col => {
+            const arrow = custSortKey === col.key ? (custSortAsc ? ' ▲' : ' ▼') : '';
+            return `<th onclick="sortCustBy('${col.key}')" class="pb-2.5 font-semibold cursor-pointer select-none hover:text-coral ${col.align === 'right' ? 'text-right' : 'text-left'}">${col.label}<span class="text-coral">${arrow}</span></th>`;
+        }).join('') + `</tr>`;
+
+    let rows = schema.getRows().filter(r => !query || schema.columns.some(c => String(r[c.key] || '').toLowerCase().includes(query)));
+    const sortCol = schema.columns.find(c => c.key === custSortKey);
+    rows.sort((a, b) => {
+        if (sortCol && sortCol.type === 'str') return custSortAsc ? String(a[custSortKey] || '').localeCompare(String(b[custSortKey] || '')) : String(b[custSortKey] || '').localeCompare(String(a[custSortKey] || ''));
+        return custSortAsc ? ((parseFloat(a[custSortKey]) || 0) - (parseFloat(b[custSortKey]) || 0)) : ((parseFloat(b[custSortKey]) || 0) - (parseFloat(a[custSortKey]) || 0));
+    });
+    rows = rows.slice(0, limit);
+
+    const tbody = document.getElementById('custTbody');
+    if (!rows.length) { tbody.innerHTML = `<tr><td colspan="${schema.columns.length}" class="py-6 text-center text-slate-400">No matches.</td></tr>`; return; }
+    tbody.innerHTML = rows.map(row => `<tr class="hover:bg-slate-50 transition">` +
+        schema.columns.map((col, idx) => `<td class="py-2.5 ${col.align === 'right' ? 'text-right font-mono' : 'text-left'} ${idx === 0 ? 'font-semibold text-slate-900' : 'text-slate-600'}">${col.fmt ? col.fmt(row[col.key]) : (row[col.key] ?? '-')}</td>`).join('') + `</tr>`).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    updateCustKPIs();
+    renderCustSplitChart();
+    renderFreqChart();
+    renderCustGeoChart();
+    renderCustTrendChart();
+    renderCustTable();
+});
 </script>
 {% endblock %}

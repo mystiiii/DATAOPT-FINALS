@@ -22,6 +22,15 @@ def role_required(allowed_roles):
 
             profile = getattr(request.user, 'profile', None)
             if not profile or profile.role not in allowed_roles:
+                from governance.models import log_audit_event
+                log_audit_event(
+                    user=request.user,
+                    action='ACCESS_DENIED',
+                    target_type='Route',
+                    target_id=request.path,
+                    module=request.resolver_match.url_name if request.resolver_match else '',
+                    details=f"Role '{profile.role if profile else 'None'}' attempted to access restricted path {request.path}"
+                )
                 raise PermissionDenied("You do not have permission to access this reporting resource.")
 
             return view_func(request, *args, **kwargs)

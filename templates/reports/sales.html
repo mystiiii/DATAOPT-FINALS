@@ -7,262 +7,561 @@
 <div class="space-y-6">
     <!-- Top Workspace Toolbar -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-[#E5E7EB] gap-3">
-        <div class="flex items-center space-x-2 text-xs text-slate-500">
-            <span class="font-medium text-slate-900">Sales</span>
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-slate-900 tracking-tight">Sales report</h1>
+                <p class="text-xs text-slate-500">Order volume, product rankings, and regional sales from 2011 to mid-2014</p>
+            </div>
         </div>
-        <div class="flex items-center space-x-2 text-xs">
-            <a href="{% url 'dashboard' %}" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition">
-                &larr; Back to Dashboard
-            </a>
+
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+            <label for="salesYearFilter" class="text-[11px] font-medium text-slate-500">Period:</label>
+            <select id="salesYearFilter" onchange="onSalesYearChange(this.value)" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 bg-white font-medium focus:outline-none focus:ring-1 focus:ring-coral cursor-pointer">
+                <option value="all" selected>All years (2011 to 2014)</option>
+                <option value="2014">2014 (Jan to Jun)</option>
+                <option value="2013">2013</option>
+                <option value="2012">2012</option>
+                <option value="2011">2011</option>
+            </select>
             <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-medium shadow-sm transition flex items-center space-x-1.5">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                 </svg>
-                <span>Print Sales Brief</span>
+                <span>Print</span>
             </button>
         </div>
     </div>
 
-    <!-- Header Banner -->
-    <div class="flex items-start space-x-3.5">
-        <div class="w-10 h-10 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-            </svg>
+    <!-- 4 KPI Cards (Synced to Period) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Sales revenue</span>
+                <span id="salesKpiOrdersBadge" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">All years</span>
+            </div>
+            <div id="salesKpiRevenue" class="text-2xl font-bold text-slate-900 mt-2">$0</div>
+            <div id="salesKpiAvgOrder" class="text-[11px] text-slate-500 mt-1">Avg order: $0</div>
         </div>
-        <div>
-            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Sales Performance Report</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Revenue breakdown by category, top products, and sales territories for FY2011 to FY2014</p>
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Units sold</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700">Volume</span>
+            </div>
+            <div id="salesKpiUnits" class="text-2xl font-bold text-slate-900 mt-2">0</div>
+            <div class="text-[11px] text-slate-500 mt-1">Across 4 categories</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Top category</span>
+                <span id="salesKpiTopCatShare" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral">-</span>
+            </div>
+            <div id="salesKpiTopCat" class="text-2xl font-bold text-slate-900 mt-2">{% if category_list %}{{ category_list.0.Category }}{% else %}-{% endif %}</div>
+            <div class="text-[11px] text-slate-500 mt-1">Brings in the most sales</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Top territory</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700">#1</span>
+            </div>
+            <div class="text-2xl font-bold text-slate-900 mt-2">{% if territory_sales %}{{ territory_sales.0.TerritoryName }}{% else %}-{% endif %}</div>
+            <div class="text-[11px] text-slate-500 mt-1">
+                {% if territory_sales %}${{ territory_sales.0.TotalRevenue|floatformat:0|intcomma }}, {{ territory_sales.0.TotalOrders|intcomma }} orders{% else %}No data{% endif %}
+            </div>
         </div>
     </div>
 
-    <!-- Territory Chart & Key Takeaways (Moved from Right Rail) -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-2">
-            <div class="flex items-center justify-between">
-                <span class="text-[11px] font-semibold text-slate-500">Sales Territory (Click bar to inspect)</span>
-                <span class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-0.5 text-slate-700 bg-slate-50 font-medium">
-                    {% if territory_sales %}All Channels{% else %}Offline{% endif %}
-                </span>
-            </div>
-            <div class="flex items-baseline justify-between flex-wrap gap-2">
-                <div id="territoryNameDisplay" class="text-xl font-bold text-slate-900 transition">{% if territory_sales %}Southwest{% else %}No data{% endif %}</div>
-                <p id="territoryRevenueDisplay" class="text-sm font-semibold text-coral transition">$0</p>
-            </div>
-            <div class="h-44 pt-2">
-                <canvas id="territoryChart"></canvas>
-            </div>
-            <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-100">
-                <span id="territoryFooterLabel">{% if territory_sales %}Select a territory{% else %}Database offline{% endif %}</span>
-                <span>Click bars to inspect</span>
-            </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl border border-coral-border bg-gradient-to-br from-white via-white to-coral-light/25 shadow-sm space-y-2.5 flex flex-col justify-between">
-            <div class="space-y-2">
-                <div class="flex items-center space-x-2">
-                    <span class="w-2 h-2 rounded-full bg-coral"></span>
-                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Key Takeaways</h3>
-                </div>
-                <div class="text-xs text-slate-600 space-y-2 leading-relaxed">
-                    {% if db_error or not territory_sales %}
-                    <p class="text-slate-400 italic">No takeaways available: database is disconnected.</p>
-                    {% else %}
-                    {% if category_list %}
-                    <p>{{ category_list.0.Category }} brought in {{ category_list.0.Share }}% (${{ category_list.0.Revenue|floatformat:0|intcomma }}) of total sales across {{ category_list.0.UnitsSold|intcomma }} units sold.</p>
-                    {% endif %}
-                    <p>{{ territory_sales.0.TerritoryName }} was the top territory with ${{ territory_sales.0.TotalRevenue|floatformat:0|intcomma }} across {{ territory_sales.0.TotalOrders|intcomma }} orders.</p>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="text-[10px] text-slate-400 pt-2 border-t border-coral-border/40">Source: Sales.SalesOrderHeader &amp; SalesTerritory</div>
-        </div>
-    </div>
-
-    <!-- Category Sales Breakdown Cards -->
-    <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
-        <h2 class="text-xs font-bold text-slate-900">Category Revenue Contribution</h2>
-        <div class="space-y-2">
-            {% for cat in category_list %}
-            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
+    <!-- Chart Row 1: Monthly Sales + Category Breakdown -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Chart 1: Monthly Sales -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                    <div class="flex items-center space-x-2">
-                        <span class="font-bold text-xs text-slate-900">{{ cat.Category }}</span>
-                        {% if forloop.first %}
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">Dominant Category</span>
-                        {% elif forloop.last %}
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600">Niche Category</span>
-                        {% else %}
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700">Steady</span>
-                        {% endif %}
+                    <h2 class="text-sm font-bold text-slate-900">Monthly sales</h2>
+                    <p id="monthlyTrendSub" class="text-[11px] text-slate-400">Revenue and order count by month</p>
+                </div>
+                <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                    <button type="button" onclick="setMonthlyMetric('revenue')" id="btnMonthRev" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Revenue $</button>
+                    <button type="button" onclick="setMonthlyMetric('orders')" id="btnMonthOrd" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Orders</button>
+                </div>
+            </div>
+            <div class="h-64">
+                <canvas id="monthlySalesChart"></canvas>
+            </div>
+            <div class="text-[11px] text-slate-500 pt-2 border-t border-slate-100 flex justify-between">
+                <span>Source: Sales.SalesOrderHeader</span>
+                <span class="text-amber-600 font-medium">2014 data stops in June</span>
+            </div>
+        </div>
+
+        <!-- Chart 2: Category Sales by Year -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Sales by category</h2>
+                    <p class="text-[11px] text-slate-400">Yearly comparison across product lines</p>
+                </div>
+                <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                    <button type="button" onclick="setSalesCatMetric('revenue')" id="btnSCatRev" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Sales $</button>
+                    {% if is_manager %}
+                    <button type="button" onclick="setSalesCatMetric('profit')" id="btnSCatProfit" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Profit $</button>
+                    {% endif %}
+                    <button type="button" onclick="setSalesCatMetric('units')" id="btnSCatUnits" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Units</button>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
+                <button type="button" onclick="setSalesCatFilter('all')" data-scat="all" class="scat-pill px-2.5 py-0.5 rounded-full bg-coral text-white font-semibold transition">All</button>
+                <button type="button" onclick="setSalesCatFilter('Bikes')" data-scat="Bikes" class="scat-pill px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Bikes</button>
+                <button type="button" onclick="setSalesCatFilter('Components')" data-scat="Components" class="scat-pill px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Components</button>
+                <button type="button" onclick="setSalesCatFilter('Clothing')" data-scat="Clothing" class="scat-pill px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Clothing</button>
+                <button type="button" onclick="setSalesCatFilter('Accessories')" data-scat="Accessories" class="scat-pill px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Accessories</button>
+            </div>
+            <div class="h-56">
+                <canvas id="salesCategoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Row 2: Sales Territories (Map/Bar) + Top vs Bottom Products -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Chart 3: Sales Territory Map / Bar -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Sales by territory</h2>
+                    <p class="text-[11px] text-slate-400">10 AdventureWorks sales territories</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
+                    <div class="inline-flex rounded-lg bg-slate-100 p-0.5 font-medium">
+                        <button type="button" onclick="setSalesTerrView('map')" id="btnSTerrMap" class="px-2 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Map</button>
+                        <button type="button" onclick="setSalesTerrView('bar')" id="btnSTerrBar" class="px-2 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Bars</button>
                     </div>
-                    <p class="text-[11px] text-slate-400 mt-0.5">{{ cat.UnitsSold|intcomma }} units sold across models</p>
-                </div>
-                <div class="text-right">
-                    <p class="font-bold text-slate-900 text-sm">${{ cat.Revenue|floatformat:0|intcomma }}</p>
-                    <span class="text-[10px] text-emerald-600 font-medium">{{ cat.Share }}% of category sales</span>
+                    <select id="salesContinentFilter" onchange="renderSalesTerritoryChart()" class="border border-slate-200 rounded-lg px-2 py-1 text-slate-700 bg-slate-50 font-medium">
+                        <option value="all">All regions</option>
+                        <option value="North America">North America</option>
+                        <option value="Europe">Europe</option>
+                        <option value="Pacific">Pacific</option>
+                    </select>
                 </div>
             </div>
-            {% empty %}
-            <div class="p-6 text-center text-xs text-slate-400">
-                No category sales records found in database.
+            <div class="h-64">
+                <canvas id="salesTerritoryChart"></canvas>
             </div>
-            {% endfor %}
+        </div>
+
+        <!-- Chart 4: Top vs Bottom Products -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Top and bottom products</h2>
+                    <p id="prodExtremeSub" class="text-[11px] text-slate-400">Top 10 products by revenue</p>
+                </div>
+                <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                    <button type="button" onclick="setProductExtreme('top')" id="btnProdTop" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Best sellers</button>
+                    <button type="button" onclick="setProductExtreme('low')" id="btnProdLow" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Slowest sellers</button>
+                </div>
+            </div>
+            <div class="h-64">
+                <canvas id="productExtremeChart"></canvas>
+            </div>
         </div>
     </div>
 
-    <!-- Top Products Table -->
-    <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
-        <h2 class="text-xs font-bold text-slate-900">Top High-Performing Products</h2>
+    <!-- Searchable & Sortable Sales Table -->
+    <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-1.5 text-xs font-medium">
+                <button type="button" onclick="switchSalesTab('top')" data-stab="top" class="stab-btn px-3 py-1.5 rounded-lg bg-coral text-white font-semibold transition">Best sellers</button>
+                <button type="button" onclick="switchSalesTab('low')" data-stab="low" class="stab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Slowest sellers</button>
+                <button type="button" onclick="switchSalesTab('subcat')" data-stab="subcat" class="stab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Subcategories</button>
+                <button type="button" onclick="switchSalesTab('territories')" data-stab="territories" class="stab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Territories</button>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+                <input type="text" id="salesSearch" oninput="renderSalesTable()" placeholder="Search records..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral w-48 sm:w-60">
+                <select id="salesLimit" onchange="renderSalesTable()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 font-medium">
+                    <option value="5">Top 5</option>
+                    <option value="10" selected>Top 10</option>
+                    <option value="15">Top 15</option>
+                </select>
+            </div>
+        </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-slate-100 text-left text-xs">
-                <thead>
-                    <tr class="text-[11px] text-slate-400">
-                        <th class="pb-2 font-medium">Product Name</th>
-                        <th class="pb-2 font-medium">Category</th>
-                        <th class="pb-2 font-medium text-right">Units Sold</th>
-                        <th class="pb-2 font-medium text-right">Total Revenue</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    {% for prod in top_products %}
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-2.5 font-medium text-slate-900">{{ prod.ProductName }}</td>
-                        <td class="py-2.5 text-slate-500 text-[11px]">{{ prod.Category }}</td>
-                        <td class="py-2.5 text-right text-slate-600">{{ prod.TotalQuantity|intcomma }}</td>
-                        <td class="py-2.5 text-right font-mono font-semibold text-slate-900">${{ prod.TotalRevenue|floatformat:2|intcomma }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="py-6 text-center text-slate-400">No products found in database.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
+                <thead id="salesThead"></thead>
+                <tbody id="salesTbody" class="divide-y divide-slate-100"></tbody>
             </table>
         </div>
     </div>
 
-    <!-- Territory Performance (Best vs Worst Territories - Direct Bible Answer) -->
-    <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-xs font-bold text-slate-900">Regional Territory Performance (Best vs Worst)</h2>
-                <p class="text-[11px] text-slate-400">Total revenue and order volume across official sales territories</p>
-            </div>
-            <span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">Source: Sales.SalesTerritory</span>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-100 text-left text-xs">
-                <thead>
-                    <tr class="text-[11px] text-slate-400">
-                        <th class="pb-2 font-medium">Territory Name</th>
-                        <th class="pb-2 font-medium">Group / Country</th>
-                        <th class="pb-2 font-medium text-right">Orders</th>
-                        <th class="pb-2 font-medium text-right">Total Revenue</th>
-                        <th class="pb-2 font-medium text-right">Performance Status</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                    {% for t in territory_sales %}
-                    <tr class="hover:bg-slate-50 transition">
-                        <td class="py-2.5 font-medium text-slate-900">{{ t.TerritoryName }}</td>
-                        <td class="py-2.5 text-slate-500 text-[11px]">{{ t.TerritoryGroup }}</td>
-                        <td class="py-2.5 text-right text-slate-600">{{ t.TotalOrders|intcomma }}</td>
-                        <td class="py-2.5 text-right font-mono font-semibold text-slate-900">${{ t.TotalRevenue|floatformat:2|intcomma }}</td>
-                        <td class="py-2.5 text-right">
-                            {% if forloop.first %}
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">Best Performing</span>
-                            {% elif forloop.last %}
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700">Lowest Volume</span>
-                            {% else %}
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600">Active Market</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="py-6 text-center text-slate-400">No territory sales records found in database.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <!-- Governance Panel (Presets + Analytical Notes) -->
+    {% include "reports/_governance_panel.html" %}
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-const rawTerritories = {{ territory_sales_json|safe }};
-const territoryData = (rawTerritories && rawTerritories.length > 0)
-    ? rawTerritories.map(t => {
-        const rev = parseFloat(t.TotalRevenue) || 0;
-        const revM = (rev / 1e6).toFixed(2);
-        return {
-            code: t.TerritoryName.substring(0, 3).toUpperCase(),
-            name: t.TerritoryName,
-            revenue: '$' + Number(Math.round(rev)).toLocaleString(),
-            value: parseFloat(revM),
-            badge: t.TerritoryGroup + ' · ' + Number(t.TotalOrders).toLocaleString() + ' orders'
-        };
-    })
-    : [];
+const rawSalesCatYear = {{ sales_data_json|safe }} || [];
+const rawMonthlyTrend = {{ monthly_trend_json|safe }} || [];
+const rawSubcategories = {{ subcategories_json|safe }} || [];
+const rawTopProducts = {{ top_products_json|safe }} || [];
+const rawLowProducts = {{ low_products_json|safe }} || [];
+const rawTerritories = {{ territory_sales_json|safe }} || [];
+const IS_MANAGER = {{ is_manager|yesno:"true,false" }};
 
-let selectedTerritoryIdx = 0;
-const tCtx = document.getElementById('territoryChart').getContext('2d');
+let salesYear = 'all';
+let monthlyMetric = 'revenue';
+let salesCatMetric = 'revenue';
+let salesCatFilter = 'all';
+let salesTerrView = 'map';
+let prodExtremeMode = 'top';
+let salesTab = 'top';
+let salesSortKey = 'TotalRevenue';
+let salesSortAsc = false;
+let worldCountriesGeo = null;
 
-function getTerritoryColors(activeIdx) {
-    return territoryData.map((_, i) => i === activeIdx ? '#FF5B26' : 'rgba(255, 91, 38, 0.25)');
+let monthlyChart = null, salesCatChart = null, salesTerrChart = null, prodExtremeChart = null;
+
+const fmtDollar = v => (v < 0 ? '-' : '') + '$' + Math.round(Math.abs(v || 0)).toLocaleString();
+const fmtInt = v => Math.round(v || 0).toLocaleString();
+
+function applyReportPreset(filterVal) {
+    const sel = document.getElementById('salesYearFilter');
+    if ([...sel.options].some(o => o.value === filterVal)) {
+        sel.value = filterVal;
+        onSalesYearChange(filterVal);
+    } else {
+        document.getElementById('salesSearch').value = filterVal === 'all' ? '' : filterVal;
+        renderSalesTable();
+    }
 }
 
-if (territoryData.length > 0) {
-    const first = territoryData[0];
-    document.getElementById('territoryNameDisplay').textContent = first.name;
-    document.getElementById('territoryRevenueDisplay').innerHTML = first.revenue + ' <span class="text-[10px] text-emerald-600 font-normal">(' + first.badge + ')</span>';
-    document.getElementById('territoryFooterLabel').textContent = first.name + ' Territory Selected';
+function onSalesYearChange(val) {
+    salesYear = val;
+    updateSalesKPIs();
+    renderMonthlyChart();
+    renderSalesCatChart();
+}
 
-    const territoryChart = new Chart(tCtx, {
-        type: 'bar',
+function updateSalesKPIs() {
+    const catRows = salesYear === 'all' ? rawSalesCatYear : rawSalesCatYear.filter(r => String(r.Year) === String(salesYear));
+    const monRows = salesYear === 'all' ? rawMonthlyTrend : rawMonthlyTrend.filter(r => String(r.Year) === String(salesYear));
+
+    const rev = catRows.reduce((s, r) => s + (parseFloat(r.Revenue) || 0), 0);
+    const units = catRows.reduce((s, r) => s + (parseInt(r.UnitsSold, 10) || 0), 0);
+    const orders = monRows.reduce((s, r) => s + (parseInt(r.OrderCount, 10) || 0), 0);
+    const avg = orders > 0 ? rev / orders : 0;
+
+    const byCat = {};
+    catRows.forEach(r => { byCat[r.Category] = (byCat[r.Category] || 0) + (parseFloat(r.Revenue) || 0); });
+    const sortedCats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+    if (sortedCats.length) {
+        document.getElementById('salesKpiTopCat').textContent = sortedCats[0][0];
+        document.getElementById('salesKpiTopCatShare').textContent = (rev > 0 ? ((sortedCats[0][1] / rev) * 100).toFixed(1) : '0.0') + '%';
+    }
+
+    document.getElementById('salesKpiRevenue').textContent = fmtDollar(rev);
+    document.getElementById('salesKpiUnits').textContent = fmtInt(units);
+    document.getElementById('salesKpiOrdersBadge').textContent = fmtInt(orders) + ' orders';
+    document.getElementById('salesKpiAvgOrder').textContent = 'Avg order: ' + fmtDollar(avg);
+}
+
+function setMonthlyMetric(m) {
+    monthlyMetric = m;
+    document.getElementById('btnMonthRev').className = m === 'revenue' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    document.getElementById('btnMonthOrd').className = m === 'orders' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    renderMonthlyChart();
+}
+
+function renderMonthlyChart() {
+    const rows = salesYear === 'all' ? rawMonthlyTrend : rawMonthlyTrend.filter(r => String(r.Year) === String(salesYear));
+    const ctx = document.getElementById('monthlySalesChart').getContext('2d');
+    if (monthlyChart) monthlyChart.destroy();
+    monthlyChart = new Chart(ctx, {
+        type: 'line',
         data: {
-            labels: territoryData.map(t => t.code),
+            labels: rows.map(r => `${r.Year}-${String(r.Month).padStart(2, '0')}`),
             datasets: [{
-                data: territoryData.map(t => t.value),
-                backgroundColor: getTerritoryColors(0),
-                borderRadius: 5
+                label: monthlyMetric === 'revenue' ? 'Revenue ($M)' : 'Orders',
+                data: rows.map(r => monthlyMetric === 'revenue' ? +(parseFloat(r.Revenue) / 1e6).toFixed(2) : (parseInt(r.OrderCount, 10) || 0)),
+                borderColor: '#FF5B26',
+                backgroundColor: 'rgba(255, 91, 38, 0.12)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 2
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            onClick: (e, elements) => {
-                if (elements && elements.length > 0) {
-                    const idx = elements[0].index;
-                    selectedTerritoryIdx = idx;
-                    const item = territoryData[idx];
-                    document.getElementById('territoryNameDisplay').textContent = item.name;
-                    document.getElementById('territoryRevenueDisplay').innerHTML = item.revenue + ' <span class="text-[10px] text-emerald-600 font-normal">(' + item.badge + ')</span>';
-                    document.getElementById('territoryFooterLabel').textContent = item.name + ' Territory Selected';
-                    territoryChart.data.datasets[0].backgroundColor = getTerritoryColors(idx);
-                    territoryChart.update();
-                }
-            },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: function(ctx) { return territoryData[ctx.dataIndex].name + ': $' + ctx.raw.toLocaleString() + 'M'; }
-                    }
-                }
-            },
+            plugins: { legend: { display: false } },
             scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-                y: { display: false }
+                x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 10 } } },
+                y: { grid: { color: '#F1F5F9' }, ticks: { font: { size: 10 }, callback: v => monthlyMetric === 'revenue' ? '$' + v + 'M' : fmtInt(v) } }
             }
         }
     });
-} else {
-    document.getElementById('territoryNameDisplay').textContent = 'No data';
-    document.getElementById('territoryRevenueDisplay').textContent = '$0';
 }
+
+const CAT_COLORS = { 'Bikes': '#FF5B26', 'Components': '#1E293B', 'Clothing': '#3B82F6', 'Accessories': '#10B981' };
+
+function setSalesCatMetric(m) {
+    salesCatMetric = m;
+    const map = { revenue: 'btnSCatRev', profit: 'btnSCatProfit', units: 'btnSCatUnits' };
+    Object.entries(map).forEach(([k, id]) => {
+        const el = document.getElementById(id);
+        if (el) el.className = k === m ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    });
+    renderSalesCatChart();
+}
+
+function setSalesCatFilter(cat) {
+    salesCatFilter = cat;
+    document.querySelectorAll('.scat-pill').forEach(el => {
+        el.className = el.dataset.scat === cat ? 'scat-pill px-2.5 py-0.5 rounded-full bg-coral text-white font-semibold transition' : 'scat-pill px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
+    });
+    renderSalesCatChart();
+}
+
+function renderSalesCatChart() {
+    const years = [...new Set(rawSalesCatYear.map(d => d.Year))].sort();
+    const cats = salesCatFilter === 'all' ? ['Bikes', 'Components', 'Clothing', 'Accessories'] : [salesCatFilter];
+    const datasets = cats.map(cat => ({
+        label: cat,
+        data: years.map(yr => {
+            const row = rawSalesCatYear.find(d => d.Year === yr && d.Category === cat);
+            if (!row) return 0;
+            if (salesCatMetric === 'revenue') return +(parseFloat(row.Revenue) / 1e6).toFixed(2);
+            if (salesCatMetric === 'profit') return +(parseFloat(row.GrossProfit || 0) / 1e6).toFixed(2);
+            return parseInt(row.UnitsSold, 10) || 0;
+        }),
+        backgroundColor: years.map(yr => (salesYear !== 'all' && String(yr) !== String(salesYear)) ? CAT_COLORS[cat] + '33' : CAT_COLORS[cat]),
+        borderRadius: 4
+    }));
+
+    const ctx = document.getElementById('salesCategoryChart').getContext('2d');
+    if (salesCatChart) salesCatChart.destroy();
+    salesCatChart = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: years.map(y => 'FY' + y), datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                y: { grid: { color: '#F1F5F9' }, ticks: { font: { size: 10 }, callback: v => salesCatMetric === 'units' ? fmtInt(v) : '$' + v + 'M' } }
+            }
+        }
+    });
+}
+
+const TERRITORY_COORDS = {
+    'Southwest': { lon: -111.9, lat: 33.4 }, 'Northwest': { lon: -122.3, lat: 47.6 },
+    'Central': { lon: -94.6, lat: 39.1 }, 'Northeast': { lon: -74.0, lat: 40.7 },
+    'Southeast': { lon: -84.4, lat: 33.7 }, 'Canada': { lon: -106.3, lat: 56.1 },
+    'United Kingdom': { lon: -3.4, lat: 55.4 }, 'France': { lon: 2.2, lat: 46.2 },
+    'Germany': { lon: 10.4, lat: 51.2 }, 'Australia': { lon: 133.8, lat: -25.3 }
+};
+
+function setSalesTerrView(v) {
+    salesTerrView = v;
+    document.getElementById('btnSTerrMap').className = v === 'map' ? 'px-2 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    document.getElementById('btnSTerrBar').className = v === 'bar' ? 'px-2 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    renderSalesTerritoryChart();
+}
+
+async function getWorldGeo() {
+    if (worldCountriesGeo) return worldCountriesGeo;
+    const res = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+    const topology = await res.json();
+    worldCountriesGeo = ChartGeo.topojson.feature(topology, topology.objects.countries).features;
+    return worldCountriesGeo;
+}
+
+async function renderSalesTerritoryChart() {
+    const continent = document.getElementById('salesContinentFilter').value;
+    const rows = (continent === 'all' ? [...rawTerritories] : rawTerritories.filter(t => t.TerritoryGroup === continent))
+        .sort((a, b) => (parseFloat(b.TotalRevenue) || 0) - (parseFloat(a.TotalRevenue) || 0));
+    const ctx = document.getElementById('salesTerritoryChart').getContext('2d');
+
+    if (salesTerrView === 'map' && typeof ChartGeo !== 'undefined') {
+        try {
+            const countries = await getWorldGeo();
+            const mapPoints = rows.filter(r => TERRITORY_COORDS[r.TerritoryName]).map(r => ({
+                longitude: TERRITORY_COORDS[r.TerritoryName].lon,
+                latitude: TERRITORY_COORDS[r.TerritoryName].lat,
+                value: +(parseFloat(r.TotalRevenue) / 1e6).toFixed(2),
+                raw: r
+            }));
+            if (salesTerrChart) salesTerrChart.destroy();
+            salesTerrChart = new Chart(ctx, {
+                type: 'bubbleMap',
+                data: {
+                    labels: mapPoints.map(p => p.raw.TerritoryName),
+                    datasets: [{
+                        outline: countries, showOutline: true,
+                        outlineBackgroundColor: '#F1F5F9', outlineBorderColor: '#CBD5E1', outlineBorderWidth: 0.6,
+                        backgroundColor: 'rgba(255, 91, 38, 0.72)', borderColor: '#FFF', borderWidth: 1.5, data: mapPoints
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: c => `${mapPoints[c.dataIndex].raw.TerritoryName}: ${fmtDollar(mapPoints[c.dataIndex].raw.TotalRevenue)}` } }
+                    },
+                    scales: { projection: { axis: 'x', projection: 'equalEarth' }, size: { axis: 'r', size: [6, 22], legend: { display: false } } }
+                }
+            });
+            return;
+        } catch (e) { salesTerrView = 'bar'; }
+    }
+
+    if (salesTerrChart) salesTerrChart.destroy();
+    salesTerrChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: rows.map(r => r.TerritoryName),
+            datasets: [{ data: rows.map(r => +(parseFloat(r.TotalRevenue) / 1e6).toFixed(2)), backgroundColor: rows.map((_, i) => i === 0 ? '#FF5B26' : 'rgba(255, 91, 38, 0.45)'), borderRadius: 4 }]
+        },
+        options: {
+            indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v + 'M' } }, y: { grid: { display: false } } }
+        }
+    });
+}
+
+function setProductExtreme(mode) {
+    prodExtremeMode = mode;
+    document.getElementById('btnProdTop').className = mode === 'top' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    document.getElementById('btnProdLow').className = mode === 'low' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    document.getElementById('prodExtremeSub').textContent = mode === 'top' ? 'Top 10 products by revenue' : 'Bottom 10 products by revenue';
+    renderProductExtremeChart();
+}
+
+function renderProductExtremeChart() {
+    const rows = (prodExtremeMode === 'top' ? rawTopProducts : rawLowProducts).slice(0, 10);
+    const ctx = document.getElementById('productExtremeChart').getContext('2d');
+    if (prodExtremeChart) prodExtremeChart.destroy();
+    prodExtremeChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: rows.map(r => (r.ProductName || '').slice(0, 22)),
+            datasets: [{
+                data: rows.map(r => +(parseFloat(r.TotalRevenue) || 0).toFixed(0)),
+                backgroundColor: prodExtremeMode === 'top' ? '#FF5B26' : '#64748B',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => fmtDollar(c.raw) } } },
+            scales: { x: { grid: { color: '#F1F5F9' }, ticks: { callback: v => v >= 1e6 ? '$' + (v / 1e6).toFixed(1) + 'M' : '$' + Math.round(v / 1e3) + 'K' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
+        }
+    });
+}
+
+const SALES_SCHEMAS = {
+    top: {
+        defaultSort: 'TotalRevenue',
+        columns: [
+            { key: 'ProductName', label: 'Product Name', align: 'left', type: 'str' },
+            { key: 'Category', label: 'Category', align: 'left', type: 'str' },
+            { key: 'TotalQuantity', label: 'Units Sold', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'TotalRevenue', label: 'Revenue', align: 'right', type: 'num', fmt: fmtDollar }
+            {% if is_manager %}, { key: 'MarginPercentage', label: 'Margin %', align: 'right', type: 'num', fmt: v => Number(v || 0).toFixed(1) + '%' }{% endif %}
+        ],
+        getRows: () => rawTopProducts
+    },
+    low: {
+        defaultSort: 'TotalRevenue',
+        columns: [
+            { key: 'ProductName', label: 'Product Name', align: 'left', type: 'str' },
+            { key: 'Category', label: 'Category', align: 'left', type: 'str' },
+            { key: 'TotalQuantity', label: 'Units Sold', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'TotalRevenue', label: 'Revenue', align: 'right', type: 'num', fmt: fmtDollar }
+        ],
+        getRows: () => rawLowProducts
+    },
+    subcat: {
+        defaultSort: 'Revenue',
+        columns: [
+            { key: 'Subcategory', label: 'Subcategory', align: 'left', type: 'str' },
+            { key: 'Category', label: 'Category', align: 'left', type: 'str' },
+            { key: 'OrderCount', label: 'Orders', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'UnitsSold', label: 'Units Sold', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'Revenue', label: 'Revenue', align: 'right', type: 'num', fmt: fmtDollar }
+        ],
+        getRows: () => rawSubcategories
+    },
+    territories: {
+        defaultSort: 'TotalRevenue',
+        columns: [
+            { key: 'TerritoryName', label: 'Territory', align: 'left', type: 'str' },
+            { key: 'TerritoryGroup', label: 'Region', align: 'left', type: 'str' },
+            { key: 'TotalOrders', label: 'Orders', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'TotalRevenue', label: 'Total Revenue', align: 'right', type: 'num', fmt: fmtDollar }
+        ],
+        getRows: () => rawTerritories
+    }
+};
+
+function switchSalesTab(tab) {
+    salesTab = tab;
+    salesSortKey = SALES_SCHEMAS[tab].defaultSort;
+    salesSortAsc = tab === 'low';
+    document.querySelectorAll('.stab-btn').forEach(el => {
+        el.className = el.dataset.stab === tab ? 'stab-btn px-3 py-1.5 rounded-lg bg-coral text-white font-semibold transition' : 'stab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
+    });
+    renderSalesTable();
+}
+
+function sortSalesBy(key) {
+    if (salesSortKey === key) salesSortAsc = !salesSortAsc;
+    else { salesSortKey = key; salesSortAsc = false; }
+    renderSalesTable();
+}
+
+function renderSalesTable() {
+    const schema = SALES_SCHEMAS[salesTab];
+    const query = (document.getElementById('salesSearch').value || '').toLowerCase().trim();
+    const limit = parseInt(document.getElementById('salesLimit').value, 10) || 10;
+
+    document.getElementById('salesThead').innerHTML = `<tr class="text-[11px] text-slate-400 border-b border-slate-100">` +
+        schema.columns.map(col => {
+            const arrow = salesSortKey === col.key ? (salesSortAsc ? ' ▲' : ' ▼') : '';
+            return `<th onclick="sortSalesBy('${col.key}')" class="pb-2.5 font-semibold cursor-pointer select-none hover:text-coral ${col.align === 'right' ? 'text-right' : 'text-left'}">${col.label}<span class="text-coral">${arrow}</span></th>`;
+        }).join('') + `</tr>`;
+
+    let rows = schema.getRows().filter(r => !query || schema.columns.some(c => String(r[c.key] || '').toLowerCase().includes(query)));
+    const sortCol = schema.columns.find(c => c.key === salesSortKey);
+    rows.sort((a, b) => {
+        if (sortCol && sortCol.type === 'str') return salesSortAsc ? String(a[salesSortKey] || '').localeCompare(String(b[salesSortKey] || '')) : String(b[salesSortKey] || '').localeCompare(String(a[salesSortKey] || ''));
+        return salesSortAsc ? ((parseFloat(a[salesSortKey]) || 0) - (parseFloat(b[salesSortKey]) || 0)) : ((parseFloat(b[salesSortKey]) || 0) - (parseFloat(a[salesSortKey]) || 0));
+    });
+    rows = rows.slice(0, limit);
+
+    const tbody = document.getElementById('salesTbody');
+    if (!rows.length) { tbody.innerHTML = `<tr><td colspan="${schema.columns.length}" class="py-6 text-center text-slate-400">No matches.</td></tr>`; return; }
+    tbody.innerHTML = rows.map(row => `<tr class="hover:bg-slate-50 transition">` +
+        schema.columns.map((col, idx) => `<td class="py-2.5 ${col.align === 'right' ? 'text-right font-mono' : 'text-left'} ${idx === 0 ? 'font-semibold text-slate-900' : 'text-slate-600'}">${col.fmt ? col.fmt(row[col.key]) : (row[col.key] ?? '-')}</td>`).join('') + `</tr>`).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    updateSalesKPIs();
+    renderMonthlyChart();
+    renderSalesCatChart();
+    renderSalesTerritoryChart();
+    renderProductExtremeChart();
+    renderSalesTable();
+});
 </script>
 {% endblock %}

@@ -34,16 +34,68 @@ def get_vendor_purchasing_spend(limit=10):
     """
     return execute_query(sql)
 
-def get_standard_cost_history(limit=6):
+def get_standard_cost_history(limit=24):
     sql = f"""
     SELECT TOP ({limit})
+        p.ProductID,
         p.Name AS ProductName,
         pch.StartDate,
         pch.EndDate,
         pch.StandardCost
     FROM Production.ProductCostHistory pch
     JOIN Production.Product p ON p.ProductID = pch.ProductID
-    WHERE p.ProductID IN (779, 782, 783)
+    WHERE p.ProductID IN (
+        SELECT ProductID
+        FROM Production.ProductCostHistory
+        GROUP BY ProductID
+        HAVING COUNT(*) >= 2
+    )
     ORDER BY p.Name, pch.StartDate;
+    """
+    rows = execute_query(sql) or []
+    prev_by_product = {}
+    for row in rows:
+        pid = row.get('ProductID') or row.get('ProductName')
+        curr_cost = float(row.get('StandardCost') or 0)
+        prev_cost = prev_by_product.get(pid)
+        if prev_cost and prev_cost > 0:
+            row['VariancePct'] = round(((curr_cost - prev_cost) / prev_cost) * 100, 1)
+        else:
+            row['VariancePct'] = None
+        prev_by_product[pid] = curr_cost
+    return rows
+
+def get_category_cost_summary():
+    sql = """
+    SELECT
+        pc.Name AS Category,
+        COUNT(DISTINCT p.ProductID) AS ProductCount,
+        AVG(p.StandardCost) AS AvgStandardCost,
+        AVG(p.ListPrice) AS AvgListPrice,
+        SUM(sod.OrderQty * p.StandardCost) AS TotalCOGS,
+        SUM(sod.LineTotal) AS TotalRevenue,
+        CASE WHEN SUM(sod.LineTotal) > 0
+             THEN ROUND(((SUM(sod.LineTotal) - SUM(sod.OrderQty * p.StandardCost)) / SUM(sod.LineTotal)) * 100, 1)
+             ELSE 0 END AS MarginPercentage
+    FROM Sales.SalesOrderDetail sod
+    JOIN Production.Product p ON p.ProductID = sod.ProductID
+    JOIN Production.ProductSubcategory ps ON ps.ProductSubcategoryID = p.ProductSubcategoryID
+    JOIN Production.ProductCategory pc ON pc.ProductCategoryID = ps.ProductCategoryID
+    GROUP BY pc.Name
+    ORDER BY TotalRevenue DESC;
+    """
+    return execute_query(sql)
+
+def get_purchasing_spend_by_year():
+    sql = """
+    SELECT
+        YEAR(poh.OrderDate) AS [Year],
+        COUNT(poh.PurchaseOrderID) AS PurchaseOrdersCount,
+        SUM(poh.SubTotal) AS SubTotal,
+        SUM(poh.Freight) AS FreightCost,
+        SUM(poh.TotalDue) AS TotalSpent
+    FROM Purchasing.PurchaseOrderHeader poh
+    GROUP BY YEAR(poh.OrderDate)
+    ORDER BY [Year];
     """
     return execute_query(sql)

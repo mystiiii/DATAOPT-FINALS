@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Audit log - AdventureWorks BI{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-[#E5E7EB] gap-3">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-slate-900 tracking-tight">Audit log</h1>
+                <p class="text-xs text-slate-500">Changes to presets and notes, blocked requests, and known data limits (administrators only)</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2 text-xs">
+            <a href="/admin/" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition font-medium">Open Django Admin</a>
+        </div>
+    </div>
+
+    <!-- Summary KPIs -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <span class="text-[11px] font-medium text-slate-500">Logged events</span>
+            <div class="text-2xl font-bold text-slate-900 mt-1">{{ total_events|intcomma }}</div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <span class="text-[11px] font-medium text-slate-500">Blocked access attempts</span>
+            <div class="text-2xl font-bold text-rose-600 mt-1">{{ denied_events|intcomma }}</div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <span class="text-[11px] font-medium text-slate-500">Known data limits</span>
+            <div class="text-2xl font-bold text-amber-600 mt-1">{{ data_quality_logs|length }}</div>
+        </div>
+    </div>
+
+    <!-- Filter Bar + Audit Table -->
+    <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm space-y-4">
+        <form method="get" class="flex flex-wrap items-center gap-2 text-xs">
+            <input type="text" name="q" value="{{ search_q }}" placeholder="Search user or details..." class="px-3 py-1.5 rounded-lg border border-slate-200 w-56 focus:outline-none focus:ring-1 focus:ring-coral">
+            <select name="action" class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50">
+                <option value="all" {% if action_filter == 'all' %}selected{% endif %}>All actions</option>
+                <option value="CREATE" {% if action_filter == 'CREATE' %}selected{% endif %}>Create</option>
+                <option value="EDIT" {% if action_filter == 'EDIT' %}selected{% endif %}>Edit</option>
+                <option value="DELETE" {% if action_filter == 'DELETE' %}selected{% endif %}>Delete</option>
+                <option value="ACCESS_DENIED" {% if action_filter == 'ACCESS_DENIED' %}selected{% endif %}>Access denied</option>
+            </select>
+            <select name="module" class="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50">
+                <option value="all" {% if module_filter == 'all' %}selected{% endif %}>All reports</option>
+                <option value="sales" {% if module_filter == 'sales' %}selected{% endif %}>Sales</option>
+                <option value="customers" {% if module_filter == 'customers' %}selected{% endif %}>Customers</option>
+                <option value="revenue_loss" {% if module_filter == 'revenue_loss' %}selected{% endif %}>Revenue &amp; loss</option>
+                <option value="cost" {% if module_filter == 'cost' %}selected{% endif %}>Cost</option>
+            </select>
+            <button type="submit" class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-semibold transition">Filter</button>
+            <a href="{% url 'audit_log' %}" class="px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Reset</a>
+        </form>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-100 text-left text-xs">
+                <thead>
+                    <tr class="text-[11px] text-slate-400">
+                        <th class="pb-2 font-medium">Time</th>
+                        <th class="pb-2 font-medium">User</th>
+                        <th class="pb-2 font-medium">Role</th>
+                        <th class="pb-2 font-medium">Action</th>
+                        <th class="pb-2 font-medium">Target</th>
+                        <th class="pb-2 font-medium">Details</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for log in logs %}
+                    <tr class="hover:bg-slate-50">
+                        <td class="py-2.5 text-slate-500 font-mono text-[11px] whitespace-nowrap">{{ log.created_at|date:"Y-m-d H:i:s" }}</td>
+                        <td class="py-2.5 font-semibold text-slate-900">{{ log.username_snapshot }}</td>
+                        <td class="py-2.5 text-slate-600">{{ log.role_snapshot }}</td>
+                        <td class="py-2.5">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {% if log.action == 'ACCESS_DENIED' %}bg-rose-50 text-rose-700{% elif log.action == 'DELETE' %}bg-amber-50 text-amber-700{% elif log.action == 'EDIT' %}bg-blue-50 text-blue-700{% else %}bg-emerald-50 text-emerald-700{% endif %}">
+                                {{ log.action }}
+                            </span>
+                        </td>
+                        <td class="py-2.5 text-slate-700">{{ log.target_type }}{% if log.target_id %} #{{ log.target_id }}{% endif %} {% if log.module %}<span class="text-slate-400">({{ log.module }})</span>{% endif %}</td>
+                        <td class="py-2.5 text-slate-600">{{ log.details }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="py-6 text-center text-slate-400">No events logged yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Data Quality Log -->
+    <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
+        <h2 class="text-sm font-bold text-slate-900">Known data limits</h2>
+        <div class="space-y-2">
+            {% for dq in data_quality_logs %}
+            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] text-xs space-y-1">
+                <div class="flex items-center justify-between">
+                    <span class="font-bold text-slate-900">{{ dq.issue_title }}</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {% if dq.severity == 'HIGH' %}bg-rose-50 text-rose-700{% elif dq.severity == 'MEDIUM' %}bg-amber-50 text-amber-700{% else %}bg-blue-50 text-blue-700{% endif %}">{{ dq.severity }}</span>
+                </div>
+                <p class="text-slate-600">{{ dq.impact_description }} Handling: {{ dq.handling_strategy }}</p>
+                <p class="text-[10px] text-slate-400 font-mono">Tables: {{ dq.affected_tables }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

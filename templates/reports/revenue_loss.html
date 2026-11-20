@@ -7,209 +7,459 @@
 <div class="space-y-6">
     <!-- Top Workspace Toolbar -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-[#E5E7EB] gap-3">
-        <div class="flex items-center space-x-2 text-xs text-slate-500">
-            <span class="font-medium text-slate-900">Revenue & Loss</span>
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold text-slate-900 tracking-tight">Revenue and loss</h1>
+                <p class="text-xs text-slate-500">What gross sales became after discounts and factory scrap (2011 to 2014)</p>
+            </div>
         </div>
-        <div class="flex items-center space-x-2 text-xs">
-            <a href="{% url 'dashboard' %}" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition">
-                &larr; Back to Dashboard
-            </a>
+
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+            <label for="revYearFilter" class="text-[11px] font-medium text-slate-500">Period:</label>
+            <select id="revYearFilter" onchange="onRevYearChange(this.value)" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 bg-white font-medium focus:outline-none focus:ring-1 focus:ring-coral cursor-pointer">
+                <option value="all" selected>All years (2011 to 2014)</option>
+                <option value="2014">2014 (Jan to Jun)</option>
+                <option value="2013">2013</option>
+                <option value="2012">2012</option>
+                <option value="2011">2011</option>
+            </select>
             <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-medium shadow-sm transition flex items-center space-x-1.5">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                 </svg>
-                <span>Print Financial Reconciliation</span>
+                <span>Print</span>
             </button>
         </div>
     </div>
 
-    <!-- Header Banner -->
-    <div class="flex items-start space-x-3.5">
-        <div class="w-10 h-10 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-            </svg>
+    <!-- 4 KPI Cards (Synced to Period) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Gross sales</span>
+                <span id="revKpiOrders" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">Orders</span>
+            </div>
+            <div id="revKpiGross" class="text-2xl font-bold text-slate-900 mt-2">${{ total_gross|floatformat:0|intcomma }}</div>
+            <div class="text-[11px] text-slate-500 mt-1">Before discounts</div>
         </div>
-        <div>
-            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Revenue and Loss Report</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Gross revenue, promotional discounts, and manufacturing scrap for FY2011 to FY2014</p>
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Discounts given</span>
+                <span id="revKpiDiscRate" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700">0.0%</span>
+            </div>
+            <div id="revKpiDiscount" class="text-2xl font-bold text-amber-600 mt-2">-${{ total_discount|floatformat:0|intcomma }}</div>
+            <div class="text-[11px] text-slate-500 mt-1">Line item discounts</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Factory scrap loss</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-700">Work orders</span>
+            </div>
+            <div id="revKpiScrap" class="text-2xl font-bold text-rose-600 mt-2">-${{ total_scrap_loss|floatformat:0|intcomma }}</div>
+            <div class="text-[11px] text-slate-500 mt-1">{{ total_scrapped_qty|intcomma }} units scrapped</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Net revenue</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700">After discounts</span>
+            </div>
+            <div id="revKpiNet" class="text-2xl font-bold text-emerald-700 mt-2">${{ total_net|floatformat:0|intcomma }}</div>
+            <div class="text-[11px] text-slate-500 mt-1">Collected order total</div>
         </div>
     </div>
 
-    <!-- Financial Reconciliation Waterfall -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
-            <span class="text-[11px] font-medium text-slate-500">Gross Sales Volume</span>
-            <div class="text-lg font-bold text-slate-900 mt-1">{% if total_gross %}${{ total_gross|floatformat:0|intcomma }}{% else %}$0{% endif %}</div>
-            <span class="text-[10px] text-slate-400">Total catalogue value</span>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
-            <span class="text-[11px] font-medium text-slate-500">Promotional Discounts</span>
-            <div class="text-lg font-bold text-amber-600 mt-1">{% if total_discount %}-${{ total_discount|floatformat:0|intcomma }}{% else %}$0{% endif %}</div>
-            <span class="text-[10px] text-amber-600 font-medium">Volume discount</span>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
-            <span class="text-[11px] font-medium text-slate-500">Production Scrap</span>
-            <div class="text-lg font-bold text-red-600 mt-1">{% if total_scrap_loss %}-${{ total_scrap_loss|floatformat:0|intcomma }}{% else %}$0{% endif %}</div>
-            <span class="text-[10px] text-red-600 font-medium">{% if total_scrapped_qty %}{{ total_scrapped_qty|intcomma }} units scrapped{% else %}0 units scrapped{% endif %}</span>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
-            <span class="text-[11px] font-medium text-slate-500">Realized Net Revenue</span>
-            <div class="text-lg font-bold text-emerald-600 mt-1">{% if total_net %}${{ total_net|floatformat:0|intcomma }}{% else %}$0{% endif %}</div>
-            <span class="text-[10px] text-emerald-600 font-medium">Net audited proceeds</span>
-        </div>
-    </div>
-
-    <!-- Scrap Chart & Key Takeaways (Moved from Right Rail) -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-2">
-            <div class="flex items-center justify-between">
-                <span class="text-[11px] font-semibold text-slate-500">Scrap Reason (Click bar to inspect)</span>
-                <span class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-0.5 text-slate-700 bg-slate-50 font-medium">
-                    {% if scrap_data %}Fiscal Cycles{% else %}Offline{% endif %}
-                </span>
+    <!-- Chart Row 1: Revenue Waterfall + Annual/Monthly Trend -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Chart 1: Waterfall Bridge -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="flex items-start justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Gross sales to net revenue</h2>
+                    <p id="revWaterfallSub" class="text-[11px] text-slate-400">All years (2011 to 2014)</p>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral border border-coral-border">Matches period</span>
             </div>
-            <div class="flex items-baseline justify-between flex-wrap gap-2">
-                <div id="scrapReasonName" class="text-xl font-bold text-slate-900 transition">{% if scrap_data %}{{ scrap_data.0.ScrapReason }}{% else %}No data{% endif %}</div>
-                <p id="scrapLossValue" class="text-sm font-semibold text-rose-600 transition">$0</p>
-            </div>
-            <div class="h-44 pt-2">
-                <canvas id="scrapChart"></canvas>
-            </div>
-            <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-100">
-                <span id="scrapFooterLabel">{% if scrap_data %}Select a reason{% else %}Database offline{% endif %}</span>
-                <span>Click bars to inspect</span>
+            <div class="h-64">
+                <canvas id="revWaterfallChart"></canvas>
             </div>
         </div>
 
-        <div class="bg-white p-4 rounded-xl border border-coral-border bg-gradient-to-br from-white via-white to-coral-light/25 shadow-sm space-y-2.5 flex flex-col justify-between">
-            <div class="space-y-2">
-                <div class="flex items-center space-x-2">
-                    <span class="w-2 h-2 rounded-full bg-coral"></span>
-                    <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Key Takeaways</h3>
+        <!-- Chart 2: Revenue vs Discount Rate -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Net revenue vs. discount rate</h2>
+                    <p class="text-[11px] text-slate-400">Compare sales volume against discount spikes</p>
                 </div>
-                <div class="text-xs text-slate-600 space-y-2 leading-relaxed">
-                    {% if db_error or not revenue_data %}
-                    <p class="text-slate-400 italic">No takeaways available: database is disconnected.</p>
-                    {% else %}
-                    <p>Gross order volume reached ${{ total_gross|floatformat:0|intcomma }}. After promotional discounts of ${{ total_discount|floatformat:0|intcomma }}, net revenue was ${{ total_net|floatformat:0|intcomma }}.</p>
-                    <p>Production scrap cost ${{ total_scrap_loss|intcomma }} across {{ total_scrapped_qty|intcomma }} discarded units.</p>
-                    {% endif %}
+                <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                    <button type="button" onclick="setRevTrendMode('annual')" id="btnRevAnnual" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Yearly</button>
+                    <button type="button" onclick="setRevTrendMode('monthly')" id="btnRevMonthly" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Monthly</button>
                 </div>
             </div>
-            <div class="text-[10px] text-slate-400 pt-2 border-t border-coral-border/40">Source: SalesOrderDetail &amp; WorkOrder</div>
+            <div class="h-64">
+                <canvas id="revTrendChart"></canvas>
+            </div>
         </div>
     </div>
 
-    <!-- Production Scrap Reasons Section -->
-    <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
-        <div class="flex items-center justify-between">
-            <h2 class="text-xs font-bold text-slate-900">Manufacturing Scrap Causes & Losses</h2>
-            <span class="text-[11px] text-slate-400">Source: Production.WorkOrder</span>
+    <!-- Chart Row 2: Discounts by Category + Scrap by Reason -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Chart 3: Discounts by Category -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Discounts by category</h2>
+                    <p class="text-[11px] text-slate-400">Which product lines carry the steepest discounts</p>
+                </div>
+                <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                    <button type="button" onclick="setCatDiscMetric('loss')" id="btnDiscDollar" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Discount $</button>
+                    <button type="button" onclick="setCatDiscMetric('rate')" id="btnDiscRate" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Rate %</button>
+                </div>
+            </div>
+            <div class="h-60">
+                <canvas id="catDiscountChart"></canvas>
+            </div>
         </div>
-        
-        <div class="space-y-2">
-            {% for s in scrap_data %}
-            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <span class="text-slate-300">:::</span>
-                    <div>
-                        <div class="flex items-center space-x-2">
-                            <span class="font-bold text-xs text-slate-900">{{ s.ScrapReason }}</span>
-                            {% if s.TotalScrappedQty > 3000 %}
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-red-50 text-red-700">Critical Review</span>
-                            {% else %}
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-amber-50 text-amber-700">Investigating</span>
-                            {% endif %}
-                        </div>
-                        <p class="text-[10px] text-slate-400 mt-0.5">{{ s.ScrapOrders|intcomma }} manufacturing work orders affected</p>
-                    </div>
+
+        <!-- Chart 4: Scrap by Reason -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="flex items-start justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Scrap by reason</h2>
+                    <p class="text-[11px] text-slate-400">Top eight scrap causes and their share of wasted units</p>
                 </div>
-                <div class="text-right">
-                    <p class="font-mono font-bold text-slate-900 text-xs">{{ s.TotalScrappedQty|intcomma }} units</p>
-                    <span class="text-[10px] text-red-600">Material loss</span>
-                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-700">Top 8 causes</span>
             </div>
-            {% empty %}
-            <div class="p-6 text-center text-xs text-slate-400">
-                No scrap records found in database.
+            <div class="h-60">
+                <canvas id="scrapParetoChart"></canvas>
             </div>
-            {% endfor %}
         </div>
     </div>
+
+    <!-- Data Quality Limitation Banner -->
+    {% if data_quality_logs %}
+    <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-200 text-xs space-y-1.5">
+        <div class="font-bold text-amber-900">Data limits to keep in mind</div>
+        {% for dq in data_quality_logs %}
+        <p class="text-amber-800"><strong>[{{ dq.severity }}] {{ dq.issue_title }}:</strong> {{ dq.handling_strategy }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Searchable & Sortable Reconciliation Table -->
+    <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-1.5 text-xs font-medium">
+                <button type="button" onclick="switchRevTab('scrap')" data-rtab="scrap" class="rtab-btn px-3 py-1.5 rounded-lg bg-coral text-white font-semibold transition">Scrap reasons</button>
+                <button type="button" onclick="switchRevTab('yearly')" data-rtab="yearly" class="rtab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">By year</button>
+                <button type="button" onclick="switchRevTab('catdisc')" data-rtab="catdisc" class="rtab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Category discounts</button>
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+                <input type="text" id="revSearch" oninput="renderRevTable()" placeholder="Search records..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral w-48 sm:w-60">
+                <select id="revLimit" onchange="renderRevTable()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 font-medium">
+                    <option value="10" selected>Top 10</option>
+                    <option value="20">Top 20</option>
+                </select>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-100 text-left text-xs">
+                <thead id="revThead"></thead>
+                <tbody id="revTbody" class="divide-y divide-slate-100"></tbody>
+            </table>
+        </div>
+    </div>
+
+    {% include "reports/_governance_panel.html" %}
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-const rawScrap = {{ scrap_data_json|safe }};
-const scrapData = (rawScrap && rawScrap.length > 0)
-    ? rawScrap.slice(0, 8).map(s => {
-        const qty = s.TotalScrappedQty || 0;
-        const loss = Math.round(qty * 36.50);
-        return {
-            code: s.ScrapReason.split(' ')[0],
-            name: s.ScrapReason,
-            loss: '-$' + loss.toLocaleString(),
-            qty: qty,
-            badge: qty.toLocaleString() + ' units · ' + s.ScrapOrders + ' orders'
-        };
-    })
-    : [];
+const rawRevYear = {{ revenue_data_json|safe }} || [];
+const rawMonthlyRev = {{ monthly_rev_loss_json|safe }} || [];
+const rawCatDiscounts = {{ category_discounts_json|safe }} || [];
+const rawScrap = {{ scrap_data_json|safe }} || [];
+const totalScrapAll = {{ total_scrap_loss|default:0 }};
 
-const sCtx = document.getElementById('scrapChart').getContext('2d');
+let revYear = 'all';
+let revTrendMode = 'annual';
+let catDiscMetric = 'loss';
+let revTab = 'scrap';
+let revSortKey = 'TotalScrappedQty';
+let revSortAsc = false;
 
-function getScrapColors(activeIdx) {
-    return scrapData.map((_, i) => i === activeIdx ? '#FF5B26' : 'rgba(255, 91, 38, 0.25)');
+let waterfallChart = null, revTrendChart = null, catDiscChart = null, paretoChart = null;
+
+const fmtDollar = v => (v < 0 ? '-' : '') + '$' + Math.round(Math.abs(v || 0)).toLocaleString();
+const fmtInt = v => Math.round(v || 0).toLocaleString();
+
+function applyReportPreset(filterVal) {
+    const sel = document.getElementById('revYearFilter');
+    if ([...sel.options].some(o => o.value === filterVal)) {
+        sel.value = filterVal;
+        onRevYearChange(filterVal);
+    } else {
+        document.getElementById('revSearch').value = filterVal === 'all' ? '' : filterVal;
+        renderRevTable();
+    }
 }
 
-if (scrapData.length > 0) {
-    const first = scrapData[0];
-    document.getElementById('scrapReasonName').textContent = first.name;
-    document.getElementById('scrapLossValue').innerHTML = first.loss + ' <span class="text-[10px] text-slate-500 font-normal">(' + first.badge + ')</span>';
-    document.getElementById('scrapFooterLabel').textContent = first.code + ' Scrap Selected';
+function onRevYearChange(val) {
+    revYear = val;
+    updateRevKPIs();
+    renderRevWaterfall();
+    renderRevTrend();
+    renderCatDiscountChart();
+}
 
-    const scrapChart = new Chart(sCtx, {
+function updateRevKPIs() {
+    const rows = revYear === 'all' ? rawRevYear : rawRevYear.filter(r => String(r.Year) === String(revYear));
+    const gross = rows.reduce((s, r) => s + (parseFloat(r.GrossAmount) || 0), 0);
+    const disc = rows.reduce((s, r) => s + (parseFloat(r.DiscountLoss) || 0), 0);
+    const net = rows.reduce((s, r) => s + (parseFloat(r.NetRevenue) || 0), 0);
+    const orders = rows.reduce((s, r) => s + (parseInt(r.OrderCount, 10) || 0), 0);
+    const totalAllNet = rawRevYear.reduce((s, r) => s + (parseFloat(r.NetRevenue) || 0), 0);
+    const scrap = revYear === 'all' ? totalScrapAll : (totalAllNet > 0 ? Math.round(totalScrapAll * (net / totalAllNet)) : 0);
+
+    document.getElementById('revKpiGross').textContent = fmtDollar(gross);
+    document.getElementById('revKpiOrders').textContent = fmtInt(orders) + ' orders';
+    document.getElementById('revKpiDiscount').textContent = '-' + fmtDollar(disc);
+    document.getElementById('revKpiDiscRate').textContent = (gross > 0 ? ((disc / gross) * 100).toFixed(2) : '0.00') + '%';
+    document.getElementById('revKpiScrap').textContent = '-' + fmtDollar(scrap);
+    document.getElementById('revKpiNet').textContent = fmtDollar(net);
+}
+
+function renderRevWaterfall() {
+    const rows = revYear === 'all' ? rawRevYear : rawRevYear.filter(r => String(r.Year) === String(revYear));
+    const gross = rows.reduce((s, r) => s + (parseFloat(r.GrossAmount) || 0), 0);
+    const disc = rows.reduce((s, r) => s + (parseFloat(r.DiscountLoss) || 0), 0);
+    const net = rows.reduce((s, r) => s + (parseFloat(r.NetRevenue) || 0), 0);
+    const totalAllNet = rawRevYear.reduce((s, r) => s + (parseFloat(r.NetRevenue) || 0), 0);
+    const scrap = revYear === 'all' ? totalScrapAll : (totalAllNet > 0 ? Math.round(totalScrapAll * (net / totalAllNet)) : 0);
+    const afterScrap = net - scrap;
+    const toM = v => +(v / 1e6).toFixed(2);
+
+    document.getElementById('revWaterfallSub').textContent = revYear === 'all' ? 'All years (2011 to 2014)' : 'Year ' + revYear;
+    const ctx = document.getElementById('revWaterfallChart').getContext('2d');
+    if (waterfallChart) waterfallChart.destroy();
+    waterfallChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: scrapData.map(d => d.code),
+            labels: ['Gross Sales', 'Discounts', 'Net Revenue', 'Scrap Loss', 'Net After Scrap'],
             datasets: [{
-                data: scrapData.map(d => d.qty),
-                backgroundColor: getScrapColors(0),
+                data: [[0, toM(gross)], [toM(net), toM(gross)], [0, toM(net)], [toM(afterScrap), toM(net)], [0, toM(afterScrap)]],
+                backgroundColor: ['#1E293B', '#F59E0B', '#3B82F6', '#EF4444', '#10B981'],
                 borderRadius: 5
             }]
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            onClick: (e, elements) => {
-                if (elements && elements.length > 0) {
-                    const idx = elements[0].index;
-                    const item = scrapData[idx];
-                    document.getElementById('scrapReasonName').textContent = item.name;
-                    document.getElementById('scrapLossValue').innerHTML = item.loss + ' <span class="text-[10px] text-slate-500 font-normal">(' + item.badge + ')</span>';
-                    document.getElementById('scrapFooterLabel').textContent = item.code + ' Scrap Selected';
-                    scrapChart.data.datasets[0].backgroundColor = getScrapColors(idx);
-                    scrapChart.update();
-                }
-            },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: function(ctx) { return scrapData[ctx.dataIndex].name + ': ' + ctx.raw.toLocaleString() + ' scrapped units'; }
-                    }
-                }
-            },
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { grid: { display: false } }, y: { grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v + 'M' } } }
+        }
+    });
+}
+
+function setRevTrendMode(m) {
+    revTrendMode = m;
+    document.getElementById('btnRevAnnual').className = m === 'annual' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    document.getElementById('btnRevMonthly').className = m === 'monthly' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    renderRevTrend();
+}
+
+function renderRevTrend() {
+    const rows = revTrendMode === 'annual'
+        ? rawRevYear
+        : (revYear === 'all' ? rawMonthlyRev : rawMonthlyRev.filter(r => String(r.Year) === String(revYear)));
+    const labels = revTrendMode === 'annual' ? rows.map(r => 'FY' + r.Year) : rows.map(r => `${r.Year}-${String(r.Month).padStart(2, '0')}`);
+    const netVals = rows.map(r => +(parseFloat(r.NetRevenue) / 1e6).toFixed(2));
+    const discRates = rows.map(r => {
+        const g = parseFloat(r.GrossAmount) || 0;
+        const d = parseFloat(r.DiscountLoss) || 0;
+        return g > 0 ? +((d / g) * 100).toFixed(2) : 0;
+    });
+
+    const ctx = document.getElementById('revTrendChart').getContext('2d');
+    if (revTrendChart) revTrendChart.destroy();
+    revTrendChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                { label: 'Net Revenue ($M)', data: netVals, backgroundColor: '#1E293B', borderRadius: 4, yAxisID: 'y' },
+                { label: 'Discount Rate %', data: discRates, type: 'line', borderColor: '#FF5B26', backgroundColor: '#FF5B26', tension: 0.3, yAxisID: 'y1' }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
             scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-                y: { display: false }
+                x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
+                y: { grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v + 'M' } },
+                y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => v + '%' } }
             }
         }
     });
-} else {
-    document.getElementById('scrapReasonName').textContent = 'No data';
-    document.getElementById('scrapLossValue').textContent = '$0';
 }
+
+function setCatDiscMetric(m) {
+    catDiscMetric = m;
+    document.getElementById('btnDiscDollar').className = m === 'loss' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    document.getElementById('btnDiscRate').className = m === 'rate' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    renderCatDiscountChart();
+}
+
+function renderCatDiscountChart() {
+    const filtered = revYear === 'all' ? rawCatDiscounts : rawCatDiscounts.filter(r => String(r.Year) === String(revYear));
+    const agg = {};
+    filtered.forEach(r => {
+        if (!agg[r.Category]) agg[r.Category] = { Category: r.Category, Gross: 0, Disc: 0 };
+        agg[r.Category].Gross += parseFloat(r.GrossAmount) || 0;
+        agg[r.Category].Disc += parseFloat(r.DiscountLoss) || 0;
+    });
+    const list = Object.values(agg).sort((a, b) => b.Disc - a.Disc);
+
+    const ctx = document.getElementById('catDiscountChart').getContext('2d');
+    if (catDiscChart) catDiscChart.destroy();
+    catDiscChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: list.map(r => r.Category),
+            datasets: [{
+                data: list.map(r => catDiscMetric === 'loss' ? Math.round(r.Disc) : (r.Gross > 0 ? +((r.Disc / r.Gross) * 100).toFixed(2) : 0)),
+                backgroundColor: ['#F59E0B', '#FF5B26', '#3B82F6', '#10B981'],
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => catDiscMetric === 'loss' ? fmtDollar(c.raw) : c.raw + '%' } } },
+            scales: { x: { grid: { color: '#F1F5F9' }, ticks: { callback: v => catDiscMetric === 'loss' ? '$' + Math.round(v / 1e3) + 'K' : v + '%' } }, y: { grid: { display: false } } }
+        }
+    });
+}
+
+function renderScrapPareto() {
+    const rows = rawScrap.slice(0, 8);
+    const totalQty = rows.reduce((s, r) => s + (parseInt(r.TotalScrappedQty, 10) || 0), 0) || 1;
+    let running = 0;
+    const cumPct = rows.map(r => { running += (parseInt(r.TotalScrappedQty, 10) || 0); return +((running / totalQty) * 100).toFixed(1); });
+
+    const ctx = document.getElementById('scrapParetoChart').getContext('2d');
+    if (paretoChart) paretoChart.destroy();
+    paretoChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: rows.map(r => (r.ScrapReason || '').slice(0, 14)),
+            datasets: [
+                { label: 'Scrapped Units', data: rows.map(r => parseInt(r.TotalScrappedQty, 10) || 0), backgroundColor: '#EF4444', borderRadius: 4, yAxisID: 'y' },
+                { label: 'Cumulative %', data: cumPct, type: 'line', borderColor: '#1E293B', backgroundColor: '#1E293B', tension: 0.25, yAxisID: 'y1' }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+                y: { grid: { color: '#F1F5F9' } },
+                y1: { position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, ticks: { callback: v => v + '%' } }
+            }
+        }
+    });
+}
+
+const REV_SCHEMAS = {
+    scrap: {
+        defaultSort: 'TotalScrappedQty',
+        columns: [
+            { key: 'ScrapReason', label: 'Scrap Reason', align: 'left', type: 'str' },
+            { key: 'ScrapOrders', label: 'Work Orders', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'TotalScrappedQty', label: 'Units Scrapped', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'EstLoss', label: 'Scrap Cost $', align: 'right', type: 'num', fmt: fmtDollar }
+        ],
+        getRows: () => rawScrap.map(s => ({ ...s, EstLoss: parseFloat(s.ActualScrapCost) || Math.round((s.TotalScrappedQty || 0) * 36.50) }))
+    },
+    yearly: {
+        defaultSort: 'Year',
+        columns: [
+            { key: 'Year', label: 'Fiscal Year', align: 'left', type: 'num' },
+            { key: 'OrderCount', label: 'Orders', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'GrossAmount', label: 'Gross Sales', align: 'right', type: 'num', fmt: fmtDollar },
+            { key: 'DiscountLoss', label: 'Discounts', align: 'right', type: 'num', fmt: fmtDollar },
+            { key: 'NetRevenue', label: 'Net Revenue', align: 'right', type: 'num', fmt: fmtDollar }
+        ],
+        getRows: () => rawRevYear
+    },
+    catdisc: {
+        defaultSort: 'DiscountLoss',
+        columns: [
+            { key: 'Category', label: 'Category', align: 'left', type: 'str' },
+            { key: 'Year', label: 'Year', align: 'right', type: 'num' },
+            { key: 'GrossAmount', label: 'Gross Sales', align: 'right', type: 'num', fmt: fmtDollar },
+            { key: 'DiscountLoss', label: 'Discount Loss', align: 'right', type: 'num', fmt: fmtDollar },
+            { key: 'DiscountRatePct', label: 'Rate %', align: 'right', type: 'num', fmt: v => Number(v || 0).toFixed(2) + '%' }
+        ],
+        getRows: () => rawCatDiscounts
+    }
+};
+
+function switchRevTab(tab) {
+    revTab = tab;
+    revSortKey = REV_SCHEMAS[tab].defaultSort;
+    revSortAsc = false;
+    document.querySelectorAll('.rtab-btn').forEach(el => {
+        el.className = el.dataset.rtab === tab ? 'rtab-btn px-3 py-1.5 rounded-lg bg-coral text-white font-semibold transition' : 'rtab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
+    });
+    renderRevTable();
+}
+
+function sortRevBy(key) {
+    if (revSortKey === key) revSortAsc = !revSortAsc;
+    else { revSortKey = key; revSortAsc = false; }
+    renderRevTable();
+}
+
+function renderRevTable() {
+    const schema = REV_SCHEMAS[revTab];
+    const query = (document.getElementById('revSearch').value || '').toLowerCase().trim();
+    const limit = parseInt(document.getElementById('revLimit').value, 10) || 10;
+
+    document.getElementById('revThead').innerHTML = `<tr class="text-[11px] text-slate-400 border-b border-slate-100">` +
+        schema.columns.map(col => {
+            const arrow = revSortKey === col.key ? (revSortAsc ? ' ▲' : ' ▼') : '';
+            return `<th onclick="sortRevBy('${col.key}')" class="pb-2.5 font-semibold cursor-pointer select-none hover:text-coral ${col.align === 'right' ? 'text-right' : 'text-left'}">${col.label}<span class="text-coral">${arrow}</span></th>`;
+        }).join('') + `</tr>`;
+
+    let rows = schema.getRows().filter(r => !query || schema.columns.some(c => String(r[c.key] || '').toLowerCase().includes(query)));
+    const sortCol = schema.columns.find(c => c.key === revSortKey);
+    rows.sort((a, b) => {
+        if (sortCol && sortCol.type === 'str') return revSortAsc ? String(a[revSortKey] || '').localeCompare(String(b[revSortKey] || '')) : String(b[revSortKey] || '').localeCompare(String(a[revSortKey] || ''));
+        return revSortAsc ? ((parseFloat(a[revSortKey]) || 0) - (parseFloat(b[revSortKey]) || 0)) : ((parseFloat(b[revSortKey]) || 0) - (parseFloat(a[revSortKey]) || 0));
+    });
+    rows = rows.slice(0, limit);
+
+    const tbody = document.getElementById('revTbody');
+    if (!rows.length) { tbody.innerHTML = `<tr><td colspan="${schema.columns.length}" class="py-6 text-center text-slate-400">No matches.</td></tr>`; return; }
+    tbody.innerHTML = rows.map(row => `<tr class="hover:bg-slate-50 transition">` +
+        schema.columns.map((col, idx) => `<td class="py-2.5 ${col.align === 'right' ? 'text-right font-mono' : 'text-left'} ${idx === 0 ? 'font-semibold text-slate-900' : 'text-slate-600'}">${col.fmt ? col.fmt(row[col.key]) : (row[col.key] ?? '-')}</td>`).join('') + `</tr>`).join('');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    updateRevKPIs();
+    renderRevWaterfall();
+    renderRevTrend();
+    renderCatDiscountChart();
+    renderScrapPareto();
+    renderRevTable();
+});
 </script>
 {% endblock %}

@@ -137,6 +137,10 @@
                     <p class="text-[11px] text-slate-400">All 10 AdventureWorks territories ranked</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2 text-[11px]">
+                    <div class="inline-flex rounded-lg bg-slate-100 p-0.5 font-medium">
+                        <button type="button" onclick="setTerritoryView('map')" id="btnTerrMap" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Map View</button>
+                        <button type="button" onclick="setTerritoryView('bar')" id="btnTerrBar" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Bar Rank</button>
+                    </div>
                     <select id="continentFilter" onchange="renderTerritoryChart()" class="border border-slate-200 rounded-lg px-2 py-1 text-slate-700 bg-slate-50 font-medium focus:outline-none focus:ring-1 focus:ring-coral">
                         <option value="all">All Continents</option>
                         <option value="North America">North America</option>
@@ -250,7 +254,9 @@ const totalScrapLossAll = {{ total_scrap_loss|default:0 }};
 let globalYear = 'all';
 let catMetric = 'revenue'; // 'revenue' | 'profit' | 'units'
 let catFilter = 'all';
+let territoryView = 'map'; // 'map' | 'bar'
 let territorySort = 'revenue'; // 'revenue' | 'orders'
+let worldCountriesGeo = null;
 let customerMetric = 'revenue'; // 'revenue' | 'orders' | 'avg'
 
 let explorerTab = 'products';
@@ -494,7 +500,31 @@ function renderWaterfallChart() {
     });
 }
 
-// 4. Chart 3: Best and Worst Sales Regions
+// 4. Chart 3: Best and Worst Sales Regions (Geo Map + Bar Rank)
+const TERRITORY_COORDS = {
+    'Southwest': { lon: -111.9, lat: 33.4 },
+    'Northwest': { lon: -122.3, lat: 47.6 },
+    'Central': { lon: -94.6, lat: 39.1 },
+    'Northeast': { lon: -74.0, lat: 40.7 },
+    'Southeast': { lon: -84.4, lat: 33.7 },
+    'Canada': { lon: -106.3, lat: 56.1 },
+    'United Kingdom': { lon: -3.4, lat: 55.4 },
+    'France': { lon: 2.2, lat: 46.2 },
+    'Germany': { lon: 10.4, lat: 51.2 },
+    'Australia': { lon: 133.8, lat: -25.3 }
+};
+
+function setTerritoryView(view) {
+    territoryView = view;
+    document.getElementById('btnTerrMap').className = view === 'map'
+        ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition'
+        : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    document.getElementById('btnTerrBar').className = view === 'bar'
+        ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition'
+        : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    renderTerritoryChart();
+}
+
 function setTerritorySort(mode) {
     territorySort = mode;
     document.getElementById('btnTerrRev').className = mode === 'revenue'
@@ -506,7 +536,15 @@ function setTerritorySort(mode) {
     renderTerritoryChart();
 }
 
-function renderTerritoryChart() {
+async function getWorldGeo() {
+    if (worldCountriesGeo) return worldCountriesGeo;
+    const res = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+    const topology = await res.json();
+    worldCountriesGeo = ChartGeo.topojson.feature(topology, topology.objects.countries).features;
+    return worldCountriesGeo;
+}
+
+async function renderTerritoryChart() {
     const continent = document.getElementById('continentFilter').value;
     let rows = continent === 'all'
         ? [...rawTerritoryData]
@@ -516,6 +554,91 @@ function renderTerritoryChart() {
         if (territorySort === 'orders') return (b.TotalOrders || 0) - (a.TotalOrders || 0);
         return (parseFloat(b.TotalRevenue) || 0) - (parseFloat(a.TotalRevenue) || 0);
     });
+
+    const ctx = document.getElementById('territoryRankChart').getContext('2d');
+
+    if (territoryView === 'map' && typeof ChartGeo !== 'undefined') {
+        try {
+            const countries = await getWorldGeo();
+            if (territoryChart) territoryChart.destroy();
+
+            const mapPoints = rows
+                .filter(r => TERRITORY_COORDS[r.TerritoryName])
+                .map((r, idx) => {
+                    const coords = TERRITORY_COORDS[r.TerritoryName];
+                    const metricVal = territorySort === 'orders'
+                        ? (parseInt(r.TotalOrders, 10) || 0)
+                        : +(parseFloat(r.TotalRevenue) / 1e6).toFixed(2);
+                    return {
+                        longitude: coords.lon,
+                        latitude: coords.lat,
+                        value: metricVal,
+                        raw: r,
+                        rank: idx
+                    };
+                });
+
+            const pointColors = mapPoints.map((pt, idx) => {
+                if (idx === 0) return 'rgba(255, 91, 38, 0.92)';
+                if (idx === mapPoints.length - 1 && mapPoints.length > 1) return 'rgba(100, 116, 139, 0.85)';
+                return 'rgba(255, 91, 38, 0.62)';
+            });
+
+            territoryChart = new Chart(ctx, {
+                type: 'bubbleMap',
+                data: {
+                    labels: mapPoints.map(p => p.raw.TerritoryName),
+                    datasets: [{
+                        label: 'Sales Territories',
+                        outline: countries,
+                        showOutline: true,
+                        outlineBackgroundColor: '#F1F5F9',
+                        outlineBorderColor: '#CBD5E1',
+                        outlineBorderWidth: 0.6,
+                        backgroundColor: pointColors,
+                        borderColor: '#FFFFFF',
+                        borderWidth: 1.5,
+                        data: mapPoints
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(c) {
+                                    const row = mapPoints[c.dataIndex].raw;
+                                    if (territorySort === 'orders') {
+                                        return row.TerritoryName + ': ' + fmtInt(row.TotalOrders) + ' orders (' + fmtCompact(parseFloat(row.TotalRevenue)) + ')';
+                                    }
+                                    return row.TerritoryName + ': ' + fmtDollar(parseFloat(row.TotalRevenue)) + ' (' + fmtInt(row.TotalOrders) + ' orders)';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        projection: {
+                            axis: 'x',
+                            projection: 'equalEarth'
+                        },
+                        size: {
+                            axis: 'r',
+                            size: [6, 24],
+                            legend: { display: false }
+                        }
+                    }
+                }
+            });
+            return;
+        } catch (err) {
+            // Fall back to bar chart if CDN topology cannot be fetched
+            territoryView = 'bar';
+            document.getElementById('btnTerrMap').className = 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+            document.getElementById('btnTerrBar').className = 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition';
+        }
+    }
 
     const labels = rows.map(r => r.TerritoryName);
     const values = rows.map(r => territorySort === 'orders'
@@ -528,7 +651,6 @@ function renderTerritoryChart() {
         return 'rgba(255, 91, 38, 0.45)';
     });
 
-    const ctx = document.getElementById('territoryRankChart').getContext('2d');
     if (territoryChart) territoryChart.destroy();
     territoryChart = new Chart(ctx, {
         type: 'bar',

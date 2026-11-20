@@ -1,4 +1,6 @@
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
+import os
+import sys
 from django.test import TestCase
 from django.urls import reverse
 from django.contrib.auth.models import User
@@ -107,3 +109,58 @@ class DashboardAndLayoutTests(TestCase):
             resp = self.client.get(reverse(url_name))
             self.assertEqual(resp.status_code, 200, msg=f"Failed on {url_name}")
             self.assertNotIn('lg:w-72 xl:w-80', resp.content.decode())
+
+
+class DatabaseHelperConnectionTests(TestCase):
+    def test_pyodbc_windows_auth_named_instance_and_row_mapping(self):
+        from reports.services import db_helper
+
+        mock_cursor = MagicMock()
+        mock_cursor.description = [('Year',), ('Revenue',)]
+        mock_cursor.fetchall.return_value = [(2014, 1234.5)]
+        mock_conn = MagicMock()
+        mock_conn.cursor.return_value.__enter__.return_value = mock_cursor
+        mock_pyodbc = MagicMock()
+        mock_pyodbc.connect.return_value = mock_conn
+
+        env = {
+            'DB_HOST': r'localhost\SQLEXPRESS',
+            'DB_PORT': '1433',
+            'DB_NAME': 'AdventureWorks2019',
+            'DB_TRUSTED_CONNECTION': 'yes',
+            'DB_USER': '',
+            'DB_PASSWORD': '',
+            'DB_DRIVER': 'ODBC Driver 18 for SQL Server',
+            'DB_TRUST_CERT': 'yes',
+        }
+        with patch.dict(os.environ, env, clear=False), patch.dict(sys.modules, {'pyodbc': mock_pyodbc}):
+            rows = db_helper.execute_query('SELECT 2014 AS Year, 1234.5 AS Revenue')
+
+        conn_str = mock_pyodbc.connect.call_args[0][0]
+        self.assertIn(r'SERVER=localhost\SQLEXPRESS;', conn_str)
+        self.assertNotIn(',1433', conn_str)
+        self.assertIn('Trusted_Connection=yes', conn_str)
+        self.assertEqual(rows, [{'Year': 2014, 'Revenue': 1234.5}])
+
+    def test_pyodbc_sql_auth_with_port(self):
+        from reports.services import db_helper
+
+        mock_pyodbc = MagicMock()
+        env = {
+            'DB_HOST': 'localhost',
+            'DB_PORT': '1433',
+            'DB_NAME': 'AdventureWorks2019',
+            'DB_TRUSTED_CONNECTION': 'no',
+            'DB_USER': 'sa',
+            'DB_PASSWORD': 'secret',
+            'DB_DRIVER': 'ODBC Driver 18 for SQL Server',
+            'DB_TRUST_CERT': 'yes',
+        }
+        with patch.dict(os.environ, env, clear=False), patch.dict(sys.modules, {'pyodbc': mock_pyodbc}):
+            db_helper.get_connection()
+
+        conn_str = mock_pyodbc.connect.call_args[0][0]
+        self.assertIn('SERVER=localhost,1433;', conn_str)
+        self.assertIn('UID=sa;', conn_str)
+        self.assertIn('PWD=secret', conn_str)
+        self.assertNotIn('Trusted_Connection=yes', conn_str)

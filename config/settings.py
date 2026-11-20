@@ -77,13 +77,15 @@ DATABASES = {
 }
 
 # Configure AdventureWorks MSSQL Database
-DB_NAME = os.getenv('DB_NAME', 'AdventureWorks2019')
-DB_USER = os.getenv('DB_USER', 'sa')
-DB_PASSWORD = os.getenv('DB_PASSWORD', '')
-DB_HOST = os.getenv('DB_HOST', 'localhost')
-DB_PORT = os.getenv('DB_PORT', '1433')
-DB_DRIVER = os.getenv('DB_DRIVER', 'ODBC Driver 18 for SQL Server')
-DB_TRUST_CERT = os.getenv('DB_TRUST_CERT', 'yes')
+DB_NAME = os.getenv('DB_NAME', 'AdventureWorks2019').strip()
+DB_USER = os.getenv('DB_USER', '').strip()
+DB_PASSWORD = os.getenv('DB_PASSWORD', '').strip()
+DB_HOST = os.getenv('DB_HOST', 'localhost').strip()
+DB_PORT = os.getenv('DB_PORT', '').strip()
+DB_DRIVER = os.getenv('DB_DRIVER', 'ODBC Driver 18 for SQL Server').strip()
+DB_TRUST_CERT = os.getenv('DB_TRUST_CERT', 'yes').strip()
+DB_TRUSTED_CONNECTION = os.getenv('DB_TRUSTED_CONNECTION', '').strip().lower()
+use_trusted = DB_TRUSTED_CONNECTION in ('yes', 'true', '1') or (not DB_TRUSTED_CONNECTION and not DB_USER and not DB_PASSWORD)
 
 # Check if mssql engine is available, else fallback to a secondary sqlite for dev/testing
 try:
@@ -92,17 +94,20 @@ try:
 except ImportError:
     mssql_available = False
 
-if mssql_available and DB_PASSWORD:
+if mssql_available and (use_trusted or DB_PASSWORD):
+    extra_params = [f'TrustServerCertificate={DB_TRUST_CERT}']
+    if use_trusted:
+        extra_params.append('Trusted_Connection=yes')
     DATABASES['adventureworks'] = {
         'ENGINE': 'mssql',
         'NAME': DB_NAME,
-        'USER': DB_USER,
-        'PASSWORD': DB_PASSWORD,
+        'USER': '' if use_trusted else DB_USER,
+        'PASSWORD': '' if use_trusted else DB_PASSWORD,
         'HOST': DB_HOST,
-        'PORT': DB_PORT,
+        'PORT': '' if '\\' in DB_HOST else DB_PORT,
         'OPTIONS': {
             'driver': DB_DRIVER,
-            'extra_params': f'TrustServerCertificate={DB_TRUST_CERT}',
+            'extra_params': ';'.join(extra_params),
         },
     }
 else:

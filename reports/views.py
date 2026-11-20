@@ -22,22 +22,29 @@ def serialize_for_json(data):
 @login_required
 def dashboard_view(request):
     profile = getattr(request.user, 'profile', None)
+    is_manager = bool(profile and profile.is_manager)
     db_error = None
     
     try:
         scrap_list = revenue_loss_service.get_production_scrap_loss() or []
-        vendor_list = cost_service.get_vendor_purchasing_spend(1) or []
+        vendor_list = cost_service.get_vendor_purchasing_spend(15) or [] if is_manager else []
         customer_types = customer_service.get_customer_type_breakdown() or []
         revenue_data = revenue_loss_service.get_revenue_and_loss_by_year() or []
-        sales_preview = sales_service.get_sales_by_category_and_year() or []
-        top_customers = customer_service.get_top_customers(5) or []
+        sales_by_cat_year = sales_service.get_sales_by_category_and_year() or []
+        territory_sales = sales_service.get_territory_sales() or []
+        top_products = sales_service.get_top_selling_products(15) or []
+        top_customers = customer_service.get_top_customers(15) or []
 
         total_scrapped_qty = sum(item.get('TotalScrappedQty', 0) for item in scrap_list)
         total_scrap_loss = int(total_scrapped_qty * 36.50) if total_scrapped_qty else 0
         total_orders = sum(item.get('OrderCount', 0) for item in revenue_data)
-        total_gross = sum(item.get('GrossAmount', 0) for item in revenue_data)
-        total_net = sum(item.get('NetRevenue', 0) for item in revenue_data)
-        avg_order = (float(total_gross) / total_orders) if total_orders else 0
+        total_gross = sum(float(item.get('GrossAmount', 0)) for item in revenue_data)
+        total_discount = sum(float(item.get('DiscountLoss', 0)) for item in revenue_data)
+        total_net = sum(float(item.get('NetRevenue', 0)) for item in revenue_data)
+        total_mfg_cost = sum(float(item.get('ManufacturingCost', 0)) for item in sales_by_cat_year)
+        total_real_profit = total_net - total_mfg_cost - total_scrap_loss
+        avg_order = (total_gross / total_orders) if total_orders else 0
+        total_customers = sum(int(ct.get('TotalCustomers', 0)) for ct in customer_types)
 
         b2b_rev, b2c_rev = 0, 0
         for ct in customer_types:
@@ -47,8 +54,8 @@ def dashboard_view(request):
             else:
                 b2c_rev += float(ct.get('TotalRevenue', 0))
         tot_cust_rev = b2b_rev + b2c_rev
-        b2b_pct = round((b2b_rev / tot_cust_rev * 100), 1) if tot_cust_rev else 68.0
-        b2c_pct = round((b2c_rev / tot_cust_rev * 100), 1) if tot_cust_rev else 32.0
+        b2b_pct = round((b2b_rev / tot_cust_rev * 100), 1) if tot_cust_rev else 0.0
+        b2c_pct = round((b2c_rev / tot_cust_rev * 100), 1) if tot_cust_rev else 0.0
 
         revenue_summary = revenue_data[-1] if revenue_data else {}
         scrap_preview = scrap_list[0] if scrap_list else {}
@@ -56,23 +63,36 @@ def dashboard_view(request):
     except DatabaseConnectionError as e:
         db_error = str(e)
         messages.error(request, f"Database Error: {e}")
-        scrap_list, vendor_list, customer_types, revenue_data, sales_preview, top_customers = [], [], [], [], [], []
-        total_scrap_loss = 0
-        total_orders, total_gross, total_net, avg_order = 0, 0, 0, 0
-        b2b_rev, b2c_rev, b2b_pct, b2c_pct = 0, 0, 0, 0
+        scrap_list, vendor_list, customer_types, revenue_data = [], [], [], []
+        sales_by_cat_year, territory_sales, top_products, top_customers = [], [], [], []
+        total_scrap_loss, total_orders = 0, 0
+        total_gross, total_discount, total_net, total_mfg_cost, total_real_profit, avg_order = 0, 0, 0, 0, 0, 0
+        total_customers, b2b_rev, b2c_rev, b2b_pct, b2c_pct = 0, 0, 0, 0, 0
         revenue_summary, scrap_preview, vendor_preview = {}, {}, {}
 
     context = {
         'role': profile.role if profile else 'Employee',
-        'sales_preview': sales_preview[:4],
+        'is_manager': is_manager,
+        'sales_preview': sales_by_cat_year[:4],
         'top_customers': top_customers,
         'revenue_summary': revenue_summary,
         'revenue_data': revenue_data,
         'revenue_data_json': serialize_for_json(revenue_data),
+        'sales_by_cat_year_json': serialize_for_json(sales_by_cat_year),
+        'territory_sales_json': serialize_for_json(territory_sales),
+        'customer_types_json': serialize_for_json(customer_types),
+        'top_products_json': serialize_for_json(top_products),
+        'top_customers_json': serialize_for_json(top_customers),
+        'scrap_list_json': serialize_for_json(scrap_list if is_manager else []),
+        'vendor_list_json': serialize_for_json(vendor_list if is_manager else []),
         'total_orders': total_orders,
         'total_gross': total_gross,
+        'total_discount': total_discount,
         'total_net': total_net,
+        'total_mfg_cost': total_mfg_cost,
+        'total_real_profit': total_real_profit,
         'avg_order': avg_order,
+        'total_customers': total_customers,
         'b2b_rev': b2b_rev,
         'b2c_rev': b2c_rev,
         'b2b_pct': b2b_pct,

@@ -5,13 +5,14 @@ def get_top_customers(limit=10):
     SELECT TOP ({limit})
         c.CustomerID,
         COALESCE(p.FirstName + ' ' + p.LastName, s.Name) AS CustomerName,
+        CASE WHEN c.StoreID IS NOT NULL THEN 'Store (B2B)' ELSE 'Individual (B2C)' END AS CustomerType,
         COUNT(soh.SalesOrderID) AS Orders,
         SUM(soh.TotalDue) AS TotalSpent
     FROM Sales.Customer c
     JOIN Sales.SalesOrderHeader soh ON soh.CustomerID = c.CustomerID
     LEFT JOIN Person.Person p ON p.BusinessEntityID = c.PersonID
     LEFT JOIN Sales.Store s ON s.BusinessEntityID = c.StoreID
-    GROUP BY c.CustomerID, p.FirstName, p.LastName, s.Name
+    GROUP BY c.CustomerID, p.FirstName, p.LastName, s.Name, c.StoreID
     ORDER BY TotalSpent DESC;
     """
     return execute_query(sql)

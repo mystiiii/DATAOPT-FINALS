@@ -33,8 +33,9 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 
-# IDEs
+# IDEs & Local Tools
 .vscode/
 .idea/
 *.sublime-project
 *.sublime-workspace
+graphify-out/

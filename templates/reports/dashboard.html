@@ -7,415 +7,786 @@
 <div class="space-y-6">
     <!-- Top Workspace Toolbar -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-[#E5E7EB] gap-3">
-        <div class="flex items-center space-x-2 text-xs text-slate-500">
-            <span class="font-medium text-slate-900">Dashboard</span>
-        </div>
-        <div class="flex items-center space-x-2 text-xs">
-            <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-medium flex items-center space-x-1.5 transition shadow-sm">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                 </svg>
-                <span>Print Executive Brief</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- Header Banner -->
-    <div class="flex items-start space-x-3.5">
-        <div class="w-10 h-10 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-            </svg>
-        </div>
-        <div>
-            <h1 class="text-xl font-bold text-slate-900 tracking-tight">Executive Operations & Performance</h1>
-            <p class="text-xs text-slate-500 mt-0.5">Company performance across sales, production, and customer groups for FY2011 to FY2014</p>
-        </div>
-    </div>
-
-    <!-- Top KPI Grid (4 Metrics) -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
-            <div class="flex justify-between items-start">
-                <span class="text-[11px] font-medium text-slate-500">Gross Sales</span>
-                <span class="text-slate-400 text-xs">&nearr;</span>
             </div>
-            <div class="text-xl font-bold text-slate-900 mt-2">
-                {% if total_gross %}${{ total_gross|floatformat:0|intcomma }}{% elif revenue_summary.GrossAmount %}${{ revenue_summary.GrossAmount|floatformat:0|intcomma }}{% else %}$0{% endif %}
-            </div>
-            <div class="text-[10px] text-emerald-600 font-medium mt-1">4-Year Total Volume</div>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
-            <div class="flex justify-between items-start">
-                <span class="text-[11px] font-medium text-slate-500">Net Profit</span>
-                <span class="text-slate-400 text-xs">&nearr;</span>
-            </div>
-            <div class="text-xl font-bold text-slate-900 mt-2">
-                {% if total_net %}${{ total_net|floatformat:0|intcomma }}{% elif revenue_summary.NetRevenue %}${{ revenue_summary.NetRevenue|floatformat:0|intcomma }}{% else %}$0{% endif %}
-            </div>
-            <div class="text-[10px] text-emerald-600 font-medium mt-1">Net Realized Revenue</div>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
-            <div class="flex justify-between items-start">
-                <span class="text-[11px] font-medium text-slate-500">Scrap Loss</span>
-                <span class="text-slate-400 text-xs">&nearr;</span>
-            </div>
-            <div class="text-xl font-bold text-slate-900 mt-2">
-                {% if total_scrap_loss %}${{ total_scrap_loss|floatformat:0|intcomma }}{% else %}$0{% endif %}
-            </div>
-            <div class="text-[10px] text-amber-600 font-medium mt-1">Scrapped work order costs</div>
-        </div>
-
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
-            <div class="flex justify-between items-start">
-                <span class="text-[11px] font-medium text-slate-500">Active Accounts</span>
-                <span class="text-slate-400 text-xs">&nearr;</span>
-            </div>
-            <div class="text-xl font-bold text-slate-900 mt-2">
-                {% if customer_types %}{{ customer_types.0.TotalCustomers|add:customer_types.1.TotalCustomers|intcomma }}{% else %}0{% endif %}
-            </div>
-            <div class="text-[10px] text-emerald-600 font-medium mt-1">B2B & B2C customer base</div>
-        </div>
-    </div>
-
-    <!-- Business at a Glance Section -->
-    <div class="space-y-3">
-        <div class="flex items-center justify-between">
             <div>
-                <h2 class="text-xs font-bold text-slate-900">Business at a glance</h2>
-                <p class="text-[11px] text-slate-400">Key operating modules, in one view</p>
+                <h1 class="text-lg font-bold text-slate-900 tracking-tight">Executive Operations &amp; Performance</h1>
+                <p class="text-xs text-slate-500">Company performance across sales, customers, losses, and manufacturing costs (FY2011–FY2014)</p>
             </div>
         </div>
 
-        <!-- 1. Sales Overview Card -->
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm space-y-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-2">
-                    <span class="text-slate-300">:::</span>
-                    <span class="text-xs font-bold text-slate-900">Sales Overview</span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700">Healthy</span>
-                </div>
-                <span class="text-[11px] text-slate-400">FY2011–FY2014</span>
-            </div>
-
-            <!-- Sub Metrics -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs border-y border-slate-100 py-3">
-                <div>
-                    <span class="text-[10px] text-slate-400">Orders placed</span>
-                    <p class="font-bold text-slate-900 text-sm mt-0.5">{% if total_orders %}{{ total_orders|intcomma }}{% else %}0{% endif %}</p>
-                    <span class="text-[10px] text-emerald-600">Total historical orders</span>
-                </div>
-                <div>
-                    <span class="text-[10px] text-slate-400">Average order</span>
-                    <p class="font-bold text-slate-900 text-sm mt-0.5">${{ avg_order|floatformat:0|intcomma }}</p>
-                    <span class="text-[10px] text-emerald-600">Across all channels</span>
-                </div>
-                <div>
-                    <span class="text-[10px] text-slate-400">Discount Loss</span>
-                    <p class="font-bold text-slate-900 text-sm mt-0.5">${{ total_gross|floatformat:0|intcomma }}</p>
-                    <span class="text-[10px] text-slate-500">Total Lifetime Volume</span>
-                </div>
-                <div>
-                    <span class="text-[10px] text-slate-400">Net Realized</span>
-                    <p class="font-bold text-slate-900 text-sm mt-0.5">${{ total_net|floatformat:0|intcomma }}</p>
-                    <span class="text-[10px] text-emerald-600">After line discounts</span>
-                </div>
-            </div>
-
-            <!-- Channel Split Progress Bar -->
-            {% if total_gross %}
-            <div class="space-y-1.5">
-                <div class="flex justify-between text-[11px] text-slate-600 font-medium">
-                    <span>Store Retailers (B2B): {{ b2b_pct }}% &middot; ${{ b2b_rev|floatformat:0|intcomma }}</span>
-                    <span>Individual (B2C): {{ b2c_pct }}% &middot; ${{ b2c_rev|floatformat:0|intcomma }}</span>
-                </div>
-                <div class="w-full h-2 rounded-full bg-slate-100 flex overflow-hidden">
-                    <div class="h-full bg-coral rounded-l-full" style="width: {{ b2b_pct }}%"></div>
-                    <div class="h-full bg-coral-border rounded-r-full" style="width: {{ b2c_pct }}%"></div>
-                </div>
-                <div class="flex justify-between items-center pt-1 text-[11px]">
-                    <span class="text-slate-400">Stores drive commercial order volume.</span>
-                    <a href="{% url 'report_sales' %}" class="text-coral hover:underline font-semibold flex items-center space-x-1">
-                        <span>View sales detail</span>
-                        <span>&rarr;</span>
-                    </a>
-                </div>
-            </div>
-            {% else %}
-            <div class="p-3 rounded-lg bg-slate-50 border border-slate-100 text-center text-xs text-slate-400">
-                No sales data available (database disconnected)
-            </div>
-            {% endif %}
-        </div>
-
-        <!-- 2. Customer Distribution Card -->
-        <a href="{% url 'report_customers' %}" class="bg-white p-3.5 rounded-xl border border-[#E5E7EB] shadow-sm flex items-center justify-between hover:border-coral-border transition block group">
-            <div class="flex items-center space-x-2">
-                <span class="text-slate-300">:::</span>
-                <div>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-xs font-bold text-slate-900 group-hover:text-coral transition">Customer Distribution</span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {% if customer_types %}bg-emerald-50 text-emerald-700{% else %}bg-slate-100 text-slate-500{% endif %}">
-                            {% if customer_types %}Healthy{% else %}No Data{% endif %}
-                        </span>
-                    </div>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Account reach across territories and segments</p>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2 text-xs font-semibold text-slate-700">
-                <span>{% if customer_types %}{{ customer_types.0.TotalCustomers|add:customer_types.1.TotalCustomers|intcomma }} accounts{% else %}0 accounts{% endif %}</span>
-                <span class="text-slate-400">&gt;</span>
-            </div>
-        </a>
-
-        <!-- 3. Production Scrap Card -->
-        {% if user.profile.is_manager %}
-        <a href="{% url 'report_revenue_loss' %}" class="bg-white p-3.5 rounded-xl border border-[#E5E7EB] shadow-sm flex items-center justify-between hover:border-coral-border transition block group">
-            <div class="flex items-center space-x-2">
-                <span class="text-slate-300">:::</span>
-                <div>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-xs font-bold text-slate-900 group-hover:text-coral transition">Production Scrap</span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {% if total_scrap_loss %}bg-amber-50 text-amber-700{% else %}bg-slate-100 text-slate-500{% endif %}">
-                            {% if total_scrap_loss %}Review Needed{% else %}No Data{% endif %}
-                        </span>
-                    </div>
-                    <p class="text-[11px] text-slate-400 mt-0.5">
-                        {% if scrap_preview.ScrapReason %}{{ scrap_preview.ScrapReason }}: {{ scrap_preview.TotalScrappedQty|intcomma }} units scrapped{% else %}No scrap records found{% endif %}
-                    </p>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2 text-xs font-semibold {% if total_scrap_loss %}text-amber-600{% else %}text-slate-500{% endif %}">
-                <span>{% if total_scrap_loss %}${{ total_scrap_loss|floatformat:0|intcomma }} loss{% else %}$0 loss{% endif %}</span>
-                <span class="text-slate-400">&gt;</span>
-            </div>
-        </a>
-        {% endif %}
-
-        <!-- 4. Vendor Costs Card -->
-        {% if user.profile.is_manager %}
-        <a href="{% url 'report_cost' %}" class="bg-white p-3.5 rounded-xl border border-[#E5E7EB] shadow-sm flex items-center justify-between hover:border-coral-border transition block group">
-            <div class="flex items-center space-x-2">
-                <span class="text-slate-300">:::</span>
-                <div>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-xs font-bold text-slate-900 group-hover:text-coral transition">Vendor Costs</span>
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {% if vendor_preview.TotalSpent %}bg-emerald-50 text-emerald-700{% else %}bg-slate-100 text-slate-500{% endif %}">
-                            {% if vendor_preview.TotalSpent %}Healthy{% else %}No Data{% endif %}
-                        </span>
-                    </div>
-                    <p class="text-[11px] text-slate-400 mt-0.5">
-                        {% if vendor_preview.VendorName %}Top supplier: {{ vendor_preview.VendorName }} (${{ vendor_preview.TotalSpent|floatformat:0|intcomma }}){% else %}No procurement records found{% endif %}
-                    </p>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2 text-xs font-semibold text-slate-700">
-                <span>{% if vendor_preview.TotalSpent %}${{ vendor_preview.TotalSpent|floatformat:0|intcomma }} spend{% else %}$0 spend{% endif %}</span>
-                <span class="text-slate-400">&gt;</span>
-            </div>
-        </a>
-        {% endif %}
-    </div>
-</div>
-{% endblock %}
-
-{% block right_rail %}
-<div class="space-y-6">
-    <!-- Top Filter Header with Interactive Select -->
-    <div class="flex items-center justify-between">
-        <span class="text-xs font-bold text-slate-900">Statistics</span>
-        <div class="relative">
-            <select id="statPeriodSelect" onchange="onPeriodChange(this.value)" class="text-[11px] border border-slate-200 rounded-lg px-2.5 py-1 text-slate-700 bg-slate-50 font-medium focus:outline-none focus:ring-1 focus:ring-coral cursor-pointer">
+        <div class="flex flex-wrap items-center gap-2 text-xs">
+            <label for="globalYearFilter" class="text-[11px] font-medium text-slate-500">Period:</label>
+            <select id="globalYearFilter" onchange="onGlobalYearChange(this.value)" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 bg-white font-medium focus:outline-none focus:ring-1 focus:ring-coral cursor-pointer">
                 <option value="all" selected>All Years (2011–2014)</option>
                 <option value="2014">FY2014</option>
                 <option value="2013">FY2013</option>
                 <option value="2012">FY2012</option>
                 <option value="2011">FY2011</option>
             </select>
-        </div>
-    </div>
-
-    <!-- KPI Summary Card with Interactive Bar Chart -->
-    <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E5E7EB] space-y-3">
-        <div class="flex justify-between items-start">
-            <button type="button" id="metricToggleBtn" onclick="toggleRevenueMetric()" class="text-[11px] font-semibold text-slate-600 hover:text-coral transition flex items-center space-x-1" title="Click to switch between Gross and Net Revenue">
-                <span id="statMetricLabel">Total Gross Revenue</span>
-                <span class="text-[9px] text-slate-400">&curarr;</span>
+            <button onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-medium flex items-center space-x-1.5 transition shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                </svg>
+                <span>Print Brief</span>
             </button>
-            <span id="statYoYBadge" class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded transition">4-Year Total</span>
-        </div>
-        <div id="statBigFigure" class="text-2xl font-bold text-slate-900 transition">$0</div>
-
-        <!-- Chart Canvas -->
-        <div class="h-36 pt-1">
-            <canvas id="rightRailChart"></canvas>
-        </div>
-        <div class="flex justify-between text-[10px] text-slate-400 pt-1 border-t border-slate-200">
-            <span id="statPeriodFooter">FY2011–FY2014</span>
-            <span id="statUnitFooter">Live SQL Server Data</span>
         </div>
     </div>
 
-    <!-- Executive Summary Card (Moved to Right Column) -->
-    <div class="bg-white p-3.5 rounded-xl border border-coral-border bg-gradient-to-br from-white via-white to-coral-light/25 shadow-sm space-y-2">
-        <div class="flex items-center space-x-2">
-            <span class="w-2 h-2 rounded-full bg-coral"></span>
-            <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Executive Summary</h3>
+    <!-- Top KPI Grid (4 Executive Metrics) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Gross Sales</span>
+                <span id="kpiOrdersBadge" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">{{ total_orders|intcomma }} orders</span>
+            </div>
+            <div id="kpiGrossValue" class="text-2xl font-bold text-slate-900 mt-2">${{ total_gross|floatformat:0|intcomma }}</div>
+            <div id="kpiGrossSub" class="text-[11px] text-slate-500 mt-1">Avg order: ${{ avg_order|floatformat:0|intcomma }}</div>
         </div>
-        {% if db_error or not total_gross %}
-        <p class="text-[11px] text-slate-400 italic">No summary available: database is disconnected.</p>
-        {% else %}
-        <p class="text-[11px] text-slate-600 leading-relaxed">
-            Reseller stores drive {{ b2b_pct }}% (${{ b2b_rev|floatformat:0|intcomma }}) of customer sales across commercial accounts, while direct consumers make up {{ b2c_pct }}% (${{ b2c_rev|floatformat:0|intcomma }}). Total scrap across work orders reached ${{ total_scrap_loss|intcomma }}.
-        </p>
-        {% endif %}
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Real Profit (After Costs)</span>
+                <span id="kpiMarginBadge" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700">Net Margin</span>
+            </div>
+            <div id="kpiProfitValue" class="text-2xl font-bold text-emerald-700 mt-2">${{ total_real_profit|floatformat:0|intcomma }}</div>
+            <div id="kpiProfitSub" class="text-[11px] text-slate-500 mt-1">Net revenue: ${{ total_net|floatformat:0|intcomma }}</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Total Losses (Discounts + Scrap)</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700">Leakage</span>
+            </div>
+            <div id="kpiLossValue" class="text-2xl font-bold text-rose-600 mt-2">${{ total_discount|add:total_scrap_loss|floatformat:0|intcomma }}</div>
+            <div id="kpiLossSub" class="text-[11px] text-slate-500 mt-1">Discounts: ${{ total_discount|floatformat:0|intcomma }} &middot; Scrap: ${{ total_scrap_loss|floatformat:0|intcomma }}</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+            <div class="flex justify-between items-start">
+                <span class="text-[11px] font-medium text-slate-500">Active Customers</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700">B2B + B2C</span>
+            </div>
+            <div class="text-2xl font-bold text-slate-900 mt-2">{{ total_customers|intcomma }}</div>
+            <div class="text-[11px] text-slate-500 mt-1">Stores {{ b2b_pct }}% &middot; Individuals {{ b2c_pct }}%</div>
+        </div>
+    </div>
+
+    <!-- Chart Row 1: Category Performance & Real Profit + Revenue Waterfall -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Chart 1: Sales & Real Profit by Category -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Category Performance &amp; Real Profit</h2>
+                    <p class="text-[11px] text-slate-400">2011–2014 breakdown by product line</p>
+                </div>
+                <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                    <button type="button" onclick="setCatMetric('revenue')" id="btnCatRevenue" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Sales $</button>
+                    <button type="button" onclick="setCatMetric('profit')" id="btnCatProfit" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Real Profit $</button>
+                    <button type="button" onclick="setCatMetric('units')" id="btnCatUnits" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Units Sold</button>
+                </div>
+            </div>
+
+            <!-- Category Filter Pills -->
+            <div class="flex flex-wrap items-center gap-1.5 text-[11px]" id="catFilterPills">
+                <button type="button" onclick="setCatFilter('all')" data-cat="all" class="cat-pill px-2.5 py-0.5 rounded-full bg-coral text-white font-semibold transition">All Categories</button>
+                <button type="button" onclick="setCatFilter('Bikes')" data-cat="Bikes" class="cat-pill px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Bikes</button>
+                <button type="button" onclick="setCatFilter('Components')" data-cat="Components" class="cat-pill px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Components</button>
+                <button type="button" onclick="setCatFilter('Clothing')" data-cat="Clothing" class="cat-pill px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Clothing</button>
+                <button type="button" onclick="setCatFilter('Accessories')" data-cat="Accessories" class="cat-pill px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Accessories</button>
+            </div>
+
+            <div class="h-64">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 2: Where Revenue Is Lost (Waterfall) -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="flex items-start justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Where Revenue Is Lost (Gross to Profit)</h2>
+                    <p id="waterfallSubtitle" class="text-[11px] text-slate-400">Step-by-step bridge for All Years (2011–2014)</p>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral border border-coral-border shrink-0">Synced to Period</span>
+            </div>
+
+            <div class="h-64">
+                <canvas id="waterfallChart"></canvas>
+            </div>
+
+            <div id="waterfallFootnote" class="text-[11px] text-slate-500 pt-2 border-t border-slate-100 flex justify-between">
+                <span>Shows promo discounts, manufacturing cost (COGS), and factory scrap</span>
+                <a href="{% url 'report_revenue_loss' %}" class="text-coral font-semibold hover:underline">Full Loss Report &rarr;</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Row 2: Best & Worst Regions + B2B vs B2C Donut -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <!-- Chart 3: Best and Worst Sales Regions (Wider: 2 cols) -->
+        <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Best &amp; Worst Sales Regions</h2>
+                    <p class="text-[11px] text-slate-400">All 10 AdventureWorks territories ranked</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 text-[11px]">
+                    <select id="continentFilter" onchange="renderTerritoryChart()" class="border border-slate-200 rounded-lg px-2 py-1 text-slate-700 bg-slate-50 font-medium focus:outline-none focus:ring-1 focus:ring-coral">
+                        <option value="all">All Continents</option>
+                        <option value="North America">North America</option>
+                        <option value="Europe">Europe</option>
+                        <option value="Pacific">Pacific</option>
+                    </select>
+                    <div class="inline-flex rounded-lg bg-slate-100 p-0.5 font-medium">
+                        <button type="button" onclick="setTerritorySort('revenue')" id="btnTerrRev" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Sales $</button>
+                        <button type="button" onclick="setTerritorySort('orders')" id="btnTerrOrd" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Orders</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="h-64">
+                <canvas id="territoryRankChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 4: Retail Stores vs Individual Buyers (1 col) -->
+        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+            <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm font-bold text-slate-900">Stores vs. Individuals</h2>
+                    <a href="{% url 'report_customers' %}" class="text-[11px] text-coral font-semibold hover:underline">Details &rarr;</a>
+                </div>
+                <div class="inline-flex w-full rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                    <button type="button" onclick="setCustomerMetric('revenue')" id="btnCustRev" class="flex-1 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Spend $</button>
+                    <button type="button" onclick="setCustomerMetric('orders')" id="btnCustOrd" class="flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Orders</button>
+                    <button type="button" onclick="setCustomerMetric('avg')" id="btnCustAvg" class="flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Avg / Buyer</button>
+                </div>
+            </div>
+
+            <div class="relative h-48 flex items-center justify-center">
+                <canvas id="customerSplitChart"></canvas>
+                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span id="custCenterLabel" class="text-[10px] font-medium text-slate-400 uppercase">Total Spend</span>
+                    <span id="custCenterValue" class="text-base font-bold text-slate-900">$0</span>
+                </div>
+            </div>
+
+            <div id="custBreakdownFooter" class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-[11px]">
+                <div>
+                    <span class="inline-block w-2 h-2 rounded-full bg-coral mr-1"></span>
+                    <span class="text-slate-500">Stores (B2B):</span>
+                    <strong id="custB2BVal" class="text-slate-900 block mt-0.5">-</strong>
+                </div>
+                <div>
+                    <span class="inline-block w-2 h-2 rounded-full bg-slate-800 mr-1"></span>
+                    <span class="text-slate-500">Individuals (B2C):</span>
+                    <strong id="custB2CVal" class="text-slate-900 block mt-0.5">-</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Section: All-in-One Searchable & Sortable Explorer Table -->
+    <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <!-- Tabs -->
+            <div class="flex flex-wrap items-center gap-1.5 text-xs font-medium" id="explorerTabs">
+                <button type="button" onclick="switchExplorerTab('products')" data-tab="products" class="exp-tab px-3 py-1.5 rounded-lg bg-coral text-white font-semibold transition">Top Products</button>
+                <button type="button" onclick="switchExplorerTab('customers')" data-tab="customers" class="exp-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Top Customers</button>
+                {% if is_manager %}
+                <button type="button" onclick="switchExplorerTab('scrap')" data-tab="scrap" class="exp-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Factory Scrap</button>
+                <button type="button" onclick="switchExplorerTab('vendors')" data-tab="vendors" class="exp-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Suppliers</button>
+                {% endif %}
+            </div>
+
+            <!-- Search & Limit Controls -->
+            <div class="flex items-center gap-2 text-xs">
+                <div class="relative">
+                    <input type="text" id="explorerSearch" oninput="renderExplorerTable()" placeholder="Search records..." class="pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral w-48 sm:w-60">
+                    <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+                <select id="explorerLimit" onchange="renderExplorerTable()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 font-medium focus:outline-none focus:ring-1 focus:ring-coral">
+                    <option value="5">Top 5</option>
+                    <option value="10" selected>Top 10</option>
+                    <option value="15">Top 15</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Dynamic Sortable Table -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-100 text-left text-xs">
+                <thead id="explorerThead"></thead>
+                <tbody id="explorerTbody" class="divide-y divide-slate-100"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-const rawRevenueData = {{ revenue_data_json|safe }};
-let currentMetric = 'gross';
-let currentPeriod = 'all';
-let selectedBarIdx = null;
-let rightRailChart = null;
+// Raw data injected from Django view
+const rawRevenueData = {{ revenue_data_json|safe }} || [];
+const rawCatYearData = {{ sales_by_cat_year_json|safe }} || [];
+const rawTerritoryData = {{ territory_sales_json|safe }} || [];
+const rawCustomerTypes = {{ customer_types_json|safe }} || [];
+const rawTopProducts = {{ top_products_json|safe }} || [];
+const rawTopCustomers = {{ top_customers_json|safe }} || [];
+const rawScrapList = {{ scrap_list_json|safe }} || [];
+const rawVendorList = {{ vendor_list_json|safe }} || [];
 
-function formatDollar(val) {
-    if (val >= 1e6) {
-        return '$' + (val / 1e6).toFixed(1) + 'M';
-    } else if (val >= 1e3) {
-        return '$' + (val / 1e3).toFixed(0) + 'K';
-    }
-    return '$' + Math.round(val).toLocaleString();
+const totalScrapLossAll = {{ total_scrap_loss|default:0 }};
+
+// Global state
+let globalYear = 'all';
+let catMetric = 'revenue'; // 'revenue' | 'profit' | 'units'
+let catFilter = 'all';
+let territorySort = 'revenue'; // 'revenue' | 'orders'
+let customerMetric = 'revenue'; // 'revenue' | 'orders' | 'avg'
+
+let explorerTab = 'products';
+let explorerSortKey = 'TotalRevenue';
+let explorerSortAsc = false;
+
+// Chart instances
+let categoryChart = null;
+let waterfallChart = null;
+let territoryChart = null;
+let customerChart = null;
+
+// Formatting helpers
+function fmtCompact(val) {
+    const abs = Math.abs(val);
+    const sign = val < 0 ? '-' : '';
+    if (abs >= 1e6) return sign + '$' + (abs / 1e6).toFixed(1) + 'M';
+    if (abs >= 1e3) return sign + '$' + (abs / 1e3).toFixed(0) + 'K';
+    return sign + '$' + Math.round(abs).toLocaleString();
+}
+function fmtDollar(val) {
+    const sign = val < 0 ? '-' : '';
+    return sign + '$' + Math.round(Math.abs(val)).toLocaleString();
+}
+function fmtInt(val) {
+    return Math.round(val || 0).toLocaleString();
 }
 
-function getRevenueValue(item, metric) {
-    if (!item) return 0;
-    return metric === 'gross' ? (parseFloat(item.GrossAmount) || 0) : (parseFloat(item.NetRevenue) || 0);
+// 1. Global Year Filter & KPIs
+function onGlobalYearChange(yearVal) {
+    globalYear = yearVal;
+    updateTopKPIs();
+    renderCategoryChart();
+    renderWaterfallChart();
 }
 
-function getChartColors(count, highlightIdx) {
-    const bg = [];
-    for (let i = 0; i < count; i++) {
-        bg.push(i === highlightIdx ? '#FF5B26' : 'rgba(255, 91, 38, 0.28)');
-    }
-    return bg;
+function updateTopKPIs() {
+    if (!rawRevenueData.length) return;
+    const filteredRev = globalYear === 'all'
+        ? rawRevenueData
+        : rawRevenueData.filter(r => String(r.Year) === String(globalYear));
+
+    const filteredCat = globalYear === 'all'
+        ? rawCatYearData
+        : rawCatYearData.filter(r => String(r.Year) === String(globalYear));
+
+    const gross = filteredRev.reduce((s, r) => s + (parseFloat(r.GrossAmount) || 0), 0);
+    const discount = filteredRev.reduce((s, r) => s + (parseFloat(r.DiscountLoss) || 0), 0);
+    const net = filteredRev.reduce((s, r) => s + (parseFloat(r.NetRevenue) || 0), 0);
+    const orders = filteredRev.reduce((s, r) => s + (parseInt(r.OrderCount, 10) || 0), 0);
+    const mfgCost = filteredCat.reduce((s, r) => s + (parseFloat(r.ManufacturingCost) || 0), 0);
+
+    // Scrap is a cumulative multi-year WorkOrder total; allocate proportionally when filtering by a single year
+    const totalAllNet = rawRevenueData.reduce((s, r) => s + (parseFloat(r.NetRevenue) || 0), 0);
+    const scrapForPeriod = globalYear === 'all'
+        ? totalScrapLossAll
+        : (totalAllNet > 0 ? Math.round(totalScrapLossAll * (net / totalAllNet)) : 0);
+
+    const realProfit = net - mfgCost - scrapForPeriod;
+    const totalLosses = discount + scrapForPeriod;
+    const avgOrder = orders > 0 ? (gross / orders) : 0;
+    const marginPct = net > 0 ? ((realProfit / net) * 100).toFixed(1) : '0.0';
+
+    document.getElementById('kpiGrossValue').textContent = fmtDollar(gross);
+    document.getElementById('kpiOrdersBadge').textContent = fmtInt(orders) + ' orders';
+    document.getElementById('kpiGrossSub').textContent = 'Avg order: ' + fmtDollar(avgOrder);
+
+    document.getElementById('kpiProfitValue').textContent = fmtDollar(realProfit);
+    document.getElementById('kpiMarginBadge').textContent = marginPct + '% Margin';
+    document.getElementById('kpiProfitSub').textContent = 'Net revenue: ' + fmtDollar(net);
+
+    document.getElementById('kpiLossValue').textContent = fmtDollar(totalLosses);
+    document.getElementById('kpiLossSub').textContent = 'Discounts: ' + fmtDollar(discount) + ' · Scrap: ' + fmtDollar(scrapForPeriod);
 }
 
-function renderStatsView() {
-    if (!rawRevenueData || rawRevenueData.length === 0) {
-        document.getElementById('statBigFigure').textContent = '$0';
-        document.getElementById('statYoYBadge').textContent = 'No Data';
-        document.getElementById('statPeriodFooter').textContent = 'Database offline';
-        return;
-    }
+// 2. Chart 1: Category Performance & Real Profit
+const CAT_COLORS = {
+    'Bikes': '#FF5B26',
+    'Components': '#1E293B',
+    'Clothing': '#3B82F6',
+    'Accessories': '#10B981'
+};
 
-    const labels = rawRevenueData.map(d => 'FY' + d.Year);
-    const values = rawRevenueData.map(d => +(getRevenueValue(d, currentMetric) / 1e6).toFixed(2));
-    const totalOrders = rawRevenueData.reduce((acc, d) => acc + (d.OrderCount || 0), 0);
-    const totalSum = rawRevenueData.reduce((acc, d) => acc + getRevenueValue(d, currentMetric), 0);
-
-    let figureText = '';
-    let badgeText = '';
-    let footerText = '';
-    let activeHighlight = selectedBarIdx;
-
-    if (currentPeriod === 'all') {
-        if (selectedBarIdx !== null && selectedBarIdx >= 0 && selectedBarIdx < rawRevenueData.length) {
-            const item = rawRevenueData[selectedBarIdx];
-            const itemVal = getRevenueValue(item, currentMetric);
-            figureText = '$' + Number(Math.round(itemVal)).toLocaleString();
-            badgeText = (item.OrderCount || 0).toLocaleString() + ' orders';
-            footerText = 'FY' + item.Year + ' (' + (itemVal / 1e6).toFixed(1) + 'M)';
+function setCatMetric(m) {
+    catMetric = m;
+    ['revenue', 'profit', 'units'].forEach(key => {
+        const btn = document.getElementById('btnCat' + key.charAt(0).toUpperCase() + key.slice(1));
+        if (key === m) {
+            btn.className = 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition';
         } else {
-            figureText = formatDollar(totalSum);
-            badgeText = totalOrders.toLocaleString() + ' Total Orders';
-            footerText = 'FY2011–FY2014 Overall';
-            activeHighlight = values.length - 2; // highlight 2013 peak by default
+            btn.className = 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
         }
-    } else {
-        const yearInt = parseInt(currentPeriod, 10);
-        const idx = rawRevenueData.findIndex(d => d.Year === yearInt);
-        activeHighlight = idx >= 0 ? idx : 0;
-        const item = rawRevenueData[activeHighlight];
-        const itemVal = getRevenueValue(item, currentMetric);
-        figureText = '$' + Number(Math.round(itemVal)).toLocaleString();
-        badgeText = (item.OrderCount || 0).toLocaleString() + ' orders';
-        footerText = 'FY' + item.Year + ' Full Year';
-    }
-
-    document.getElementById('statBigFigure').textContent = figureText;
-    document.getElementById('statYoYBadge').textContent = badgeText;
-    document.getElementById('statPeriodFooter').textContent = footerText;
-
-    if (rightRailChart) {
-        rightRailChart.data.labels = labels;
-        rightRailChart.data.datasets[0].data = values;
-        rightRailChart.data.datasets[0].backgroundColor = getChartColors(values.length, activeHighlight);
-        rightRailChart.update();
-    }
+    });
+    renderCategoryChart();
 }
 
-function initRightRailChart() {
-    if (!rawRevenueData || rawRevenueData.length === 0) return;
-    const labels = rawRevenueData.map(d => 'FY' + d.Year);
-    const values = rawRevenueData.map(d => +(getRevenueValue(d, currentMetric) / 1e6).toFixed(2));
-    const ctx = document.getElementById('rightRailChart').getContext('2d');
+function setCatFilter(cat) {
+    catFilter = cat;
+    document.querySelectorAll('.cat-pill').forEach(el => {
+        if (el.dataset.cat === cat) {
+            el.className = 'cat-pill px-2.5 py-0.5 rounded-full bg-coral text-white font-semibold transition';
+        } else {
+            el.className = 'cat-pill px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
+        }
+    });
+    renderCategoryChart();
+}
 
-    rightRailChart = new Chart(ctx, {
+function renderCategoryChart() {
+    const years = [...new Set(rawCatYearData.map(d => d.Year))].sort();
+    const allCats = ['Bikes', 'Components', 'Clothing', 'Accessories'];
+    const activeCats = catFilter === 'all' ? allCats : allCats.filter(c => c === catFilter);
+
+    const datasets = activeCats.map(cat => {
+        const data = years.map(yr => {
+            const row = rawCatYearData.find(d => d.Year === yr && d.Category === cat);
+            if (!row) return 0;
+            if (catMetric === 'revenue') return +(parseFloat(row.Revenue) / 1e6).toFixed(2);
+            if (catMetric === 'profit') return +(parseFloat(row.GrossProfit) / 1e6).toFixed(2);
+            return parseInt(row.UnitsSold, 10) || 0;
+        });
+        const bgColors = years.map(yr => {
+            if (globalYear !== 'all' && String(yr) !== String(globalYear)) {
+                return CAT_COLORS[cat] + '33';
+            }
+            return CAT_COLORS[cat];
+        });
+        return {
+            label: cat,
+            data: data,
+            backgroundColor: bgColors,
+            borderRadius: 4
+        };
+    });
+
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    if (categoryChart) categoryChart.destroy();
+    categoryChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: labels,
-            datasets: [{
-                data: values,
-                backgroundColor: getChartColors(values.length, values.length - 2),
-                borderRadius: 6
-            }]
+            labels: years.map(y => 'FY' + y),
+            datasets: datasets
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            onClick: (e, elements) => {
-                if (elements && elements.length > 0) {
-                    selectedBarIdx = elements[0].index;
-                    renderStatsView();
-                }
-            },
             plugins: {
-                legend: { display: false },
+                legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
                 tooltip: {
                     callbacks: {
-                        label: function(ctx) {
-                            return (currentMetric === 'gross' ? 'Gross: $' : 'Net: $') + ctx.raw.toFixed(2) + 'M';
+                        label: function(c) {
+                            if (catMetric === 'units') return c.dataset.label + ': ' + Number(c.raw).toLocaleString() + ' units';
+                            return c.dataset.label + ': $' + Number(c.raw).toFixed(2) + 'M';
                         }
                     }
                 }
             },
             scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-                y: { display: false }
+                x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                y: {
+                    grid: { color: '#F1F5F9' },
+                    ticks: {
+                        font: { size: 10 },
+                        callback: v => catMetric === 'units' ? Number(v).toLocaleString() : '$' + v + 'M'
+                    }
+                }
             }
         }
     });
-
-    renderStatsView();
 }
 
-function onPeriodChange(val) {
-    currentPeriod = val;
-    selectedBarIdx = null;
-    renderStatsView();
+// 3. Chart 2: Where Revenue Is Lost (Waterfall)
+function renderWaterfallChart() {
+    const filteredRev = globalYear === 'all'
+        ? rawRevenueData
+        : rawRevenueData.filter(r => String(r.Year) === String(globalYear));
+    const filteredCat = globalYear === 'all'
+        ? rawCatYearData
+        : rawCatYearData.filter(r => String(r.Year) === String(globalYear));
+
+    const gross = filteredRev.reduce((s, r) => s + (parseFloat(r.GrossAmount) || 0), 0);
+    const discount = filteredRev.reduce((s, r) => s + (parseFloat(r.DiscountLoss) || 0), 0);
+    const net = filteredRev.reduce((s, r) => s + (parseFloat(r.NetRevenue) || 0), 0);
+    const mfgCost = filteredCat.reduce((s, r) => s + (parseFloat(r.ManufacturingCost) || 0), 0);
+
+    const totalAllNet = rawRevenueData.reduce((s, r) => s + (parseFloat(r.NetRevenue) || 0), 0);
+    const scrap = globalYear === 'all'
+        ? totalScrapLossAll
+        : (totalAllNet > 0 ? Math.round(totalScrapLossAll * (net / totalAllNet)) : 0);
+
+    const realProfit = net - mfgCost - scrap;
+    const toM = v => +(v / 1e6).toFixed(2);
+
+    const bars = [
+        [0, toM(gross)],
+        [toM(net), toM(gross)],
+        [toM(net - mfgCost), toM(net)],
+        [toM(realProfit), toM(net - mfgCost)],
+        [0, toM(realProfit)]
+    ];
+    const rawAmounts = [gross, -discount, -mfgCost, -scrap, realProfit];
+
+    document.getElementById('waterfallSubtitle').textContent = globalYear === 'all'
+        ? 'Step-by-step bridge for All Years (2011–2014)'
+        : 'Step-by-step bridge for FY' + globalYear;
+
+    const ctx = document.getElementById('waterfallChart').getContext('2d');
+    if (waterfallChart) waterfallChart.destroy();
+    waterfallChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Gross Sales', 'Discounts', 'Mfg Cost', 'Scrap', 'Real Profit'],
+            datasets: [{
+                data: bars,
+                backgroundColor: ['#1E293B', '#F59E0B', '#EF4444', '#DC2626', '#10B981'],
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(c) {
+                            const val = rawAmounts[c.dataIndex];
+                            return c.label + ': ' + fmtDollar(val) + ' (' + (val / 1e6).toFixed(2) + 'M)';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                y: {
+                    grid: { color: '#F1F5F9' },
+                    ticks: { font: { size: 10 }, callback: v => '$' + v + 'M' }
+                }
+            }
+        }
+    });
 }
 
-function toggleRevenueMetric() {
-    currentMetric = currentMetric === 'gross' ? 'net' : 'gross';
-    document.getElementById('statMetricLabel').textContent = currentMetric === 'gross' ? 'Total Gross Revenue' : 'Realized Net Revenue';
-    renderStatsView();
+// 4. Chart 3: Best and Worst Sales Regions
+function setTerritorySort(mode) {
+    territorySort = mode;
+    document.getElementById('btnTerrRev').className = mode === 'revenue'
+        ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition'
+        : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    document.getElementById('btnTerrOrd').className = mode === 'orders'
+        ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition'
+        : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    renderTerritoryChart();
 }
 
-document.addEventListener('DOMContentLoaded', initRightRailChart);
+function renderTerritoryChart() {
+    const continent = document.getElementById('continentFilter').value;
+    let rows = continent === 'all'
+        ? [...rawTerritoryData]
+        : rawTerritoryData.filter(t => t.TerritoryGroup === continent);
+
+    rows.sort((a, b) => {
+        if (territorySort === 'orders') return (b.TotalOrders || 0) - (a.TotalOrders || 0);
+        return (parseFloat(b.TotalRevenue) || 0) - (parseFloat(a.TotalRevenue) || 0);
+    });
+
+    const labels = rows.map(r => r.TerritoryName);
+    const values = rows.map(r => territorySort === 'orders'
+        ? (parseInt(r.TotalOrders, 10) || 0)
+        : +(parseFloat(r.TotalRevenue) / 1e6).toFixed(2)
+    );
+    const colors = rows.map((_, idx) => {
+        if (idx === 0) return '#FF5B26';
+        if (idx === rows.length - 1 && rows.length > 1) return '#94A3B8';
+        return 'rgba(255, 91, 38, 0.45)';
+    });
+
+    const ctx = document.getElementById('territoryRankChart').getContext('2d');
+    if (territoryChart) territoryChart.destroy();
+    territoryChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: colors,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(c) {
+                            const row = rows[c.dataIndex];
+                            if (territorySort === 'orders') {
+                                return fmtInt(row.TotalOrders) + ' orders (' + fmtCompact(parseFloat(row.TotalRevenue)) + ')';
+                            }
+                            return fmtDollar(parseFloat(row.TotalRevenue)) + ' (' + fmtInt(row.TotalOrders) + ' orders)';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: '#F1F5F9' },
+                    ticks: {
+                        font: { size: 10 },
+                        callback: v => territorySort === 'orders' ? Number(v).toLocaleString() : '$' + v + 'M'
+                    }
+                },
+                y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+            }
+        }
+    });
+}
+
+// 5. Chart 4: Stores vs Individuals Donut
+function setCustomerMetric(m) {
+    customerMetric = m;
+    ['Rev', 'Ord', 'Avg'].forEach(k => {
+        const keyMap = { Rev: 'revenue', Ord: 'orders', Avg: 'avg' };
+        const btn = document.getElementById('btnCust' + k);
+        btn.className = keyMap[k] === m
+            ? 'flex-1 py-1 rounded-md bg-white text-slate-900 shadow-sm transition'
+            : 'flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    });
+    renderCustomerChart();
+}
+
+function renderCustomerChart() {
+    const b2b = rawCustomerTypes.find(c => (c.CustomerType || '').includes('Store') || (c.CustomerType || '').includes('B2B')) || {};
+    const b2c = rawCustomerTypes.find(c => !((c.CustomerType || '').includes('Store') || (c.CustomerType || '').includes('B2B'))) || {};
+
+    let b2bVal = 0, b2cVal = 0, centerLabel = '', centerVal = '';
+    if (customerMetric === 'revenue') {
+        b2bVal = parseFloat(b2b.TotalRevenue) || 0;
+        b2cVal = parseFloat(b2c.TotalRevenue) || 0;
+        centerLabel = 'Total Spend';
+        centerVal = fmtCompact(b2bVal + b2cVal);
+        document.getElementById('custB2BVal').textContent = fmtCompact(b2bVal);
+        document.getElementById('custB2CVal').textContent = fmtCompact(b2cVal);
+    } else if (customerMetric === 'orders') {
+        b2bVal = parseInt(b2b.TotalOrders, 10) || 0;
+        b2cVal = parseInt(b2c.TotalOrders, 10) || 0;
+        centerLabel = 'Total Orders';
+        centerVal = fmtInt(b2bVal + b2cVal);
+        document.getElementById('custB2BVal').textContent = fmtInt(b2bVal);
+        document.getElementById('custB2CVal').textContent = fmtInt(b2cVal);
+    } else {
+        b2bVal = (b2b.TotalCustomers > 0) ? (parseFloat(b2b.TotalRevenue) / b2b.TotalCustomers) : 0;
+        b2cVal = (b2c.TotalCustomers > 0) ? (parseFloat(b2c.TotalRevenue) / b2c.TotalCustomers) : 0;
+        centerLabel = 'B2B vs B2C Avg';
+        centerVal = fmtCompact(b2bVal);
+        document.getElementById('custB2BVal').textContent = fmtDollar(b2bVal);
+        document.getElementById('custB2CVal').textContent = fmtDollar(b2cVal);
+    }
+
+    document.getElementById('custCenterLabel').textContent = centerLabel;
+    document.getElementById('custCenterValue').textContent = centerVal;
+
+    const ctx = document.getElementById('customerSplitChart').getContext('2d');
+    if (customerChart) customerChart.destroy();
+    customerChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Stores (B2B)', 'Individuals (B2C)'],
+            datasets: [{
+                data: [b2bVal, b2cVal],
+                backgroundColor: ['#FF5B26', '#1E293B'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(c) {
+                            return c.label + ': ' + (customerMetric === 'orders' ? fmtInt(c.raw) + ' orders' : fmtDollar(c.raw));
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// 6. All-in-One Searchable & Sortable Explorer Table
+const EXPLORER_SCHEMAS = {
+    products: {
+        defaultSort: 'TotalRevenue',
+        columns: [
+            { key: 'ProductName', label: 'Product Name', align: 'left', type: 'str' },
+            { key: 'Category', label: 'Category', align: 'left', type: 'str' },
+            { key: 'TotalQuantity', label: 'Units Sold', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'TotalRevenue', label: 'Sales $', align: 'right', type: 'num', fmt: fmtDollar },
+            { key: 'MarginPercentage', label: 'Profit Margin %', align: 'right', type: 'num', fmt: v => Number(v || 0).toFixed(1) + '%' }
+        ],
+        getRows: () => rawTopProducts
+    },
+    customers: {
+        defaultSort: 'TotalSpent',
+        columns: [
+            { key: 'CustomerName', label: 'Customer Name', align: 'left', type: 'str' },
+            { key: 'CustomerType', label: 'Type', align: 'left', type: 'str' },
+            { key: 'Orders', label: 'Orders Placed', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'TotalSpent', label: 'Total Spent', align: 'right', type: 'num', fmt: fmtDollar },
+            { key: 'AvgOrder', label: 'Avg Order Size', align: 'right', type: 'num', fmt: fmtDollar }
+        ],
+        getRows: () => rawTopCustomers.map(c => ({
+            ...c,
+            AvgOrder: c.Orders > 0 ? (parseFloat(c.TotalSpent) / c.Orders) : 0
+        }))
+    },
+    scrap: {
+        defaultSort: 'TotalScrappedQty',
+        columns: [
+            { key: 'ScrapReason', label: 'Scrap Reason', align: 'left', type: 'str' },
+            { key: 'ScrapOrders', label: 'Failed Work Orders', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'TotalScrappedQty', label: 'Units Thrown Away', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'EstLoss', label: 'Estimated $ Loss', align: 'right', type: 'num', fmt: fmtDollar }
+        ],
+        getRows: () => rawScrapList.map(s => ({
+            ...s,
+            EstLoss: Math.round((s.TotalScrappedQty || 0) * 36.50)
+        }))
+    },
+    vendors: {
+        defaultSort: 'TotalSpent',
+        columns: [
+            { key: 'VendorName', label: 'Vendor Name', align: 'left', type: 'str' },
+            { key: 'PurchaseOrdersCount', label: 'POs Fulfilled', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'TotalSpent', label: 'Total Spend', align: 'right', type: 'num', fmt: fmtDollar },
+            { key: 'AvgPO', label: 'Avg Order Spend', align: 'right', type: 'num', fmt: fmtDollar }
+        ],
+        getRows: () => rawVendorList.map(v => ({
+            ...v,
+            AvgPO: v.PurchaseOrdersCount > 0 ? (parseFloat(v.TotalSpent) / v.PurchaseOrdersCount) : 0
+        }))
+    }
+};
+
+function switchExplorerTab(tab) {
+    explorerTab = tab;
+    explorerSortKey = EXPLORER_SCHEMAS[tab].defaultSort;
+    explorerSortAsc = false;
+    document.querySelectorAll('.exp-tab').forEach(el => {
+        if (el.dataset.tab === tab) {
+            el.className = 'exp-tab px-3 py-1.5 rounded-lg bg-coral text-white font-semibold transition';
+        } else {
+            el.className = 'exp-tab px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
+        }
+    });
+    renderExplorerTable();
+}
+
+function sortExplorerBy(key) {
+    if (explorerSortKey === key) {
+        explorerSortAsc = !explorerSortAsc;
+    } else {
+        explorerSortKey = key;
+        explorerSortAsc = false;
+    }
+    renderExplorerTable();
+}
+
+function renderExplorerTable() {
+    const schema = EXPLORER_SCHEMAS[explorerTab];
+    const query = (document.getElementById('explorerSearch').value || '').toLowerCase().trim();
+    const limit = parseInt(document.getElementById('explorerLimit').value, 10) || 10;
+
+    // Render header
+    const thead = document.getElementById('explorerThead');
+    thead.innerHTML = `<tr class="text-[11px] text-slate-400 border-b border-slate-100">` +
+        schema.columns.map(col => {
+            const isSorted = explorerSortKey === col.key;
+            const arrow = isSorted ? (explorerSortAsc ? ' ▲' : ' ▼') : '';
+            const alignClass = col.align === 'right' ? 'text-right' : 'text-left';
+            return `<th onclick="sortExplorerBy('${col.key}')" class="pb-2.5 font-semibold cursor-pointer select-none hover:text-coral transition ${alignClass}">${col.label}<span class="text-coral">${arrow}</span></th>`;
+        }).join('') + `</tr>`;
+
+    // Filter + sort rows
+    let rows = schema.getRows().filter(row => {
+        if (!query) return true;
+        return schema.columns.some(col => String(row[col.key] || '').toLowerCase().includes(query));
+    });
+
+    const sortCol = schema.columns.find(c => c.key === explorerSortKey);
+    rows.sort((a, b) => {
+        const va = a[explorerSortKey];
+        const vb = b[explorerSortKey];
+        if (sortCol && sortCol.type === 'str') {
+            return explorerSortAsc
+                ? String(va || '').localeCompare(String(vb || ''))
+                : String(vb || '').localeCompare(String(va || ''));
+        }
+        return explorerSortAsc ? ((parseFloat(va) || 0) - (parseFloat(vb) || 0)) : ((parseFloat(vb) || 0) - (parseFloat(va) || 0));
+    });
+
+    rows = rows.slice(0, limit);
+
+    const tbody = document.getElementById('explorerTbody');
+    if (!rows.length) {
+        tbody.innerHTML = `<tr><td colspan="${schema.columns.length}" class="py-6 text-center text-slate-400">No matching records found.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = rows.map(row => {
+        return `<tr class="hover:bg-slate-50 transition">` +
+            schema.columns.map((col, idx) => {
+                const rawVal = row[col.key];
+                const display = col.fmt ? col.fmt(rawVal) : (rawVal ?? '-');
+                const alignClass = col.align === 'right' ? 'text-right font-mono' : 'text-left';
+                const weightClass = idx === 0 ? 'font-semibold text-slate-900' : 'text-slate-600';
+                return `<td class="py-2.5 ${alignClass} ${weightClass}">${display}</td>`;
+            }).join('') +
+        `</tr>`;
+    }).join('');
+}
+
+// Initialize all charts and table on load
+document.addEventListener('DOMContentLoaded', () => {
+    updateTopKPIs();
+    renderCategoryChart();
+    renderWaterfallChart();
+    renderTerritoryChart();
+    renderCustomerChart();
+    renderExplorerTable();
+});
 </script>
 {% endblock %}

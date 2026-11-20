@@ -210,35 +210,11 @@
         </div>
         {% endif %}
 
-        <div class="flex-1 flex flex-col lg:flex-row min-w-0">
-            <!-- Center Column (Main Work Area) -->
-            <main class="flex-1 min-w-0 p-6 max-w-5xl">
+        <div class="flex-1 min-w-0">
+            <!-- Full-Width Main Work Area -->
+            <main class="w-full max-w-7xl mx-auto p-6">
                 {% block content %}{% endblock %}
             </main>
-
-            <!-- Right Column (Analytics & Attachments Rail) -->
-            <aside class="w-full lg:w-72 xl:w-80 border-t lg:border-t-0 lg:border-l border-[#E5E7EB] bg-white p-6 shrink-0">
-                {% block right_rail %}
-                <div class="space-y-6">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-slate-900">Statistics</span>
-                        <div class="text-[11px] border border-slate-200 rounded px-2 py-0.5 text-slate-600 bg-slate-50 flex items-center space-x-1">
-                            <span>Year To Date</span>
-                            <span class="text-[9px] text-slate-400">&darr;</span>
-                        </div>
-                    </div>
-
-                    <!-- Default KPI Card -->
-                    <div class="bg-[#F8F9FA] p-4 rounded-xl border border-[#E5E7EB]">
-                        <span class="text-[11px] font-semibold text-slate-500">Total Gross Revenue</span>
-                        <div class="text-2xl font-bold text-slate-900 mt-1">$80.3M</div>
-                        <div class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 mt-2">
-                            +38% YoY
-                        </div>
-                    </div>
-                </div>
-                {% endblock %}
-            </aside>
         </div>
     </div>
 

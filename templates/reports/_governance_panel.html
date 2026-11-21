@@ -50,7 +50,10 @@
                     {% if can_edit_governance %}
                         {% if is_manager or p.created_by_id == request.user.id %}
                         <button type="button" onclick="document.getElementById('editPresetForm-{{ p.id }}').classList.toggle('hidden')" class="px-2 py-1 rounded bg-white border border-slate-200 text-blue-600 hover:bg-blue-50 text-[11px] font-medium">Edit</button>
-                        <a href="{% url 'delete_preset' p.id %}" onclick="return confirm('Delete preset {{ p.name|escapejs }}?')" class="px-2 py-1 rounded bg-white border border-slate-200 text-rose-600 hover:bg-rose-50 text-[11px] font-medium">Delete</a>
+                        <form method="post" action="{% url 'delete_preset' p.id %}" onsubmit="return confirm('Delete preset {{ p.name|escapejs }}?')" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="px-2 py-1 rounded bg-white border border-slate-200 text-rose-600 hover:bg-rose-50 text-[11px] font-medium">Delete</button>
+                        </form>
                         {% endif %}
                     {% endif %}
                 </div>
@@ -113,7 +116,10 @@
                         {% if is_manager or note.author_id == request.user.id %}
                         <div class="flex items-center space-x-1.5 shrink-0">
                             <button type="button" onclick="document.getElementById('editNoteForm-{{ note.id }}').classList.toggle('hidden')" class="text-[11px] text-blue-600 hover:underline">Edit</button>
-                            <a href="{% url 'delete_annotation' note.id %}" onclick="return confirm('Delete note {{ note.title|escapejs }}?')" class="text-[11px] text-rose-600 hover:underline">Delete</a>
+                            <form method="post" action="{% url 'delete_annotation' note.id %}" onsubmit="return confirm('Delete note {{ note.title|escapejs }}?')" class="inline">
+                                {% csrf_token %}
+                                <button type="submit" class="text-[11px] text-rose-600 hover:underline">Delete</button>
+                            </form>
                         </div>
                         {% endif %}
                     {% endif %}
@@ -153,6 +159,15 @@ function formatPresetSummary(params) {
     return entries.length ? entries.map(([k, v]) => `${k}: ${v}`).join(' | ') : 'Default view';
 }
 
+function escapeHtml(str) {
+    return String(str ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function renderAllPresetChips() {
     document.querySelectorAll('[id^="preset-chips-"]').forEach(container => {
         const pid = container.id.replace('preset-chips-', '');
@@ -165,7 +180,7 @@ function renderAllPresetChips() {
             container.innerHTML = '<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-medium">Default view</span>';
         } else {
             container.innerHTML = entries
-                .map(([k, v]) => `<span class="px-1.5 py-0.5 rounded bg-coral-light text-coral text-[10px] font-medium">${k}: ${v}</span>`)
+                .map(([k, v]) => `<span class="px-1.5 py-0.5 rounded bg-coral-light text-coral text-[10px] font-medium">${escapeHtml(k)}: ${escapeHtml(v)}</span>`)
                 .join('');
         }
     });
@@ -194,7 +209,7 @@ function showAppliedPresetBanner(presetName, params) {
         if (main) main.prepend(banner);
     }
     const summary = formatPresetSummary(params);
-    banner.innerHTML = `<div><strong class="text-coral">Preset applied:</strong> <span class="font-semibold">${presetName}</span> <span class="text-slate-500 ml-1">(${summary})</span></div>` +
+    banner.innerHTML = `<div><strong class="text-coral">Preset applied:</strong> <span class="font-semibold">${escapeHtml(presetName)}</span> <span class="text-slate-500 ml-1">(${escapeHtml(summary)})</span></div>` +
         `<button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-700 font-bold px-1">&times;</button>`;
 }
 

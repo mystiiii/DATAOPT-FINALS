@@ -5,6 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
+from django.views.decorators.http import require_POST
 from accounts.decorators import role_required
 from accounts.models import Role
 from governance.models import SavedReportPreset, ReportAnnotation, DataQualityLog, log_audit_event
@@ -86,13 +87,13 @@ def dashboard_view(request):
     try:
         sales_by_cat_year = sales_service.get_sales_by_category_and_year() or []
         territory_sales = sales_service.get_territory_sales() or []
-        top_products = sales_service.get_top_selling_products(15) or []
+        top_products = sales_service.get_top_selling_products(50) or []
         monthly_trend = sales_service.get_monthly_sales_trend() or []
 
         if is_supervisor:
             customer_types = customer_service.get_customer_type_breakdown() or []
-            top_customers = customer_service.get_top_customers(15) or []
-            total_customers = sum(int(ct.get('TotalCustomers', 0)) for ct in customer_types)
+            top_customers = customer_service.get_top_customers(50) or []
+            total_customers = sum(int(ct.get('ActiveBuyers') or ct.get('TotalCustomers') or 0) for ct in customer_types)
             for ct in customer_types:
                 ctype = ct.get('CustomerType', '')
                 if 'Store' in ctype or 'B2B' in ctype:
@@ -105,11 +106,12 @@ def dashboard_view(request):
 
         if is_manager:
             scrap_list = revenue_loss_service.get_production_scrap_loss() or []
-            vendor_list = cost_service.get_vendor_purchasing_spend(15) or []
+            vendor_list = cost_service.get_vendor_purchasing_spend(50) or []
             revenue_data = revenue_loss_service.get_revenue_and_loss_by_year() or []
 
             total_scrapped_qty = sum(item.get('TotalScrappedQty', 0) for item in scrap_list)
-            total_scrap_loss = int(total_scrapped_qty * 36.50) if total_scrapped_qty else 0
+            actual_scrap_sum = sum(float(item.get('ActualScrapCost') or 0) for item in scrap_list)
+            total_scrap_loss = int(round(actual_scrap_sum)) if actual_scrap_sum > 0 else (int(total_scrapped_qty * 36.50) if total_scrapped_qty else 0)
             total_orders = sum(item.get('OrderCount', 0) for item in revenue_data)
             total_gross = sum(float(item.get('GrossAmount', 0)) for item in revenue_data)
             total_discount = sum(float(item.get('DiscountLoss', 0)) for item in revenue_data)
@@ -168,6 +170,12 @@ def dashboard_view(request):
         'data_issues': DataQualityLog.objects.all()[:3] if is_manager else [],
         'db_error': db_error,
     }
+    log_audit_event(
+        request.user, 'VIEW', 'Dashboard',
+        target_id=request.path,
+        module='dashboard',
+        details=f"Accessed Dashboard ({role_ctx['role']} view)."
+    )
     return render(request, 'reports/dashboard.html', context)
 
 
@@ -183,9 +191,9 @@ def sales_report_view(request):
     try:
         sales_data = sales_service.get_sales_by_category_and_year() or []
         monthly_trend = sales_service.get_monthly_sales_trend() or []
-        subcategories = sales_service.get_sales_by_subcategory(15) or []
-        top_products = sales_service.get_top_selling_products(15) or []
-        low_products = sales_service.get_low_performing_products(10) or []
+        subcategories = sales_service.get_sales_by_subcategory(50) or []
+        top_products = sales_service.get_top_selling_products(50) or []
+        low_products = sales_service.get_low_performing_products(50) or []
         territory_sales = sales_service.get_territory_sales() or []
 
         category_summary = {}
@@ -211,6 +219,12 @@ def sales_report_view(request):
         db_error = str(e)
         messages.error(request, f"Database Error: {e}")
 
+    log_audit_event(
+        request.user, 'VIEW', 'Report',
+        target_id=request.path,
+        module='sales',
+        details="Accessed Sales report."
+    )
     presets = SavedReportPreset.objects.filter(module='sales').order_by('-updated_at')
     annotations = ReportAnnotation.objects.filter(module='sales').order_by('-updated_at')
     return render(request, 'reports/sales.html', {
@@ -241,9 +255,9 @@ def customer_report_view(request):
     country_geo, frequency_buckets, customer_trends = [], [], []
 
     try:
-        top_customers = customer_service.get_top_customers(20) or []
+        top_customers = customer_service.get_top_customers(50) or []
         customer_types = customer_service.get_customer_type_breakdown() or []
-        geo_distribution = customer_service.get_customer_geographic_distribution(15) or []
+        geo_distribution = customer_service.get_customer_geographic_distribution(50) or []
         country_geo = customer_service.get_country_customer_distribution() or []
         frequency_buckets = customer_service.get_purchase_frequency_buckets() or []
         customer_trends = customer_service.get_customer_trends_by_year() or []
@@ -251,6 +265,12 @@ def customer_report_view(request):
         db_error = str(e)
         messages.error(request, f"Database Error: {e}")
 
+    log_audit_event(
+        request.user, 'VIEW', 'Report',
+        target_id=request.path,
+        module='customers',
+        details="Accessed Customers report."
+    )
     presets = SavedReportPreset.objects.filter(module='customers').order_by('-updated_at')
     annotations = ReportAnnotation.objects.filter(module='customers').order_by('-updated_at')
     return render(request, 'reports/customers.html', {
@@ -295,6 +315,12 @@ def revenue_loss_report_view(request):
         db_error = str(e)
         messages.error(request, f"Database Error: {e}")
 
+    log_audit_event(
+        request.user, 'VIEW', 'Report',
+        target_id=request.path,
+        module='revenue_loss',
+        details="Accessed Revenue & Loss report."
+    )
     presets = SavedReportPreset.objects.filter(module='revenue_loss').order_by('-updated_at')
     annotations = ReportAnnotation.objects.filter(module='revenue_loss').order_by('-updated_at')
     data_quality_logs = DataQualityLog.objects.all()
@@ -325,17 +351,26 @@ def cost_report_view(request):
     role_ctx = _get_role_context(request.user)
     db_error = None
     margins, vendor_spend, cost_history, category_cost, purchasing_yearly = [], [], [], [], []
+    cogs_trend, top_cost_products = [], []
 
     try:
-        margins = cost_service.get_product_margins(30) or []
-        vendor_spend = cost_service.get_vendor_purchasing_spend(15) or []
-        cost_history = cost_service.get_standard_cost_history(24) or []
+        margins = cost_service.get_product_margins(50) or []
+        vendor_spend = cost_service.get_vendor_purchasing_spend(50) or []
+        cost_history = cost_service.get_standard_cost_history(50) or []
         category_cost = cost_service.get_category_cost_summary() or []
         purchasing_yearly = cost_service.get_purchasing_spend_by_year() or []
+        cogs_trend = cost_service.get_cogs_trend_by_year_category() or []
+        top_cost_products = cost_service.get_top_cost_products(15) or []
     except DatabaseConnectionError as e:
         db_error = str(e)
         messages.error(request, f"Database Error: {e}")
 
+    log_audit_event(
+        request.user, 'VIEW', 'Report',
+        target_id=request.path,
+        module='cost',
+        details="Accessed Cost report."
+    )
     presets = SavedReportPreset.objects.filter(module='cost').order_by('-updated_at')
     annotations = ReportAnnotation.objects.filter(module='cost').order_by('-updated_at')
     return render(request, 'reports/cost.html', {
@@ -347,6 +382,8 @@ def cost_report_view(request):
         'vendor_spend': vendor_spend,
         'vendor_spend_json': serialize_for_json(vendor_spend),
         'purchasing_yearly_json': serialize_for_json(purchasing_yearly),
+        'cogs_trend_json': serialize_for_json(cogs_trend),
+        'top_cost_products_json': serialize_for_json(top_cost_products),
         'cost_history': cost_history,
         'cost_history_json': serialize_for_json(cost_history),
         'presets': presets,
@@ -415,6 +452,7 @@ def edit_preset_view(request, preset_id):
 
 
 @login_required
+@require_POST
 def delete_preset_view(request, preset_id):
     preset = get_object_or_404(SavedReportPreset, id=preset_id)
     _require_governance_access(request, preset.module, obj_owner=preset.created_by)
@@ -478,6 +516,7 @@ def edit_annotation_view(request, annotation_id):
 
 
 @login_required
+@require_POST
 def delete_annotation_view(request, annotation_id):
     note = get_object_or_404(ReportAnnotation, id=annotation_id)
     _require_governance_access(request, note.module, obj_owner=note.author)

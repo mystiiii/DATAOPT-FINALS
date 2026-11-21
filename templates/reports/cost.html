@@ -15,7 +15,7 @@
             </div>
             <div>
                 <h1 class="text-lg font-bold text-slate-900 tracking-tight">Cost and margins</h1>
-                <p class="text-xs text-slate-500">Product costs vs. list prices, vendor spending, and standard cost changes</p>
+                <p class="text-xs text-slate-500">Category COGS vs. revenue, vendor spending, and manufacturing cost drivers</p>
             </div>
         </div>
 
@@ -76,32 +76,25 @@
         </div>
     </div>
 
-    <!-- Chart Row 1: Category COGS vs Revenue + Cost vs List Price Scatter -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <!-- Chart 1: Category COGS vs Revenue & Margin % -->
-        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+    <!-- Chart Row 1: Category COGS vs Revenue & Margin % -->
+    <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
                 <h2 class="text-sm font-bold text-slate-900">Category COGS vs. revenue</h2>
                 <p class="text-[11px] text-slate-400">Manufacturing cost compared to sales revenue</p>
             </div>
-            <div class="h-64">
-                <canvas id="catCostChart"></canvas>
+            <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                <button type="button" onclick="setCatCostChartType('amounts')" id="btnCostTypeAmounts" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">COGS vs Rev (Bar)</button>
+                <button type="button" onclick="setCatCostChartType('margin')" id="btnCostTypeMargin" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Margin % (Bar)</button>
+                <button type="button" onclick="setCatCostChartType('grouped')" id="btnCostTypeGrouped" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Side-by-Side</button>
             </div>
         </div>
-
-        <!-- Chart 2: Standard Cost vs List Price Scatter -->
-        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
-            <div>
-                <h2 class="text-sm font-bold text-slate-900">Cost vs. list price</h2>
-                <p class="text-[11px] text-slate-400">Each dot is a product; hover to check cost, list price, and margin</p>
-            </div>
-            <div class="h-64">
-                <canvas id="costScatterChart"></canvas>
-            </div>
+        <div class="h-64">
+            <canvas id="catCostChart"></canvas>
         </div>
     </div>
 
-    <!-- Chart Row 2: Vendor Spend / Annual POs + Standard Cost History -->
+    <!-- Chart Row 2: Vendor Spend / Annual POs + Manufacturing Cost Drivers -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <!-- Chart 3: Vendor Spend & Annual POs -->
         <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
@@ -120,14 +113,20 @@
             </div>
         </div>
 
-        <!-- Chart 4: Standard Cost History Multi-Line -->
+        <!-- Chart 4: Manufacturing Cost Drivers (COGS Trend / Top Cost Products) -->
         <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
-            <div>
-                <h2 class="text-sm font-bold text-slate-900">Standard cost history</h2>
-                <p class="text-[11px] text-slate-400">Cost changes on products with more than one price update</p>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Manufacturing cost drivers</h2>
+                    <p id="costDriverSub" class="text-[11px] text-slate-400">Annual manufacturing COGS (FY2014 is Jan–Jun)</p>
+                </div>
+                <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                    <button type="button" onclick="setCostDriverMode('trend')" id="btnCostDriverTrend" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">COGS trend</button>
+                    <button type="button" onclick="setCostDriverMode('products')" id="btnCostDriverProd" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Top cost products</button>
+                </div>
             </div>
             <div class="h-60">
-                <canvas id="costHistoryChart"></canvas>
+                <canvas id="cogsDriverChart"></canvas>
             </div>
         </div>
     </div>
@@ -137,24 +136,36 @@
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             <div class="flex flex-wrap items-center gap-1.5 text-xs font-medium">
                 <button type="button" onclick="switchCostTab('margins')" data-costtab="margins" class="costtab-btn px-3 py-1.5 rounded-lg bg-coral text-white font-semibold transition">Product margins</button>
+                <button type="button" onclick="switchCostTab('drivers')" data-costtab="drivers" class="costtab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Top cost products</button>
                 <button type="button" onclick="switchCostTab('vendors')" data-costtab="vendors" class="costtab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Vendor spend</button>
                 <button type="button" onclick="switchCostTab('history')" data-costtab="history" class="costtab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Cost history</button>
             </div>
             <div class="flex items-center gap-2 text-xs">
                 <input type="text" id="costSearch" oninput="renderCostTable(); if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();" placeholder="Search products or vendors..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral w-48 sm:w-60">
                 <select id="costLimit" onchange="renderCostTable(); if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 font-medium">
+                    <option value="5">Top 5</option>
                     <option value="10" selected>Top 10</option>
-                    <option value="20">Top 20</option>
-                    <option value="30">Top 30</option>
+                    <option value="25">Top 25</option>
+                    <option value="50">Top 50</option>
+                    <option value="all">All</option>
                 </select>
             </div>
         </div>
-        <div class="overflow-x-auto">
+        <div class="h-72 overflow-x-auto overflow-y-auto rounded-lg border border-slate-100 print:h-auto print:overflow-visible">
             <table class="min-w-full divide-y divide-slate-100 text-left text-xs">
-                <thead id="costThead"></thead>
-                <tbody id="costTbody" class="divide-y divide-slate-100"></tbody>
+                <thead id="costThead" class="bg-slate-50 sticky top-0 z-10"></thead>
+                <tbody id="costTbody" class="divide-y divide-slate-100 bg-white"></tbody>
             </table>
         </div>
+    </div>
+
+    <!-- Key Findings & Recommendations -->
+    <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm space-y-2">
+        <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-slate-900">Key findings &amp; recommendations</h2>
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral border border-coral-border">Cost optimization</span>
+        </div>
+        <ul id="costFindingsList" class="text-xs text-slate-600 space-y-1.5 list-disc pl-4"></ul>
     </div>
 
     {% include "reports/_governance_panel.html" %}
@@ -167,15 +178,19 @@ const rawMargins = {{ margins_json|safe }} || [];
 const rawCatCost = {{ category_cost_json|safe }} || [];
 const rawVendors = {{ vendor_spend_json|safe }} || [];
 const rawPOYearly = {{ purchasing_yearly_json|safe }} || [];
+const rawCogsTrend = {{ cogs_trend_json|safe }} || [];
+const rawTopCostProducts = {{ top_cost_products_json|safe }} || [];
 const rawCostHistory = {{ cost_history_json|safe }} || [];
 
 let costCat = 'all';
+let catCostChartType = 'amounts';
 let vendMode = 'vendors';
+let costDriverMode = 'trend';
 let costTab = 'margins';
 let costSortKey = 'MarginPercentage';
 let costSortAsc = false;
 
-let catCostChart = null, scatterChart = null, vendChart = null, histChart = null;
+let catCostChart = null, vendChart = null, costDriverChart = null;
 
 const fmtDollar = v => (v < 0 ? '-' : '') + '$' + Math.round(Math.abs(v || 0)).toLocaleString();
 const fmtDec = v => '$' + Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -183,7 +198,9 @@ const fmtInt = v => Math.round(v || 0).toLocaleString();
 
 const DEFAULT_REPORT_FILTERS = {
     category: 'all',
+    catCostChartType: 'amounts',
     vendMode: 'vendors',
+    costDriverMode: 'trend',
     tab: 'margins',
     search: '',
     limit: '10',
@@ -194,7 +211,9 @@ const DEFAULT_REPORT_FILTERS = {
 function getCurrentReportFilters() {
     return {
         category: costCat,
+        catCostChartType: catCostChartType,
         vendMode: vendMode,
+        costDriverMode: costDriverMode,
         tab: costTab,
         search: (document.getElementById('costSearch').value || '').trim(),
         limit: document.getElementById('costLimit').value,
@@ -217,7 +236,9 @@ function applyReportPreset(params) {
     document.getElementById('costCatFilter').value = catVal;
     costCat = catVal;
 
+    setCatCostChartType(params.catCostChartType || DEFAULT_REPORT_FILTERS.catCostChartType);
     setVendMode(params.vendMode || DEFAULT_REPORT_FILTERS.vendMode);
+    setCostDriverMode(params.costDriverMode || DEFAULT_REPORT_FILTERS.costDriverMode);
 
     const targetTab = (params.tab && COST_SCHEMAS[params.tab]) ? params.tab : DEFAULT_REPORT_FILTERS.tab;
     switchCostTab(targetTab);
@@ -230,7 +251,7 @@ function applyReportPreset(params) {
     }
 
     updateCostKPIs();
-    renderScatterChart();
+    renderCostDriverChart();
     renderCostTable();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
@@ -238,7 +259,7 @@ function applyReportPreset(params) {
 function onCostCatChange(val) {
     costCat = val;
     updateCostKPIs();
-    renderScatterChart();
+    renderCostDriverChart();
     renderCostTable();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
@@ -254,93 +275,106 @@ function updateCostKPIs() {
     document.getElementById('costKpiCatSub').textContent = costCat === 'all' ? 'All categories' : costCat;
 }
 
+function setCatCostChartType(t) {
+    catCostChartType = t;
+    const map = { amounts: 'btnCostTypeAmounts', margin: 'btnCostTypeMargin', grouped: 'btnCostTypeGrouped' };
+    Object.entries(map).forEach(([k, id]) => {
+        const el = document.getElementById(id);
+        if (el) el.className = k === t
+            ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition'
+            : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    });
+    renderCatCostChart();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
+}
+
 function renderCatCostChart() {
+    const labels = rawCatCost.map(c => c.Category);
+    const revVals = rawCatCost.map(c => +(parseFloat(c.TotalRevenue) / 1e6).toFixed(2));
+    const cogsVals = rawCatCost.map(c => +(parseFloat(c.TotalCOGS) / 1e6).toFixed(2));
     const margins = rawCatCost.map(c => parseFloat(c.MarginPercentage) || 0);
     const hasNegMargin = margins.some(v => v < 0);
     const minMargin = Math.min(0, ...margins);
     const maxMargin = Math.max(...margins);
-    const y1Scale = {
-        position: 'right',
-        beginAtZero: true,
-        grace: '10%',
-        grid: {
-            drawOnChartArea: hasNegMargin,
-            color: c => (hasNegMargin && c.tick && c.tick.value === 0) ? '#64748B' : 'transparent',
-            lineWidth: c => (hasNegMargin && c.tick && c.tick.value === 0) ? 1.5 : 0
-        },
-        ticks: { callback: v => v + '%' }
+
+    let datasets = [];
+    let scales = {
+        x: { grid: { display: false } }
     };
-    if (hasNegMargin) {
-        y1Scale.suggestedMax = Math.max(maxMargin, Math.abs(minMargin), 10);
+
+    if (catCostChartType === 'amounts') {
+        datasets = [
+            { label: 'Total Revenue ($M)', data: revVals, backgroundColor: '#1E293B', borderRadius: 4 },
+            { label: 'Total COGS ($M)', data: cogsVals, backgroundColor: '#EF4444', borderRadius: 4 }
+        ];
+        scales.y = {
+            beginAtZero: true,
+            title: { display: true, text: 'Amount ($M)', font: { size: 10, weight: '600' }, color: '#475569' },
+            grid: { color: '#F1F5F9' },
+            ticks: { callback: v => (v < 0 ? '-' : '') + '$' + Math.abs(v) + 'M' }
+        };
+    } else if (catCostChartType === 'margin') {
+        datasets = [
+            {
+                label: 'Margin %',
+                data: margins,
+                backgroundColor: margins.map(v => v >= 0 ? '#10B981' : '#EF4444'),
+                borderRadius: 4
+            }
+        ];
+        const yMargin = {
+            beginAtZero: true,
+            grace: '10%',
+            title: { display: true, text: 'Margin (%)', font: { size: 10, weight: '600' }, color: '#10B981' },
+            grid: {
+                color: c => (hasNegMargin && c.tick && c.tick.value === 0) ? '#64748B' : '#F1F5F9',
+                lineWidth: c => (hasNegMargin && c.tick && c.tick.value === 0) ? 1.5 : 1
+            },
+            ticks: { callback: v => v + '%' }
+        };
+        if (hasNegMargin) {
+            yMargin.suggestedMax = Math.max(maxMargin, Math.abs(minMargin), 10);
+        }
+        scales.y = yMargin;
+    } else {
+        datasets = [
+            { label: 'Total Revenue ($M)', data: revVals, backgroundColor: '#1E293B', borderRadius: 4, yAxisID: 'y' },
+            { label: 'Total COGS ($M)', data: cogsVals, backgroundColor: '#EF4444', borderRadius: 4, yAxisID: 'y' },
+            { label: 'Margin %', data: margins, backgroundColor: '#10B981', borderRadius: 4, yAxisID: 'y1' }
+        ];
+        scales.y = {
+            beginAtZero: true,
+            title: { display: true, text: 'Amount ($M)', font: { size: 10, weight: '600' }, color: '#475569' },
+            grid: { color: '#F1F5F9' },
+            ticks: { callback: v => (v < 0 ? '-' : '') + '$' + Math.abs(v) + 'M' }
+        };
+        const y1Scale = {
+            position: 'right',
+            beginAtZero: true,
+            grace: '10%',
+            title: { display: true, text: 'Margin (%)', font: { size: 10, weight: '600' }, color: '#10B981' },
+            grid: {
+                drawOnChartArea: hasNegMargin,
+                color: c => (hasNegMargin && c.tick && c.tick.value === 0) ? '#64748B' : 'transparent',
+                lineWidth: c => (hasNegMargin && c.tick && c.tick.value === 0) ? 1.5 : 0
+            },
+            ticks: { callback: v => v + '%' }
+        };
+        if (hasNegMargin) {
+            y1Scale.suggestedMax = Math.max(maxMargin, Math.abs(minMargin), 10);
+        }
+        scales.y1 = y1Scale;
     }
 
     const ctx = document.getElementById('catCostChart').getContext('2d');
     if (catCostChart) catCostChart.destroy();
     catCostChart = new Chart(ctx, {
         type: 'bar',
-        data: {
-            labels: rawCatCost.map(c => c.Category),
-            datasets: [
-                { label: 'Total Revenue ($M)', data: rawCatCost.map(c => +(parseFloat(c.TotalRevenue) / 1e6).toFixed(2)), backgroundColor: '#1E293B', borderRadius: 4, yAxisID: 'y' },
-                { label: 'Total COGS ($M)', data: rawCatCost.map(c => +(parseFloat(c.TotalCOGS) / 1e6).toFixed(2)), backgroundColor: '#EF4444', borderRadius: 4, yAxisID: 'y' },
-                { label: 'Margin %', data: margins, type: 'line', borderColor: '#10B981', backgroundColor: '#10B981', tension: 0.2, yAxisID: 'y1' }
-            ]
-        },
+        data: { labels, datasets },
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
-            scales: {
-                x: { grid: { display: false } },
-                y: { beginAtZero: true, grid: { color: '#F1F5F9' }, ticks: { callback: v => (v < 0 ? '-' : '') + '$' + Math.abs(v) + 'M' } },
-                y1: y1Scale
-            }
-        }
-    });
-}
-
-const CAT_COLORS = { 'Bikes': '#FF5B26', 'Components': '#1E293B', 'Clothing': '#3B82F6', 'Accessories': '#10B981' };
-
-function renderScatterChart() {
-    const filtered = costCat === 'all' ? rawMargins : rawMargins.filter(m => m.Category === costCat);
-    const groups = {};
-    filtered.forEach(m => {
-        const cat = m.Category || 'Other';
-        if (!groups[cat]) groups[cat] = [];
-        groups[cat].push({
-            x: parseFloat(m.StandardCost) || 0,
-            y: parseFloat(m.ListPrice) || 0,
-            name: m.ProductName,
-            margin: m.MarginPercentage
-        });
-    });
-
-    const datasets = Object.entries(groups).map(([cat, pts]) => ({
-        label: cat,
-        data: pts,
-        backgroundColor: CAT_COLORS[cat] || '#64748B',
-        pointRadius: 5,
-        pointHoverRadius: 7
-    }));
-
-    const ctx = document.getElementById('costScatterChart').getContext('2d');
-    if (scatterChart) scatterChart.destroy();
-    scatterChart = new Chart(ctx, {
-        type: 'scatter',
-        data: { datasets },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } },
-                tooltip: {
-                    callbacks: {
-                        label: c => `${c.raw.name}: Cost ${fmtDec(c.raw.x)} | Price ${fmtDec(c.raw.y)} (${c.raw.margin}% margin)`
-                    }
-                }
-            },
-            scales: {
-                x: { title: { display: true, text: 'Standard Cost ($)', font: { size: 10 } }, grid: { color: '#F1F5F9' } },
-                y: { title: { display: true, text: 'List Price ($)', font: { size: 10 } }, grid: { color: '#F1F5F9' } }
-            }
+            scales
         }
     });
 }
@@ -367,7 +401,7 @@ function renderVendorSpendChart() {
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { x: { grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v + 'M' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
+                scales: { x: { beginAtZero: true, title: { display: true, text: 'Total Spend ($M)', font: { size: 10, weight: '600' }, color: '#475569' }, grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v + 'M' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
             }
         });
     } else {
@@ -383,45 +417,138 @@ function renderVendorSpendChart() {
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
-                scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v + 'M' } } }
+                scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, title: { display: true, text: 'PO Spend ($M)', font: { size: 10, weight: '600' }, color: '#475569' }, grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v + 'M' } } }
             }
         });
     }
 }
 
-function renderCostHistoryChart() {
-    const byProd = {};
-    rawCostHistory.forEach(r => {
-        if (!byProd[r.ProductName]) byProd[r.ProductName] = [];
-        byProd[r.ProductName].push(r);
-    });
-    const prodNames = Object.keys(byProd).slice(0, 4);
-    const periods = [...new Set(rawCostHistory.map(r => String(r.StartDate || '').slice(0, 10)))].sort();
-    const palette = ['#FF5B26', '#1E293B', '#3B82F6', '#10B981'];
+function setCostDriverMode(m) {
+    costDriverMode = m;
+    document.getElementById('btnCostDriverTrend').className = m === 'trend'
+        ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition'
+        : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    document.getElementById('btnCostDriverProd').className = m === 'products'
+        ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition'
+        : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    renderCostDriverChart();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
+}
 
-    const datasets = prodNames.map((name, idx) => ({
-        label: name.slice(0, 22),
-        data: periods.map(p => {
-            const match = byProd[name].find(r => String(r.StartDate || '').slice(0, 10) === p);
-            return match ? parseFloat(match.StandardCost) : null;
-        }),
-        borderColor: palette[idx % palette.length],
-        backgroundColor: palette[idx % palette.length],
-        spanGaps: true,
-        tension: 0.2
-    }));
+function renderCostDriverChart() {
+    const ctx = document.getElementById('cogsDriverChart').getContext('2d');
+    if (costDriverChart) costDriverChart.destroy();
+    const catLabel = costCat === 'all' ? 'All categories' : costCat;
 
-    const ctx = document.getElementById('costHistoryChart').getContext('2d');
-    if (histChart) histChart.destroy();
-    histChart = new Chart(ctx, {
-        type: 'line',
-        data: { labels: periods, datasets },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
-            scales: { x: { grid: { display: false } }, y: { grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v } } }
-        }
-    });
+    if (costDriverMode === 'trend') {
+        const filtered = costCat === 'all' ? rawCogsTrend : rawCogsTrend.filter(r => r.Category === costCat);
+        const byYear = {};
+        filtered.forEach(r => {
+            const yr = r.Year;
+            if (!byYear[yr]) byYear[yr] = { Year: yr, TotalCOGS: 0, TotalRevenue: 0, UnitsSold: 0 };
+            byYear[yr].TotalCOGS += parseFloat(r.TotalCOGS) || 0;
+            byYear[yr].TotalRevenue += parseFloat(r.TotalRevenue) || 0;
+            byYear[yr].UnitsSold += parseInt(r.UnitsSold, 10) || 0;
+        });
+        const rows = Object.values(byYear).sort((a, b) => a.Year - b.Year);
+        const maxCOGS = Math.max(0, ...rows.map(r => r.TotalCOGS));
+        const useK = maxCOGS > 0 && maxCOGS < 1e6;
+        const divisor = useK ? 1e3 : 1e6;
+        const unitLabel = useK ? '$K' : '$M';
+
+        document.getElementById('costDriverSub').textContent = `${catLabel} · Annual manufacturing COGS (FY2014 is Jan–Jun)`;
+        costDriverChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: rows.map(r => 'FY' + r.Year),
+                datasets: [{
+                    label: `Manufacturing COGS (${unitLabel})`,
+                    data: rows.map(r => +(r.TotalCOGS / divisor).toFixed(2)),
+                    borderColor: '#EF4444',
+                    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: c => {
+                                const row = rows[c.dataIndex];
+                                if (!row) return '';
+                                return `COGS: ${fmtDollar(row.TotalCOGS)} | Revenue: ${fmtDollar(row.TotalRevenue)} | ${fmtInt(row.UnitsSold)} units`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: {
+                        beginAtZero: true,
+                        grace: '10%',
+                        title: { display: true, text: `Manufacturing COGS (${unitLabel})`, font: { size: 10, weight: '600' }, color: '#EF4444' },
+                        grid: { color: '#F1F5F9' },
+                        ticks: { callback: v => useK ? '$' + fmtInt(v) + 'K' : '$' + v + 'M' }
+                    }
+                }
+            }
+        });
+    } else {
+        const filtered = (costCat === 'all' ? rawTopCostProducts : rawTopCostProducts.filter(p => p.Category === costCat))
+            .slice()
+            .sort((a, b) => (parseFloat(b.TotalCOGS) || 0) - (parseFloat(a.TotalCOGS) || 0))
+            .slice(0, 8);
+        const maxCOGS = Math.max(0, ...filtered.map(p => parseFloat(p.TotalCOGS) || 0));
+        const useK = maxCOGS > 0 && maxCOGS < 1e6;
+        const divisor = useK ? 1e3 : 1e6;
+        const unitLabel = useK ? '$K' : '$M';
+
+        document.getElementById('costDriverSub').textContent = `${catLabel} · Top 8 products by total manufacturing COGS`;
+        costDriverChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: filtered.map(p => (p.ProductName || '').slice(0, 22)),
+                datasets: [{
+                    label: `Total COGS (${unitLabel})`,
+                    data: filtered.map(p => +((parseFloat(p.TotalCOGS) || 0) / divisor).toFixed(2)),
+                    backgroundColor: filtered.map((_, i) => i === 0 ? '#EF4444' : 'rgba(239, 68, 68, 0.55)'),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: c => {
+                                const row = filtered[c.dataIndex];
+                                if (!row) return '';
+                                return `COGS: ${fmtDollar(row.TotalCOGS)} | ${fmtInt(row.UnitsSold)} units | ${Number(row.MarginPercentage || 0).toFixed(1)}% margin`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: { display: true, text: `Total COGS (${unitLabel})`, font: { size: 10, weight: '600' }, color: '#EF4444' },
+                        grid: { color: '#F1F5F9' },
+                        ticks: { callback: v => useK ? '$' + fmtInt(v) + 'K' : '$' + v + 'M' }
+                    },
+                    y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                }
+            }
+        });
+    }
 }
 
 const COST_SCHEMAS = {
@@ -435,6 +562,18 @@ const COST_SCHEMAS = {
             { key: 'MarginPercentage', label: 'Margin %', align: 'right', type: 'num', fmt: v => Number(v || 0).toFixed(1) + '%' }
         ],
         getRows: () => costCat === 'all' ? rawMargins : rawMargins.filter(m => m.Category === costCat)
+    },
+    drivers: {
+        defaultSort: 'TotalCOGS',
+        columns: [
+            { key: 'ProductName', label: 'Product Name', align: 'left', type: 'str' },
+            { key: 'Category', label: 'Category', align: 'left', type: 'str' },
+            { key: 'UnitsSold', label: 'Units Sold', align: 'right', type: 'num', fmt: fmtInt },
+            { key: 'UnitStandardCost', label: 'Unit Cost', align: 'right', type: 'num', fmt: fmtDec },
+            { key: 'TotalCOGS', label: 'Total COGS', align: 'right', type: 'num', fmt: fmtDollar },
+            { key: 'MarginPercentage', label: 'Margin %', align: 'right', type: 'num', fmt: v => Number(v || 0).toFixed(1) + '%' }
+        ],
+        getRows: () => costCat === 'all' ? rawTopCostProducts : rawTopCostProducts.filter(p => p.Category === costCat)
     },
     vendors: {
         defaultSort: 'TotalSpent',
@@ -480,12 +619,13 @@ function sortCostBy(key) {
 function renderCostTable() {
     const schema = COST_SCHEMAS[costTab];
     const query = (document.getElementById('costSearch').value || '').toLowerCase().trim();
-    const limit = parseInt(document.getElementById('costLimit').value, 10) || 10;
+    const limitVal = document.getElementById('costLimit').value;
+    const limit = limitVal === 'all' ? rows.length : (parseInt(limitVal, 10) || 10);
 
     document.getElementById('costThead').innerHTML = `<tr class="text-[11px] text-slate-400 border-b border-slate-100">` +
         schema.columns.map(col => {
             const arrow = costSortKey === col.key ? (costSortAsc ? ' ▲' : ' ▼') : '';
-            return `<th onclick="sortCostBy('${col.key}')" class="pb-2.5 font-semibold cursor-pointer select-none hover:text-coral ${col.align === 'right' ? 'text-right' : 'text-left'}">${col.label}<span class="text-coral">${arrow}</span></th>`;
+            return `<th onclick="sortCostBy('${col.key}')" class="px-3 py-2.5 font-semibold cursor-pointer select-none hover:text-coral ${col.align === 'right' ? 'text-right' : 'text-left'}">${col.label}<span class="text-coral">${arrow}</span></th>`;
         }).join('') + `</tr>`;
 
     let rows = schema.getRows().filter(r => !query || schema.columns.some(c => String(r[c.key] || '').toLowerCase().includes(query)));
@@ -499,15 +639,37 @@ function renderCostTable() {
     const tbody = document.getElementById('costTbody');
     if (!rows.length) { tbody.innerHTML = `<tr><td colspan="${schema.columns.length}" class="py-6 text-center text-slate-400">No matches.</td></tr>`; return; }
     tbody.innerHTML = rows.map(row => `<tr class="hover:bg-slate-50 transition">` +
-        schema.columns.map((col, idx) => `<td class="py-2.5 ${col.align === 'right' ? 'text-right font-mono' : 'text-left'} ${idx === 0 ? 'font-semibold text-slate-900' : 'text-slate-600'}">${col.fmt ? col.fmt(row[col.key]) : (row[col.key] ?? '-')}</td>`).join('') + `</tr>`).join('');
+        schema.columns.map((col, idx) => `<td class="px-3 py-2.5 ${col.align === 'right' ? 'text-right font-mono' : 'text-left'} ${idx === 0 ? 'font-semibold text-slate-900' : 'text-slate-600'}">${col.fmt ? col.fmt(row[col.key]) : (row[col.key] ?? '-')}</td>`).join('') + `</tr>`).join('');
+}
+
+function renderCostFindings() {
+    const el = document.getElementById('costFindingsList');
+    if (!el) return;
+    const negCats = rawCatCost.filter(c => (parseFloat(c.MarginPercentage) || 0) < 0);
+    const topCostProd = rawTopCostProducts[0];
+    const topVend = rawVendors[0];
+    const items = [];
+    if (negCats.length) {
+        items.push(`<strong>Negative-margin alert:</strong> ${negCats.map(c => `${c.Category} (${Number(c.MarginPercentage).toFixed(1)}%)`).join(', ')} show negative gross margin where standard manufacturing cost exceeds net sales — review pricing and discounting.`);
+    } else if (rawCatCost.length) {
+        const sorted = rawCatCost.slice().sort((a, b) => (parseFloat(b.TotalCOGS) || 0) - (parseFloat(a.TotalCOGS) || 0));
+        items.push(`<strong>Primary cost category:</strong> ${sorted[0].Category} accounts for ${fmtDollar(sorted[0].TotalCOGS)} in COGS (${Number(sorted[0].MarginPercentage || 0).toFixed(1)}% margin).`);
+    }
+    if (topCostProd) {
+        items.push(`<strong>Top COGS product:</strong> <em>${topCostProd.ProductName}</em> (${topCostProd.Category}) drives ${fmtDollar(topCostProd.TotalCOGS)} in total manufacturing cost across ${fmtInt(topCostProd.UnitsSold)} units.`);
+    }
+    if (topVend) {
+        items.push(`<strong>Supplier concentration:</strong> ${topVend.VendorName} is the largest supplier at ${fmtDollar(topVend.TotalSpent)} (${fmtInt(topVend.PurchaseOrdersCount)} POs) — negotiate volume rebates or dual-source to reduce supply risk.`);
+    }
+    el.innerHTML = items.map(t => `<li>${t}</li>`).join('');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
     updateCostKPIs();
     renderCatCostChart();
-    renderScatterChart();
     renderVendorSpendChart();
-    renderCostHistoryChart();
+    renderCostDriverChart();
+    renderCostFindings();
     renderCostTable();
 });
 </script>

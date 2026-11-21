@@ -51,6 +51,9 @@ class DataQualityLog(models.Model):
 
 class AuditLog(models.Model):
     ACTION_CHOICES = [
+        ('VIEW', 'View'),
+        ('LOGIN', 'Login'),
+        ('LOGOUT', 'Logout'),
         ('CREATE', 'Create'),
         ('EDIT', 'Edit'),
         ('DELETE', 'Delete'),

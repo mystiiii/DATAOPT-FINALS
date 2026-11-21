@@ -41,6 +41,10 @@
             {% if user.profile.is_supervisor or user.is_superuser %}
             <a href="{% url 'report_customers' %}" class="{% if request.resolver_match.url_name == 'report_customers' %}text-coral font-semibold{% else %}text-slate-600{% endif %}">Customers</a>
             {% endif %}
+            {% if user.profile.is_manager or user.is_superuser %}
+            <a href="{% url 'report_revenue_loss' %}" class="{% if request.resolver_match.url_name == 'report_revenue_loss' %}text-coral font-semibold{% else %}text-slate-600{% endif %}">Rev &amp; loss</a>
+            <a href="{% url 'report_cost' %}" class="{% if request.resolver_match.url_name == 'report_cost' %}text-coral font-semibold{% else %}text-slate-600{% endif %}">Cost</a>
+            {% endif %}
             {% if user.profile.is_administrator or user.is_superuser %}
             <a href="{% url 'audit_log' %}" class="{% if request.resolver_match.url_name == 'audit_log' %}text-coral font-semibold{% else %}text-slate-600{% endif %}">Audit</a>
             {% endif %}
@@ -121,7 +125,7 @@
                 {% endif %}
 
                 <!-- Revenue & Loss (Manager/Admin Only) -->
-                {% if user.profile.is_manager %}
+                {% if user.profile.is_manager or user.is_superuser %}
                 <a href="{% url 'report_revenue_loss' %}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {% if request.resolver_match.url_name == 'report_revenue_loss' %}bg-coral-light text-coral font-semibold{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                     <div class="flex items-center space-x-2.5">
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,7 +150,7 @@
                 {% endif %}
 
                 <!-- Cost (Manager/Admin Only) -->
-                {% if user.profile.is_manager %}
+                {% if user.profile.is_manager or user.is_superuser %}
                 <a href="{% url 'report_cost' %}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {% if request.resolver_match.url_name == 'report_cost' %}bg-coral-light text-coral font-semibold{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                     <div class="flex items-center space-x-2.5">
                         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

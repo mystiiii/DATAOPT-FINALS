@@ -6,7 +6,7 @@ from governance.models import SavedReportPreset, ReportAnnotation, AuditLog
 
 
 class RBACTestCase(TestCase):
-    databases = {'default', 'adventureworks'}
+    databases = {'default'}
 
     def setUp(self):
         self.client = Client()
@@ -106,10 +106,15 @@ class RBACTestCase(TestCase):
         note.refresh_from_db()
         self.assertEqual(note.title, 'Q4 Spike Reviewed')
 
-        self.client.get(reverse('delete_preset', args=[preset.id]))
+        # GET delete should be rejected (405 Method Not Allowed)
+        self.assertEqual(self.client.get(reverse('delete_preset', args=[preset.id])).status_code, 405)
+        self.assertTrue(SavedReportPreset.objects.filter(id=preset.id).exists())
+
+        self.client.post(reverse('delete_preset', args=[preset.id]))
         self.assertFalse(SavedReportPreset.objects.filter(id=preset.id).exists())
 
-        self.client.get(reverse('delete_annotation', args=[note.id]))
+        self.assertEqual(self.client.get(reverse('delete_annotation', args=[note.id])).status_code, 405)
+        self.client.post(reverse('delete_annotation', args=[note.id]))
         self.assertFalse(ReportAnnotation.objects.filter(id=note.id).exists())
 
         self.assertTrue(AuditLog.objects.filter(action='CREATE', target_type='SavedReportPreset').exists())

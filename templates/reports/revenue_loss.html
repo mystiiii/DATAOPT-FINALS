@@ -176,17 +176,29 @@
             <div class="flex items-center gap-2 text-xs">
                 <input type="text" id="revSearch" oninput="renderRevTable(); if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();" placeholder="Search records..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral w-48 sm:w-60">
                 <select id="revLimit" onchange="renderRevTable(); if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 font-medium">
+                    <option value="5">Top 5</option>
                     <option value="10" selected>Top 10</option>
-                    <option value="20">Top 20</option>
+                    <option value="25">Top 25</option>
+                    <option value="50">Top 50</option>
+                    <option value="all">All</option>
                 </select>
             </div>
         </div>
-        <div class="overflow-x-auto">
+        <div class="h-72 overflow-x-auto overflow-y-auto rounded-lg border border-slate-100 print:h-auto print:overflow-visible">
             <table class="min-w-full divide-y divide-slate-100 text-left text-xs">
-                <thead id="revThead"></thead>
-                <tbody id="revTbody" class="divide-y divide-slate-100"></tbody>
+                <thead id="revThead" class="bg-slate-50 sticky top-0 z-10"></thead>
+                <tbody id="revTbody" class="divide-y divide-slate-100 bg-white"></tbody>
             </table>
         </div>
+    </div>
+
+    <!-- Key Findings & Recommendations -->
+    <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm space-y-2">
+        <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-slate-900">Key findings &amp; recommendations</h2>
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral border border-coral-border">Loss &amp; scrap analysis</span>
+        </div>
+        <ul id="revFindingsList" class="text-xs text-slate-600 space-y-1.5 list-disc pl-4"></ul>
     </div>
 
     {% include "reports/_governance_panel.html" %}
@@ -586,7 +598,7 @@ function renderCatDiscountChart() {
         options: {
             indexAxis: 'y', responsive: true, maintainAspectRatio: false,
             plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => catDiscMetric === 'loss' ? fmtDollar(c.raw) : c.raw + '%' } } },
-            scales: { x: { grid: { color: '#F1F5F9' }, ticks: { callback: v => catDiscMetric === 'loss' ? '$' + Math.round(v / 1e3) + 'K' : v + '%' } }, y: { grid: { display: false } } }
+            scales: { x: { beginAtZero: true, title: { display: true, text: catDiscMetric === 'loss' ? 'Discount Loss ($)' : 'Discount Rate (%)', font: { size: 10, weight: '600' }, color: '#475569' }, grid: { color: '#F1F5F9' }, ticks: { callback: v => catDiscMetric === 'loss' ? '$' + Math.round(v / 1e3) + 'K' : v + '%' } }, y: { grid: { display: false } } }
         }
     });
 }
@@ -732,12 +744,13 @@ function sortRevBy(key) {
 function renderRevTable() {
     const schema = REV_SCHEMAS[revTab];
     const query = (document.getElementById('revSearch').value || '').toLowerCase().trim();
-    const limit = parseInt(document.getElementById('revLimit').value, 10) || 10;
+    const limitVal = document.getElementById('revLimit').value;
+    const limit = limitVal === 'all' ? rows.length : (parseInt(limitVal, 10) || 10);
 
     document.getElementById('revThead').innerHTML = `<tr class="text-[11px] text-slate-400 border-b border-slate-100">` +
         schema.columns.map(col => {
             const arrow = revSortKey === col.key ? (revSortAsc ? ' ▲' : ' ▼') : '';
-            return `<th onclick="sortRevBy('${col.key}')" class="pb-2.5 font-semibold cursor-pointer select-none hover:text-coral ${col.align === 'right' ? 'text-right' : 'text-left'}">${col.label}<span class="text-coral">${arrow}</span></th>`;
+            return `<th onclick="sortRevBy('${col.key}')" class="px-3 py-2.5 font-semibold cursor-pointer select-none hover:text-coral ${col.align === 'right' ? 'text-right' : 'text-left'}">${col.label}<span class="text-coral">${arrow}</span></th>`;
         }).join('') + `</tr>`;
 
     let rows = schema.getRows().filter(r => !query || schema.columns.some(c => String(r[c.key] || '').toLowerCase().includes(query)));
@@ -751,7 +764,29 @@ function renderRevTable() {
     const tbody = document.getElementById('revTbody');
     if (!rows.length) { tbody.innerHTML = `<tr><td colspan="${schema.columns.length}" class="py-6 text-center text-slate-400">No matches.</td></tr>`; return; }
     tbody.innerHTML = rows.map(row => `<tr class="hover:bg-slate-50 transition">` +
-        schema.columns.map((col, idx) => `<td class="py-2.5 ${col.align === 'right' ? 'text-right font-mono' : 'text-left'} ${idx === 0 ? 'font-semibold text-slate-900' : 'text-slate-600'}">${col.fmt ? col.fmt(row[col.key]) : (row[col.key] ?? '-')}</td>`).join('') + `</tr>`).join('');
+        schema.columns.map((col, idx) => `<td class="px-3 py-2.5 ${col.align === 'right' ? 'text-right font-mono' : 'text-left'} ${idx === 0 ? 'font-semibold text-slate-900' : 'text-slate-600'}">${col.fmt ? col.fmt(row[col.key]) : (row[col.key] ?? '-')}</td>`).join('') + `</tr>`).join('');
+}
+
+function renderRevFindings() {
+    const el = document.getElementById('revFindingsList');
+    if (!el) return;
+    const gross = rawRevYear.reduce((s, r) => s + (parseFloat(r.GrossAmount) || 0), 0);
+    const disc = rawRevYear.reduce((s, r) => s + (parseFloat(r.DiscountLoss) || 0), 0);
+    const topScrap = rawScrap[0];
+    const catAgg = {};
+    rawCatDiscounts.forEach(r => { catAgg[r.Category] = (catAgg[r.Category] || 0) + (parseFloat(r.DiscountLoss) || 0); });
+    const topDiscCat = Object.entries(catAgg).sort((a, b) => b[1] - a[1])[0];
+    const items = [];
+    if (gross > 0) {
+        items.push(`<strong>Discount leakage:</strong> Discounts reduced gross sales by ${fmtDollar(disc)} (${((disc / gross) * 100).toFixed(2)}% overall); audit high-discount promotional tiers to protect net margin.`);
+    }
+    if (topDiscCat) {
+        items.push(`<strong>Highest discount category:</strong> ${topDiscCat[0]} accounts for ${fmtDollar(topDiscCat[1])} in cumulative discounts.`);
+    }
+    if (topScrap) {
+        items.push(`<strong>Top scrap driver:</strong> <em>${topScrap.ScrapReason}</em> caused ${fmtInt(topScrap.TotalScrappedQty)} scrapped units across ${fmtInt(topScrap.ScrapOrders)} work orders — prioritize root-cause quality checks on this defect.`);
+    }
+    el.innerHTML = items.map(t => `<li>${t}</li>`).join('');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -760,6 +795,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderRevTrend();
     renderCatDiscountChart();
     renderScrapPareto();
+    renderRevFindings();
     renderRevTable();
 });
 </script>

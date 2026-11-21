@@ -111,6 +111,8 @@ class DashboardAndLayoutTests(TestCase):
     @patch('reports.views.revenue_loss_service.get_monthly_revenue_and_loss', return_value=[])
     @patch('reports.views.revenue_loss_service.get_production_scrap_loss', return_value=SAMPLE_SCRAP)
     @patch('reports.views.revenue_loss_service.get_revenue_and_loss_by_year', return_value=SAMPLE_REVENUE)
+    @patch('reports.views.cost_service.get_top_cost_products', return_value=[])
+    @patch('reports.views.cost_service.get_cogs_trend_by_year_category', return_value=[])
     @patch('reports.views.cost_service.get_purchasing_spend_by_year', return_value=[])
     @patch('reports.views.cost_service.get_category_cost_summary', return_value=[])
     @patch('reports.views.cost_service.get_standard_cost_history', return_value=[])
@@ -122,7 +124,7 @@ class DashboardAndLayoutTests(TestCase):
             'report_sales': ['monthlySalesChart', 'salesCategoryChart', 'salesTerritoryChart', 'productExtremeChart'],
             'report_customers': ['custSplitChart', 'frequencyChart', 'custGeoChart', 'custTrendChart'],
             'report_revenue_loss': ['revWaterfallChart', 'revTrendChart', 'catDiscountChart', 'scrapParetoChart'],
-            'report_cost': ['catCostChart', 'costScatterChart', 'vendorSpendChart', 'costHistoryChart'],
+            'report_cost': ['catCostChart', 'vendorSpendChart', 'cogsDriverChart'],
         }
         for url_name, canvases in expected_canvases.items():
             resp = self.client.get(reverse(url_name))

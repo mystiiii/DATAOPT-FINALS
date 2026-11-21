@@ -99,3 +99,65 @@ def get_purchasing_spend_by_year():
     ORDER BY [Year];
     """
     return execute_query(sql)
+
+
+def get_cogs_trend_by_year_category():
+    """Return annual manufacturing COGS, revenue, and units sold grouped by category."""
+    sql = """
+    SELECT
+        YEAR(soh.OrderDate) AS [Year],
+        pc.Name AS Category,
+        SUM(sod.OrderQty) AS UnitsSold,
+        SUM(sod.OrderQty * p.StandardCost) AS TotalCOGS,
+        SUM(sod.LineTotal) AS TotalRevenue
+    FROM Sales.SalesOrderHeader soh
+    JOIN Sales.SalesOrderDetail sod ON sod.SalesOrderID = soh.SalesOrderID
+    JOIN Production.Product p ON p.ProductID = sod.ProductID
+    JOIN Production.ProductSubcategory ps ON ps.ProductSubcategoryID = p.ProductSubcategoryID
+    JOIN Production.ProductCategory pc ON pc.ProductCategoryID = ps.ProductCategoryID
+    GROUP BY YEAR(soh.OrderDate), pc.Name
+    ORDER BY [Year], TotalCOGS DESC;
+    """
+    return execute_query(sql)
+
+
+def get_top_cost_products(per_category=10):
+    """Return the top COGS-contributing products within each product category."""
+    per_cat = max(1, int(per_category))
+    sql = f"""
+    WITH ProductCOGS AS (
+        SELECT
+            p.ProductID,
+            p.Name AS ProductName,
+            pc.Name AS Category,
+            p.StandardCost AS UnitStandardCost,
+            SUM(sod.OrderQty) AS UnitsSold,
+            SUM(sod.OrderQty * p.StandardCost) AS TotalCOGS,
+            SUM(sod.LineTotal) AS TotalRevenue,
+            CASE WHEN SUM(sod.LineTotal) > 0
+                 THEN ROUND(((SUM(sod.LineTotal) - SUM(sod.OrderQty * p.StandardCost)) / SUM(sod.LineTotal)) * 100, 1)
+                 ELSE 0 END AS MarginPercentage,
+            ROW_NUMBER() OVER (
+                PARTITION BY pc.Name
+                ORDER BY SUM(sod.OrderQty * p.StandardCost) DESC
+            ) AS rn
+        FROM Sales.SalesOrderDetail sod
+        JOIN Production.Product p ON p.ProductID = sod.ProductID
+        JOIN Production.ProductSubcategory ps ON ps.ProductSubcategoryID = p.ProductSubcategoryID
+        JOIN Production.ProductCategory pc ON pc.ProductCategoryID = ps.ProductCategoryID
+        GROUP BY p.ProductID, p.Name, pc.Name, p.StandardCost
+    )
+    SELECT
+        ProductID,
+        ProductName,
+        Category,
+        UnitStandardCost,
+        UnitsSold,
+        TotalCOGS,
+        TotalRevenue,
+        MarginPercentage
+    FROM ProductCOGS
+    WHERE rn <= {per_cat}
+    ORDER BY TotalCOGS DESC;
+    """
+    return execute_query(sql)

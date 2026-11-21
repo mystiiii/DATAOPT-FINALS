@@ -27,7 +27,7 @@
             <label for="globalYearFilter" class="text-[11px] font-medium text-slate-500">Period:</label>
             <select id="globalYearFilter" onchange="onGlobalYearChange(this.value)" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-700 bg-white font-medium focus:outline-none focus:ring-1 focus:ring-coral cursor-pointer">
                 <option value="all" selected>All years (2011 to 2014)</option>
-                <option value="2014">2014</option>
+                <option value="2014">2014 (Jan to Jun)</option>
                 <option value="2013">2013</option>
                 <option value="2012">2012</option>
                 <option value="2011">2011</option>
@@ -97,7 +97,7 @@
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700">B2B + B2C</span>
             </div>
             <div class="text-2xl font-bold text-slate-900 mt-2">{{ total_customers|intcomma }}</div>
-            <div class="text-[11px] text-slate-500 mt-1">Stores {{ b2b_pct }}%, individuals {{ b2c_pct }}%</div>
+            <div class="text-[11px] text-slate-500 mt-1">Sales share: {{ b2b_pct }}% stores, {{ b2c_pct }}% individuals</div>
         </div>
         {% else %}
         <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
@@ -105,7 +105,7 @@
                 <span class="text-[11px] font-medium text-slate-500">Sales regions</span>
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700">Worldwide</span>
             </div>
-            <div class="text-2xl font-bold text-slate-900 mt-2">10</div>
+            <div class="text-2xl font-bold text-slate-900 mt-2">{{ territory_sales|length|default:0 }}</div>
             <div class="text-[11px] text-slate-500 mt-1">North America, Europe, Pacific</div>
         </div>
         {% endif %}
@@ -223,11 +223,14 @@
         <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
             <div class="space-y-2">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-bold text-slate-900">Stores vs. individuals</h2>
+                    <div>
+                        <h2 class="text-sm font-bold text-slate-900">Stores vs. individuals</h2>
+                        <p id="custMetricSub" class="text-[11px] text-slate-400">Share of total customer revenue</p>
+                    </div>
                     <a href="{% url 'report_customers' %}" class="text-[11px] text-coral font-semibold hover:underline">See customers</a>
                 </div>
                 <div class="inline-flex w-full rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
-                    <button type="button" onclick="setCustomerMetric('revenue')" id="btnCustRev" class="flex-1 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Spend $</button>
+                    <button type="button" onclick="setCustomerMetric('revenue')" id="btnCustRev" class="flex-1 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Sales $</button>
                     <button type="button" onclick="setCustomerMetric('orders')" id="btnCustOrd" class="flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Orders</button>
                     <button type="button" onclick="setCustomerMetric('avg')" id="btnCustAvg" class="flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Avg / Buyer</button>
                 </div>
@@ -235,8 +238,8 @@
 
             <div class="relative h-48 flex items-center justify-center">
                 <canvas id="customerSplitChart"></canvas>
-                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                    <span id="custCenterLabel" class="text-[10px] font-medium text-slate-400 uppercase">Total Spend</span>
+                <div id="custCenterWrap" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                    <span id="custCenterLabel" class="text-[10px] font-medium text-slate-400 uppercase">Total Sales</span>
                     <span id="custCenterValue" class="text-base font-bold text-slate-900">$0</span>
                 </div>
             </div>
@@ -255,6 +258,15 @@
             </div>
         </div>
         {% endif %}
+    </div>
+
+    <!-- Key Findings & Recommendations -->
+    <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm space-y-2">
+        <div class="flex items-center justify-between">
+            <h2 class="text-sm font-bold text-slate-900">Key findings &amp; recommendations</h2>
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral border border-coral-border">Live summary</span>
+        </div>
+        <ul id="dashFindingsList" class="text-xs text-slate-600 space-y-1.5 list-disc pl-4"></ul>
     </div>
 
     <!-- Bottom Section: All-in-One Searchable & Sortable Explorer Table -->
@@ -283,16 +295,18 @@
                 <select id="explorerLimit" onchange="renderExplorerTable()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 font-medium focus:outline-none focus:ring-1 focus:ring-coral">
                     <option value="5">Top 5</option>
                     <option value="10" selected>Top 10</option>
-                    <option value="15">Top 15</option>
+                    <option value="25">Top 25</option>
+                    <option value="50">Top 50</option>
+                    <option value="all">All</option>
                 </select>
             </div>
         </div>
 
         <!-- Dynamic Sortable Table -->
-        <div class="overflow-x-auto">
+        <div class="h-72 overflow-x-auto overflow-y-auto rounded-lg border border-slate-100 print:h-auto print:overflow-visible">
             <table class="min-w-full divide-y divide-slate-100 text-left text-xs">
-                <thead id="explorerThead"></thead>
-                <tbody id="explorerTbody" class="divide-y divide-slate-100"></tbody>
+                <thead id="explorerThead" class="bg-slate-50 sticky top-0 z-10"></thead>
+                <tbody id="explorerTbody" class="divide-y divide-slate-100 bg-white"></tbody>
             </table>
         </div>
     </div>
@@ -746,7 +760,7 @@ function renderVelocityChart() {
             plugins: { legend: { display: false } },
             scales: {
                 x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 10 } } },
-                y: { grid: { color: '#F1F5F9' }, ticks: { font: { size: 10 }, callback: v => '$' + v + 'M' } }
+                y: { beginAtZero: true, title: { display: true, text: 'Revenue ($M)', font: { size: 10, weight: '600' }, color: '#475569' }, grid: { color: '#F1F5F9' }, ticks: { font: { size: 10 }, callback: v => '$' + v + 'M' } }
             }
         }
     });
@@ -964,36 +978,109 @@ function renderCustomerChart() {
     if (!canvas) return;
     const b2b = rawCustomerTypes.find(c => (c.CustomerType || '').includes('Store') || (c.CustomerType || '').includes('B2B')) || {};
     const b2c = rawCustomerTypes.find(c => !((c.CustomerType || '').includes('Store') || (c.CustomerType || '').includes('B2B'))) || {};
+    const b2bBuyers = parseInt(b2b.ActiveBuyers || b2b.TotalCustomers, 10) || 0;
+    const b2cBuyers = parseInt(b2c.ActiveBuyers || b2c.TotalCustomers, 10) || 0;
+    const centerWrap = document.getElementById('custCenterWrap');
+    const subEl = document.getElementById('custMetricSub');
 
+    const ctx = canvas.getContext('2d');
+    if (customerChart) customerChart.destroy();
+
+    if (customerMetric === 'avg') {
+        const b2bVal = b2bBuyers > 0 ? (parseFloat(b2b.TotalRevenue) || 0) / b2bBuyers : 0;
+        const b2cVal = b2cBuyers > 0 ? (parseFloat(b2c.TotalRevenue) || 0) / b2cBuyers : 0;
+        if (centerWrap) centerWrap.classList.add('hidden');
+        if (subEl) subEl.textContent = 'Average lifetime sales per active buyer';
+        document.getElementById('custB2BVal').textContent = fmtDollar(b2bVal);
+        document.getElementById('custB2CVal').textContent = fmtDollar(b2cVal);
+
+        const avgValues = [b2bVal, b2cVal];
+        const avgLabelsPlugin = {
+            id: 'custAvgBarLabels',
+            afterDatasetsDraw(chart) {
+                const { ctx: cctx } = chart;
+                const meta = chart.getDatasetMeta(0);
+                if (!meta || !meta.data) return;
+                cctx.save();
+                cctx.font = '600 10px ui-sans-serif, system-ui, -apple-system, sans-serif';
+                cctx.textAlign = 'center';
+                cctx.textBaseline = 'bottom';
+                cctx.fillStyle = '#334155';
+                meta.data.forEach((bar, idx) => {
+                    const val = avgValues[idx] || 0;
+                    const txt = Math.abs(val) >= 1e4 ? fmtCompact(val) : fmtDollar(val);
+                    cctx.fillText(txt, bar.x, bar.y - 4);
+                });
+                cctx.restore();
+            }
+        };
+
+        customerChart = new Chart(ctx, {
+            type: 'bar',
+            plugins: [avgLabelsPlugin],
+            data: {
+                labels: ['Stores (B2B)', 'Individuals (B2C)'],
+                datasets: [{
+                    data: avgValues,
+                    backgroundColor: ['#FF5B26', '#1E293B'],
+                    borderRadius: 5,
+                    minBarLength: c => c.raw === 0 ? 0 : 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: { top: 18 } },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: c => {
+                                const buyers = c.dataIndex === 0 ? b2bBuyers : b2cBuyers;
+                                return `${c.label}: ${fmtDollar(c.raw)} avg (${fmtInt(buyers)} active buyers)`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: {
+                        beginAtZero: true,
+                        grace: '15%',
+                        title: { display: true, text: 'Avg Sales / Buyer', font: { size: 10, weight: '600' }, color: '#475569' },
+                        grid: { color: '#F1F5F9' },
+                        ticks: { font: { size: 10 }, callback: v => v >= 1e3 ? '$' + Math.round(v / 1e3) + 'K' : '$' + v }
+                    }
+                }
+            }
+        });
+        return;
+    }
+
+    if (centerWrap) centerWrap.classList.remove('hidden');
     let b2bVal = 0, b2cVal = 0, centerLabel = '', centerVal = '';
     if (customerMetric === 'revenue') {
         b2bVal = parseFloat(b2b.TotalRevenue) || 0;
         b2cVal = parseFloat(b2c.TotalRevenue) || 0;
-        centerLabel = 'Total Spend';
+        centerLabel = 'Total Sales';
         centerVal = fmtCompact(b2bVal + b2cVal);
+        if (subEl) subEl.textContent = 'Share of total customer revenue';
         document.getElementById('custB2BVal').textContent = fmtCompact(b2bVal);
         document.getElementById('custB2CVal').textContent = fmtCompact(b2cVal);
-    } else if (customerMetric === 'orders') {
+    } else {
         b2bVal = parseInt(b2b.TotalOrders, 10) || 0;
         b2cVal = parseInt(b2c.TotalOrders, 10) || 0;
         centerLabel = 'Total Orders';
         centerVal = fmtInt(b2bVal + b2cVal);
+        if (subEl) subEl.textContent = 'Share of total sales orders';
         document.getElementById('custB2BVal').textContent = fmtInt(b2bVal);
         document.getElementById('custB2CVal').textContent = fmtInt(b2cVal);
-    } else {
-        b2bVal = (b2b.TotalCustomers > 0) ? (parseFloat(b2b.TotalRevenue) / b2b.TotalCustomers) : 0;
-        b2cVal = (b2c.TotalCustomers > 0) ? (parseFloat(b2c.TotalRevenue) / b2c.TotalCustomers) : 0;
-        centerLabel = 'B2B vs B2C Avg';
-        centerVal = fmtCompact(b2bVal);
-        document.getElementById('custB2BVal').textContent = fmtDollar(b2bVal);
-        document.getElementById('custB2CVal').textContent = fmtDollar(b2cVal);
     }
 
     document.getElementById('custCenterLabel').textContent = centerLabel;
     document.getElementById('custCenterValue').textContent = centerVal;
+    const total = (b2bVal + b2cVal) || 1;
 
-    const ctx = canvas.getContext('2d');
-    if (customerChart) customerChart.destroy();
     customerChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
@@ -1013,7 +1100,9 @@ function renderCustomerChart() {
                 tooltip: {
                     callbacks: {
                         label: function(c) {
-                            return c.label + ': ' + (customerMetric === 'orders' ? fmtInt(c.raw) + ' orders' : fmtDollar(c.raw));
+                            const pct = ((c.raw / total) * 100).toFixed(1);
+                            const valStr = customerMetric === 'orders' ? fmtInt(c.raw) + ' orders' : fmtDollar(c.raw);
+                            return `${c.label}: ${valStr} (${pct}%)`;
                         }
                     }
                 }
@@ -1104,7 +1193,8 @@ function sortExplorerBy(key) {
 function renderExplorerTable() {
     const schema = EXPLORER_SCHEMAS[explorerTab];
     const query = (document.getElementById('explorerSearch').value || '').toLowerCase().trim();
-    const limit = parseInt(document.getElementById('explorerLimit').value, 10) || 10;
+    const limitVal = document.getElementById('explorerLimit').value;
+    const limit = limitVal === 'all' ? rows.length : (parseInt(limitVal, 10) || 10);
 
     // Render header
     const thead = document.getElementById('explorerThead');
@@ -1113,7 +1203,7 @@ function renderExplorerTable() {
             const isSorted = explorerSortKey === col.key;
             const arrow = isSorted ? (explorerSortAsc ? ' ▲' : ' ▼') : '';
             const alignClass = col.align === 'right' ? 'text-right' : 'text-left';
-            return `<th onclick="sortExplorerBy('${col.key}')" class="pb-2.5 font-semibold cursor-pointer select-none hover:text-coral transition ${alignClass}">${col.label}<span class="text-coral">${arrow}</span></th>`;
+            return `<th onclick="sortExplorerBy('${col.key}')" class="px-3 py-2.5 font-semibold cursor-pointer select-none hover:text-coral transition ${alignClass}">${col.label}<span class="text-coral">${arrow}</span></th>`;
         }).join('') + `</tr>`;
 
     // Filter + sort rows
@@ -1149,10 +1239,33 @@ function renderExplorerTable() {
                 const display = col.fmt ? col.fmt(rawVal) : (rawVal ?? '-');
                 const alignClass = col.align === 'right' ? 'text-right font-mono' : 'text-left';
                 const weightClass = idx === 0 ? 'font-semibold text-slate-900' : 'text-slate-600';
-                return `<td class="py-2.5 ${alignClass} ${weightClass}">${display}</td>`;
+                return `<td class="px-3 py-2.5 ${alignClass} ${weightClass}">${display}</td>`;
             }).join('') +
         `</tr>`;
     }).join('');
+}
+
+function renderDashboardFindings() {
+    const el = document.getElementById('dashFindingsList');
+    if (!el) return;
+    const catRows = globalYear === 'all' ? rawCatYearData : rawCatYearData.filter(r => String(r.Year) === String(globalYear));
+    const byCat = {};
+    catRows.forEach(r => { byCat[r.Category] = (byCat[r.Category] || 0) + (parseFloat(r.Revenue) || 0); });
+    const topCat = Object.entries(byCat).sort((a, b) => b[1] - a[1])[0];
+    const topTerr = rawTerritoryData.slice().sort((a, b) => (parseFloat(b.TotalRevenue) || 0) - (parseFloat(a.TotalRevenue) || 0))[0];
+    const items = [];
+    if (topCat) items.push(`<strong>Top revenue driver:</strong> ${topCat[0]} leads the selected period with ${fmtDollar(topCat[1])} in sales.`);
+    if (topTerr) items.push(`<strong>Leading territory:</strong> ${topTerr.TerritoryName} (${fmtDollar(topTerr.TotalRevenue)} across ${fmtInt(topTerr.TotalOrders)} orders) — focus expansion and inventory allocation on top regions.`);
+    if (IS_MANAGER && rawRevenueData.length) {
+        const revRows = globalYear === 'all' ? rawRevenueData : rawRevenueData.filter(r => String(r.Year) === String(globalYear));
+        const disc = revRows.reduce((s, r) => s + (parseFloat(r.DiscountLoss) || 0), 0);
+        const gross = revRows.reduce((s, r) => s + (parseFloat(r.GrossAmount) || 0), 0);
+        const rate = gross > 0 ? ((disc / gross) * 100).toFixed(2) : '0.00';
+        items.push(`<strong>Margin &amp; discount control:</strong> Discounts total ${fmtDollar(disc)} (${rate}% of gross sales). Note that 2014 data ends in June, so compare monthly averages rather than full-year totals.`);
+    } else {
+        items.push(`<strong>Period note:</strong> 2014 records stop in June; use monthly trends when comparing 2014 against prior full years.`);
+    }
+    el.innerHTML = items.map(t => `<li>${t}</li>`).join('');
 }
 
 // Initialize all charts and table on load
@@ -1163,6 +1276,7 @@ document.addEventListener('DOMContentLoaded', () => {
     else renderVelocityChart();
     renderTerritoryChart();
     if (IS_SUPERVISOR) renderCustomerChart();
+    renderDashboardFindings();
     renderExplorerTable();
 });
 </script>

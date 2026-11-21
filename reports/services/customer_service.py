@@ -22,6 +22,7 @@ def get_customer_type_breakdown():
     SELECT
         CASE WHEN c.StoreID IS NOT NULL THEN 'Store / B2B' ELSE 'Individual / B2C' END AS CustomerType,
         COUNT(DISTINCT c.CustomerID) AS TotalCustomers,
+        COUNT(DISTINCT soh.CustomerID) AS ActiveBuyers,
         COUNT(soh.SalesOrderID) AS TotalOrders,
         SUM(soh.TotalDue) AS TotalRevenue
     FROM Sales.Customer c

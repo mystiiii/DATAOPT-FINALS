@@ -6,7 +6,7 @@
 {% block content %}
 <div class="space-y-6">
     <!-- Top Workspace Toolbar -->
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-[#E5E7EB] gap-3">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-[#DCE3EC] gap-3">
         <div class="flex items-center space-x-3">
             <div class="w-9 h-9 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -43,35 +43,35 @@
 
     <!-- Top KPI Grid (Role-Scoped Metrics) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+        <div class="bg-white p-4 rounded-xl border border-[#DCE3EC] shadow-sm">
             <div class="flex justify-between items-start">
                 <span class="text-[11px] font-medium text-slate-500">{% if is_manager %}Gross sales{% else %}Total sales{% endif %}</span>
                 <span id="kpiOrdersBadge" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">{{ total_orders|intcomma }} orders</span>
             </div>
-            <div id="kpiGrossValue" class="text-xl xl:text-2xl font-bold tabular-nums truncate text-slate-900 mt-2">${{ total_gross|floatformat:0|intcomma }}</div>
+            <div id="kpiGrossValue" class="text-lg xl:text-[21px] leading-tight tracking-tight font-bold tabular-nums break-words text-slate-900 mt-2">${{ total_gross|floatformat:0|intcomma }}</div>
             <div id="kpiGrossSub" class="text-[11px] text-slate-500 mt-1">Avg order: ${{ avg_order|floatformat:0|intcomma }}</div>
         </div>
 
         {% if is_manager %}
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+        <div class="bg-white p-4 rounded-xl border border-[#DCE3EC] shadow-sm">
             <div class="flex justify-between items-start">
                 <span class="text-[11px] font-medium text-slate-500">Profit after costs</span>
                 <span id="kpiMarginBadge" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700">Net margin</span>
             </div>
-            <div id="kpiProfitValue" class="text-xl xl:text-2xl font-bold tabular-nums truncate text-emerald-700 mt-2">${{ total_real_profit|floatformat:0|intcomma }}</div>
+            <div id="kpiProfitValue" class="text-lg xl:text-[21px] leading-tight tracking-tight font-bold tabular-nums break-words text-emerald-700 mt-2">${{ total_real_profit|floatformat:0|intcomma }}</div>
             <div id="kpiProfitSub" class="text-[11px] text-slate-500 mt-1">Net revenue: ${{ total_net|floatformat:0|intcomma }}</div>
         </div>
 
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+        <div class="bg-white p-4 rounded-xl border border-[#DCE3EC] shadow-sm">
             <div class="flex justify-between items-start">
                 <span class="text-[11px] font-medium text-slate-500">Discounts and scrap</span>
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700">Losses</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700">Losses</span>
             </div>
-            <div id="kpiLossValue" class="text-xl xl:text-2xl font-bold tabular-nums truncate text-rose-600 mt-2">${{ total_discount|add:total_scrap_loss|floatformat:0|intcomma }}</div>
+            <div id="kpiLossValue" class="text-lg xl:text-[21px] leading-tight tracking-tight font-bold tabular-nums break-words text-rose-600 mt-2">${{ total_discount|add:total_scrap_loss|floatformat:0|intcomma }}</div>
             <div id="kpiLossSub" class="text-[11px] text-slate-500 mt-1">Discounts: ${{ total_discount|floatformat:0|intcomma }} | Scrap: ${{ total_scrap_loss|floatformat:0|intcomma }}</div>
         </div>
         {% else %}
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+        <div class="bg-white p-4 rounded-xl border border-[#DCE3EC] shadow-sm">
             <div class="flex justify-between items-start">
                 <span class="text-[11px] font-medium text-slate-500">Units sold</span>
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700">Volume</span>
@@ -80,7 +80,7 @@
             <div class="text-[11px] text-slate-500 mt-1">Across 4 categories</div>
         </div>
 
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+        <div class="bg-white p-4 rounded-xl border border-[#DCE3EC] shadow-sm">
             <div class="flex justify-between items-start">
                 <span class="text-[11px] font-medium text-slate-500">Top category</span>
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral">#1</span>
@@ -91,7 +91,7 @@
         {% endif %}
 
         {% if is_supervisor %}
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+        <div class="bg-white p-4 rounded-xl border border-[#DCE3EC] shadow-sm">
             <div class="flex justify-between items-start">
                 <span class="text-[11px] font-medium text-slate-500">Active customers</span>
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700">B2B + B2C</span>
@@ -100,7 +100,7 @@
             <div class="text-[11px] text-slate-500 mt-1">Sales share: {{ b2b_pct }}% stores, {{ b2c_pct }}% individuals</div>
         </div>
         {% else %}
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
+        <div class="bg-white p-4 rounded-xl border border-[#DCE3EC] shadow-sm">
             <div class="flex justify-between items-start">
                 <span class="text-[11px] font-medium text-slate-500">Sales regions</span>
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-50 text-blue-700">Worldwide</span>
@@ -114,7 +114,7 @@
     <!-- Chart Row 1: Category Performance & Waterfall (Manager) or Monthly Sales (Operational) -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <!-- Chart 1: Sales by Category -->
-        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+        <div class="bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm flex flex-col justify-between space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                     <h2 class="text-sm font-bold text-slate-900">{% if is_manager %}Category sales and profit{% else %}Sales by category{% endif %}</h2>
@@ -145,7 +145,7 @@
 
         {% if is_manager %}
         <!-- Chart 2: Gross Sales to Profit Waterfall -->
-        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+        <div class="bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm flex flex-col justify-between space-y-4">
             <div class="flex items-start justify-between gap-2">
                 <div>
                     <h2 class="text-sm font-bold text-slate-900">Where revenue goes</h2>
@@ -165,7 +165,7 @@
         </div>
         {% else %}
         <!-- Chart 2 (Operational): Monthly Sales -->
-        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+        <div class="bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm flex flex-col justify-between space-y-4">
             <div class="flex items-start justify-between gap-2">
                 <div>
                     <h2 class="text-sm font-bold text-slate-900">Monthly sales</h2>
@@ -189,7 +189,7 @@
     <!-- Chart Row 2: Sales Regions + B2B vs B2C Donut (Supervisor+) -->
     <div class="grid grid-cols-1 {% if is_supervisor %}lg:grid-cols-3{% endif %} gap-5">
         <!-- Chart 3: Sales Regions -->
-        <div class="{% if is_supervisor %}lg:col-span-2{% endif %} bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+        <div class="{% if is_supervisor %}lg:col-span-2{% endif %} bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm flex flex-col justify-between space-y-4">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                     <h2 class="text-sm font-bold text-slate-900">Sales by region</h2>
@@ -220,7 +220,7 @@
 
         {% if is_supervisor %}
         <!-- Chart 4: Retail Stores vs Individual Buyers (1 col, Supervisor+) -->
-        <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
+        <div class="bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm flex flex-col justify-between space-y-4">
             <div class="space-y-2">
                 <div class="flex items-center justify-between">
                     <div>
@@ -261,7 +261,7 @@
     </div>
 
     <!-- Key Findings & Recommendations -->
-    <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm space-y-2">
+    <div class="bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm space-y-2">
         <div class="flex items-center justify-between">
             <h2 class="text-sm font-bold text-slate-900">Key findings &amp; recommendations</h2>
             <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral border border-coral-border">Live summary</span>
@@ -270,7 +270,7 @@
     </div>
 
     <!-- Bottom Section: All-in-One Searchable & Sortable Explorer Table -->
-    <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm space-y-4">
+    <div class="bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm space-y-4">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
             <!-- Tabs -->
             <div class="flex flex-wrap items-center gap-1.5 text-xs font-medium" id="explorerTabs">
@@ -308,6 +308,10 @@
                 <thead id="explorerThead" class="bg-slate-50 sticky top-0 z-10"></thead>
                 <tbody id="explorerTbody" class="divide-y divide-slate-100 bg-white"></tbody>
             </table>
+        </div>
+        <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+            <span id="explorerCountInfo">Showing 0 of 0 rows</span>
+            <span>Click column headers to sort</span>
         </div>
     </div>
 </div>
@@ -430,10 +434,10 @@ function updateTopKPIs() {
 
 // 2. Chart 1: Category Performance
 const CAT_COLORS = {
-    'Bikes': '#FF5B26',
-    'Components': '#1E293B',
-    'Clothing': '#3B82F6',
-    'Accessories': '#10B981'
+    'Bikes': '#4A89C7',
+    'Components': '#5B7FA6',
+    'Clothing': '#7A7EC9',
+    'Accessories': '#3E9B8C'
 };
 
 function setCatMetric(m) {
@@ -497,14 +501,14 @@ function renderCategoryChart() {
         beginAtZero: true,
         grace: '10%',
         grid: {
-            color: c => (hasNeg && c.tick && c.tick.value === 0) ? '#64748B' : '#F1F5F9',
+            color: c => (hasNeg && c.tick && c.tick.value === 0) ? '#64748B' : '#E6ECF2',
             lineWidth: c => (hasNeg && c.tick && c.tick.value === 0) ? 1.5 : 1
         },
         ticks: {
             font: { size: 10 },
             callback: v => catMetric === 'units'
                 ? Number(v).toLocaleString()
-                : (v < 0 ? '-' : '') + currSymbol() + Math.abs(v) + 'M'
+                : fmtAxisMillions(v)
         }
     };
     if (hasNeg) {
@@ -625,15 +629,7 @@ function renderWaterfallChart() {
                     const dsVal = chart.data.datasets[dsIdx].data[i];
                     if (dsVal === null || dsVal === undefined) return;
                     const val = rawAmounts[i];
-                    const convVal = toCurr(val);
-                    const abs = Math.abs(convVal);
-                    const sign = convVal < 0 ? '-' : '';
-                    const sym = currSymbol();
-                    const text = abs >= 1e6
-                        ? sign + sym + (abs / 1e6).toFixed(1) + 'M'
-                        : abs >= 1e3
-                            ? sign + sym + Math.round(abs / 1e3) + 'K'
-                            : sign + sym + Math.round(abs);
+                    const text = fmtCurrCompact(val);
                     const labelY = val < 0
                         ? Math.min(bar.y + 4, chartArea.bottom - 14)
                         : Math.max(bar.y - 4, chartArea.top + 14);
@@ -641,7 +637,7 @@ function renderWaterfallChart() {
                     const boxY = val < 0 ? labelY - 1 : labelY - 11;
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
                     ctx.fillRect(bar.x - boxW / 2, boxY, boxW, 12);
-                    ctx.fillStyle = val < 0 ? '#DC2626' : '#334155';
+                    ctx.fillStyle = val < 0 ? '#B55068' : '#3E5166';
                     ctx.textBaseline = val < 0 ? 'top' : 'bottom';
                     ctx.fillText(text, bar.x, labelY);
                 });
@@ -660,14 +656,14 @@ function renderWaterfallChart() {
                 {
                     label: `Revenue / Profit (${currSymbol()}M)`,
                     data: mData,
-                    backgroundColor: ['#1E293B', 'transparent', '#EF4444', 'transparent', realProfit >= 0 ? '#10B981' : '#EF4444'],
+                    backgroundColor: ['#5B7FA6', 'transparent', '#C9657B', 'transparent', realProfit >= 0 ? '#3E9B8C' : '#C9657B'],
                     borderRadius: 5,
                     yAxisID: 'y'
                 },
                 {
                     label: `Discounts / Scrap (${currSymbol()}K)`,
                     data: kData,
-                    backgroundColor: ['transparent', '#F59E0B', 'transparent', '#DC2626', 'transparent'],
+                    backgroundColor: ['transparent', '#9A72B5', 'transparent', '#B55068', 'transparent'],
                     borderRadius: 5,
                     yAxisID: 'y1'
                 }
@@ -695,18 +691,18 @@ function renderWaterfallChart() {
                     position: 'left',
                     min: -yMinMag,
                     max: yMax,
-                    title: { display: true, text: `Sales / Mfg / Profit (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#475569' },
+                    title: { display: true, text: `Sales / Mfg / Profit (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#5B6D82' },
                     grid: {
-                        color: c => (c.tick && c.tick.value === 0) ? '#64748B' : '#F1F5F9',
+                        color: c => (c.tick && c.tick.value === 0) ? '#64748B' : '#E6ECF2',
                         lineWidth: c => (c.tick && c.tick.value === 0) ? 1.5 : 1
                     },
-                    ticks: { stepSize: yStep, font: { size: 10 }, callback: v => (v < 0 ? '-' : '') + currSymbol() + Math.abs(v) + 'M' }
+                    ticks: { stepSize: yStep, font: { size: 10 }, callback: v => fmtAxisMillions(v) }
                 },
                 y1: {
                     position: 'right',
                     min: -y1Max,
                     max: y1PosMax,
-                    title: { display: true, text: `Discounts / Scrap (${currSymbol()}K)`, font: { size: 10, weight: '600' }, color: '#DC2626' },
+                    title: { display: true, text: `Discounts / Scrap (${currSymbol()}K)`, font: { size: 10, weight: '600' }, color: '#B55068' },
                     grid: { drawOnChartArea: false },
                     afterBuildTicks: axis => {
                         const t = [];
@@ -715,8 +711,8 @@ function renderWaterfallChart() {
                     },
                     ticks: {
                         font: { size: 10 },
-                        color: '#DC2626',
-                        callback: v => (v < 0 ? '-' : '') + currSymbol() + Math.round(Math.abs(v)) + 'K'
+                        color: '#B55068',
+                        callback: v => fmtAxisThousands(v)
                     }
                 }
             }
@@ -745,8 +741,8 @@ function renderVelocityChart() {
             datasets: [{
                 label: 'Sales Revenue',
                 data: rows.map(r => +(toCurr(r.Revenue) / 1e6).toFixed(2)),
-                borderColor: '#FF5B26',
-                backgroundColor: 'rgba(255, 91, 38, 0.12)',
+                borderColor: '#4A89C7',
+                backgroundColor: 'rgba(74, 137, 199, 0.12)',
                 fill: true,
                 tension: 0.3,
                 pointRadius: 2
@@ -758,7 +754,7 @@ function renderVelocityChart() {
             plugins: { legend: { display: false } },
             scales: {
                 x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 10 } } },
-                y: { beginAtZero: true, title: { display: true, text: `Revenue (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#475569' }, grid: { color: '#F1F5F9' }, ticks: { font: { size: 10 }, callback: v => currSymbol() + v + 'M' } }
+                y: { beginAtZero: true, title: { display: true, text: `Revenue (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#5B6D82' }, grid: { color: '#E6ECF2' }, ticks: { font: { size: 10 }, callback: v => fmtAxisMillions(v) } }
             }
         }
     });
@@ -843,9 +839,9 @@ async function renderTerritoryChart() {
                 });
 
             const pointColors = mapPoints.map((pt, idx) => {
-                if (idx === 0) return 'rgba(255, 91, 38, 0.92)';
+                if (idx === 0) return 'rgba(74, 137, 199, 0.92)';
                 if (idx === mapPoints.length - 1 && mapPoints.length > 1) return 'rgba(100, 116, 139, 0.85)';
-                return 'rgba(255, 91, 38, 0.62)';
+                return 'rgba(74, 137, 199, 0.62)';
             });
 
             territoryChart = new Chart(ctx, {
@@ -856,7 +852,7 @@ async function renderTerritoryChart() {
                         label: 'Sales Territories',
                         outline: countries,
                         showOutline: true,
-                        outlineBackgroundColor: '#F1F5F9',
+                        outlineBackgroundColor: '#E6ECF2',
                         outlineBorderColor: '#CBD5E1',
                         outlineBorderWidth: 0.6,
                         backgroundColor: pointColors,
@@ -910,9 +906,9 @@ async function renderTerritoryChart() {
         : +(toCurr(r.TotalRevenue) / 1e6).toFixed(2)
     );
     const colors = rows.map((_, idx) => {
-        if (idx === 0) return '#FF5B26';
-        if (idx === rows.length - 1 && rows.length > 1) return '#94A3B8';
-        return 'rgba(255, 91, 38, 0.45)';
+        if (idx === 0) return '#4A89C7';
+        if (idx === rows.length - 1 && rows.length > 1) return '#93A7BC';
+        return 'rgba(74, 137, 199, 0.45)';
     });
 
     if (territoryChart) territoryChart.destroy();
@@ -946,10 +942,10 @@ async function renderTerritoryChart() {
             },
             scales: {
                 x: {
-                    grid: { color: '#F1F5F9' },
+                    grid: { color: '#E6ECF2' },
                     ticks: {
                         font: { size: 10 },
-                        callback: v => territorySort === 'orders' ? Number(v).toLocaleString() : currSymbol() + v + 'M'
+                        callback: v => territorySort === 'orders' ? Number(v).toLocaleString() : fmtAxisMillions(v)
                     }
                 },
                 y: { grid: { display: false }, ticks: { font: { size: 11 } } }
@@ -1004,7 +1000,7 @@ function renderCustomerChart() {
                 cctx.font = '600 10px ui-sans-serif, system-ui, -apple-system, sans-serif';
                 cctx.textAlign = 'center';
                 cctx.textBaseline = 'bottom';
-                cctx.fillStyle = '#334155';
+                cctx.fillStyle = '#3E5166';
                 meta.data.forEach((bar, idx) => {
                     const usd = rawAvgUsd[idx] || 0;
                     const txt = Math.abs(toCurr(usd)) >= 1e4 ? fmtCompact(usd) : fmtDollar(usd);
@@ -1021,7 +1017,7 @@ function renderCustomerChart() {
                 labels: ['Stores (B2B)', 'Individuals (B2C)'],
                 datasets: [{
                     data: avgValues,
-                    backgroundColor: ['#FF5B26', '#1E293B'],
+                    backgroundColor: ['#4A89C7', '#5B7FA6'],
                     borderRadius: 5,
                     minBarLength: c => c.raw === 0 ? 0 : 6
                 }]
@@ -1046,8 +1042,8 @@ function renderCustomerChart() {
                     y: {
                         beginAtZero: true,
                         grace: '15%',
-                        title: { display: true, text: `Avg Sales / Buyer (${currSymbol()})`, font: { size: 10, weight: '600' }, color: '#475569' },
-                        grid: { color: '#F1F5F9' },
+                        title: { display: true, text: `Avg Sales / Buyer (${currSymbol()})`, font: { size: 10, weight: '600' }, color: '#5B6D82' },
+                        grid: { color: '#E6ECF2' },
                         ticks: { font: { size: 10 }, callback: v => v >= 1e3 ? currSymbol() + Math.round(v / 1e3) + 'K' : currSymbol() + v }
                     }
                 }
@@ -1086,7 +1082,7 @@ function renderCustomerChart() {
             labels: ['Stores (B2B)', 'Individuals (B2C)'],
             datasets: [{
                 data: [b2bVal, b2cVal],
-                backgroundColor: ['#FF5B26', '#1E293B'],
+                backgroundColor: ['#4A89C7', '#5B7FA6'],
                 borderWidth: 0
             }]
         },
@@ -1193,7 +1189,7 @@ function renderExplorerTable() {
     const schema = EXPLORER_SCHEMAS[explorerTab];
     const query = (document.getElementById('explorerSearch').value || '').toLowerCase().trim();
     const limitVal = document.getElementById('explorerLimit').value;
-    const limit = limitVal === 'all' ? rows.length : (parseInt(limitVal, 10) || 10);
+    const limit = limitVal === 'all' ? Infinity : (parseInt(limitVal, 10) || 10);
 
     // Render header
     const thead = document.getElementById('explorerThead');
@@ -1223,7 +1219,10 @@ function renderExplorerTable() {
         return explorerSortAsc ? ((parseFloat(va) || 0) - (parseFloat(vb) || 0)) : ((parseFloat(vb) || 0) - (parseFloat(va) || 0));
     });
 
+    const totalMatched = rows.length;
     rows = rows.slice(0, limit);
+    const infoEl = document.getElementById('explorerCountInfo');
+    if (infoEl) infoEl.textContent = `Showing ${rows.length} of ${totalMatched} rows`;
 
     const tbody = document.getElementById('explorerTbody');
     if (!rows.length) {
@@ -1232,7 +1231,7 @@ function renderExplorerTable() {
     }
 
     tbody.innerHTML = rows.map(row => {
-        return `<tr class="hover:bg-slate-50 transition">` +
+        return `<tr class="even:bg-slate-50/40 hover:bg-slate-100/60 transition">` +
             schema.columns.map((col, idx) => {
                 const rawVal = row[col.key];
                 const display = col.fmt ? col.fmt(rawVal) : (rawVal ?? '-');

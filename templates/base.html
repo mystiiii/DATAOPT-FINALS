@@ -4,18 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}AdventureWorks BI Analytics{% endblock %}</title>
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                    },
                     colors: {
                         coral: {
-                            DEFAULT: '#FF5B26',
-                            hover: '#E84D1B',
-                            light: '#FFF2ED',
-                            border: '#FFD7C7',
+                            DEFAULT: '#2F6396',
+                            hover: '#25507A',
+                            light: '#EDF4FA',
+                            border: '#C4D9EC',
                         }
                     }
                 }
@@ -26,14 +33,14 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-geo@4/build/index.umd.min.js"></script>
 </head>
-<body class="bg-[#F8F9FA] text-[#111827] min-h-screen flex flex-col md:flex-row font-sans antialiased">
+<body class="bg-[#F5F7FA] text-[#243447] min-h-screen flex flex-col md:flex-row font-sans antialiased">
 
     {% if user.is_authenticated %}
     <!-- Mobile Navigation Bar (< md) -->
-    <header class="md:hidden bg-white border-b border-[#E5E7EB] px-4 py-3 flex items-center justify-between sticky top-0 z-30">
+    <header class="md:hidden bg-white border-b border-[#DCE3EC] px-4 py-3 flex items-center justify-between sticky top-0 z-30">
         <div class="flex items-center space-x-2">
             <div class="w-6 h-6 rounded bg-coral text-white flex items-center justify-center font-bold text-xs shadow-sm">A</div>
-            <span class="font-bold text-xs text-[#111827]">AdventureWorks BI</span>
+            <span class="font-bold text-xs text-[#243447]">AdventureWorks BI</span>
         </div>
         <div class="flex items-center space-x-3 text-xs">
             <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}text-coral font-semibold{% else %}text-slate-600{% endif %}">Dashboard</a>
@@ -58,7 +65,7 @@
     </header>
 
     <!-- Left Sidebar (Desktop & Tablet) -->
-    <aside class="hidden md:flex w-60 bg-white border-r border-[#E5E7EB] flex-col justify-between shrink-0 min-h-screen sticky top-0 h-screen p-4">
+    <aside class="hidden md:flex w-60 bg-white border-r border-[#DCE3EC] flex-col justify-between shrink-0 min-h-screen sticky top-0 h-screen p-4">
         <div class="space-y-5">
             <!-- Brand -->
             <div class="flex items-center space-x-2.5 px-2 pt-1">
@@ -66,7 +73,7 @@
                     A
                 </div>
                 <div>
-                    <span class="font-bold text-sm text-[#111827] tracking-tight">AdventureWorks</span>
+                    <span class="font-bold text-sm text-[#243447] tracking-tight">AdventureWorks</span>
                     <span class="text-[10px] font-semibold text-slate-400 ml-1">BI</span>
                 </div>
             </div>
@@ -207,20 +214,20 @@
         </div>
 
         <!-- Currency Selector & User Profile Card at Bottom of Sidebar -->
-        <div class="pt-4 border-t border-[#E5E7EB] space-y-3">
+        <div class="pt-4 border-t border-[#DCE3EC] space-y-3">
             <div class="px-1 space-y-1.5">
                 <div class="flex items-center justify-between text-[10px]">
                     <span class="font-bold text-slate-400 uppercase tracking-wider">Currency</span>
                     <span id="sidebarCurrencyRate" class="text-slate-400 font-mono">Base: USD ($)</span>
                 </div>
-                <div class="inline-flex w-full rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
-                    <button type="button" onclick="setAppCurrency('USD')" id="btnCurrUSD" class="flex-1 py-1 rounded-md bg-white text-slate-900 shadow-sm transition whitespace-nowrap">USD $</button>
-                    <button type="button" onclick="setAppCurrency('EUR')" id="btnCurrEUR" class="flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900 transition whitespace-nowrap">EUR €</button>
-                    <button type="button" onclick="setAppCurrency('PHP')" id="btnCurrPHP" class="flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900 transition whitespace-nowrap">PHP ₱</button>
+                <div class="grid grid-cols-3 gap-0.5 w-full rounded-lg bg-slate-100 p-0.5 text-[10px] font-semibold">
+                    <button type="button" onclick="setAppCurrency('USD')" id="btnCurrUSD" class="py-1 rounded-md bg-white text-slate-900 shadow-sm transition whitespace-nowrap text-center">USD $</button>
+                    <button type="button" onclick="setAppCurrency('EUR')" id="btnCurrEUR" class="py-1 rounded-md text-slate-600 hover:text-slate-900 transition whitespace-nowrap text-center">EUR €</button>
+                    <button type="button" onclick="setAppCurrency('PHP')" id="btnCurrPHP" class="py-1 rounded-md text-slate-600 hover:text-slate-900 transition whitespace-nowrap text-center">PHP ₱</button>
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2.5 px-2 py-1.5 rounded-lg bg-[#F9FAFB] border border-[#E5E7EB]">
+            <div class="flex items-center space-x-2.5 px-2 py-1.5 rounded-lg bg-[#F9FAFB] border border-[#DCE3EC]">
                 <div class="w-7 h-7 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-[10px] shrink-0">
                     {{ user.username|slice:":2"|upper }}
                 </div>
@@ -288,6 +295,28 @@
         .grid > div {
             min-width: 0;
         }
+        .grid > .bg-white.p-4 {
+            transition: box-shadow 150ms ease, border-color 150ms ease;
+        }
+        .grid > .bg-white.p-4:hover {
+            box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.06);
+            border-color: #CBD5E1;
+        }
+        .overflow-y-auto {
+            scrollbar-width: thin;
+            scrollbar-color: #CBD5E1 transparent;
+        }
+        .overflow-y-auto::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+            background-color: #CBD5E1;
+            border-radius: 9999px;
+        }
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background-color: #93A7BC;
+        }
         @media print {
             @page {
                 margin: 10mm;
@@ -335,6 +364,26 @@
     </style>
 
     <script>
+    if (typeof Chart !== 'undefined') {
+        Chart.defaults.font.family = "'Inter', system-ui, -apple-system, sans-serif";
+        Chart.defaults.color = '#64748B';
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.94)';
+        Chart.defaults.plugins.tooltip.titleColor = '#F8FAFC';
+        Chart.defaults.plugins.tooltip.bodyColor = '#E2E8F0';
+        Chart.defaults.plugins.tooltip.padding = 10;
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+        Chart.defaults.plugins.tooltip.boxPadding = 4;
+        Chart.defaults.plugins.legend.labels.usePointStyle = true;
+    }
+
+    function syncKpiTitles() {
+        document.querySelectorAll('.truncate').forEach(el => {
+            if (el.textContent && el.textContent.trim()) {
+                el.title = el.textContent.trim();
+            }
+        });
+    }
+
     const CURRENCY_CONFIG = {
         USD: { code: 'USD', symbol: '$', rate: 1.0, label: 'USD ($)', rateNote: 'Base: USD ($)' },
         EUR: { code: 'EUR', symbol: '€', rate: 0.92, label: 'Euro (€)', rateNote: '1 USD = €0.92' },
@@ -375,6 +424,22 @@
         return sign + sym + Math.round(abs).toLocaleString();
     }
 
+    function fmtAxisMillions(mVal) {
+        const abs = Math.abs(mVal);
+        const sign = mVal < 0 ? '-' : '';
+        const sym = currSymbol();
+        if (abs >= 1000) return sign + sym + +(abs / 1000).toFixed(1) + 'B';
+        return sign + sym + +abs.toFixed(2) + 'M';
+    }
+
+    function fmtAxisThousands(kVal) {
+        const abs = Math.abs(kVal);
+        const sign = kVal < 0 ? '-' : '';
+        const sym = currSymbol();
+        if (abs >= 1000) return sign + sym + +(abs / 1000).toFixed(1) + 'M';
+        return sign + sym + Math.round(abs) + 'K';
+    }
+
     function applyCurrencyToStaticElements() {
         document.querySelectorAll('[data-usd]').forEach(el => {
             const raw = parseFloat(el.dataset.usd);
@@ -385,8 +450,8 @@
 
     function syncCurrencyUI() {
         const cfg = getCurrency();
-        const activeCls = 'flex-1 py-1 rounded-md bg-white text-slate-900 shadow-sm transition whitespace-nowrap';
-        const inactiveCls = 'flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900 transition whitespace-nowrap';
+        const activeCls = 'py-1 rounded-md bg-white text-slate-900 shadow-sm transition whitespace-nowrap text-center';
+        const inactiveCls = 'py-1 rounded-md text-slate-600 hover:text-slate-900 transition whitespace-nowrap text-center';
         ['USD', 'EUR', 'PHP'].forEach(code => {
             const btn = document.getElementById('btnCurr' + code);
             if (btn) btn.className = cfg.code === code ? activeCls : inactiveCls;
@@ -405,6 +470,7 @@
         if (typeof window.onCurrencyChange === 'function') {
             window.onCurrencyChange(code);
         }
+        syncKpiTitles();
     }
 
     function clearSingleChartPrint() {
@@ -485,6 +551,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         syncCurrencyUI();
+        setTimeout(syncKpiTitles, 60);
         document.querySelectorAll('main canvas').forEach(canvas => {
             const card = canvas.closest('.bg-white');
             if (!card || card.querySelector('.print-chart-btn')) return;
@@ -495,16 +562,38 @@
             btn.type = 'button';
             btn.title = 'Print this chart';
             btn.setAttribute('aria-label', 'Print this chart');
-            btn.className = 'print-chart-btn print:hidden inline-flex items-center space-x-1 px-2 py-1 rounded-md border border-slate-200 bg-white text-slate-500 hover:text-coral hover:border-coral-border hover:bg-coral-light text-[10px] font-medium transition shrink-0';
-            btn.innerHTML = `<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg><span>Print</span>`;
+            btn.className = 'print-chart-btn print:hidden inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-coral hover:border-coral-border hover:bg-coral-light transition shrink-0';
+            btn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>`;
             btn.addEventListener('click', () => printSingleChart(card));
 
             const titleBlock = heading.parentElement;
-            const row = document.createElement('div');
-            row.className = 'flex items-start justify-between gap-2';
-            titleBlock.parentNode.insertBefore(row, titleBlock);
-            row.appendChild(titleBlock);
-            row.appendChild(btn);
+            const headerRow = heading.closest('.flex.justify-between');
+            if (headerRow && card.contains(headerRow)) {
+                headerRow.classList.add('items-start');
+                const rightNode = headerRow.lastElementChild;
+                if (rightNode && rightNode !== titleBlock && rightNode.tagName === 'DIV') {
+                    const rightWrap = document.createElement('div');
+                    rightWrap.className = 'flex items-center gap-1.5 flex-wrap justify-end';
+                    headerRow.replaceChild(rightWrap, rightNode);
+                    rightWrap.appendChild(rightNode);
+                    rightWrap.appendChild(btn);
+                } else {
+                    const rightWrap = document.createElement('div');
+                    rightWrap.className = 'flex items-center gap-2 shrink-0';
+                    if (rightNode && rightNode !== titleBlock) {
+                        headerRow.replaceChild(rightWrap, rightNode);
+                        rightWrap.appendChild(rightNode);
+                    }
+                    rightWrap.appendChild(btn);
+                    if (!rightWrap.parentElement) headerRow.appendChild(rightWrap);
+                }
+            } else {
+                const row = document.createElement('div');
+                row.className = 'flex items-start justify-between gap-2';
+                titleBlock.parentNode.insertBefore(row, titleBlock);
+                row.appendChild(titleBlock);
+                row.appendChild(btn);
+            }
         });
     });
     </script>

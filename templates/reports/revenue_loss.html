@@ -99,9 +99,16 @@
                     <h2 class="text-sm font-bold text-slate-900">Net revenue vs. discount rate</h2>
                     <p class="text-[11px] text-slate-400">Compare sales volume against discount spikes</p>
                 </div>
-                <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
-                    <button type="button" onclick="setRevTrendMode('annual')" id="btnRevAnnual" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Yearly</button>
-                    <button type="button" onclick="setRevTrendMode('monthly')" id="btnRevMonthly" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Monthly</button>
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                        <button type="button" onclick="setRevTrendChartType('revenue')" id="btnRevTypeRev" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Revenue (Bar)</button>
+                        <button type="button" onclick="setRevTrendChartType('discount')" id="btnRevTypeDisc" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Discount % (Line)</button>
+                        <button type="button" onclick="setRevTrendChartType('grouped')" id="btnRevTypeGrouped" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Side-by-Side</button>
+                    </div>
+                    <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                        <button type="button" onclick="setRevTrendMode('annual')" id="btnRevAnnual" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Yearly</button>
+                        <button type="button" onclick="setRevTrendMode('monthly')" id="btnRevMonthly" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Monthly</button>
+                    </div>
                 </div>
             </div>
             <div class="h-64">
@@ -131,12 +138,16 @@
 
         <!-- Chart 4: Scrap by Reason -->
         <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm flex flex-col justify-between space-y-4">
-            <div class="flex items-start justify-between gap-2">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                     <h2 class="text-sm font-bold text-slate-900">Scrap by reason</h2>
                     <p class="text-[11px] text-slate-400">Top eight scrap causes and their share of wasted units</p>
                 </div>
-                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-700">Top 8 causes</span>
+                <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
+                    <button type="button" onclick="setScrapChartType('units')" id="btnScrapTypeUnits" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Units (Bar)</button>
+                    <button type="button" onclick="setScrapChartType('cumulative')" id="btnScrapTypeCum" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Cumulative % (Line)</button>
+                    <button type="button" onclick="setScrapChartType('grouped')" id="btnScrapTypeGrouped" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Side-by-Side</button>
+                </div>
             </div>
             <div class="h-60">
                 <canvas id="scrapParetoChart"></canvas>
@@ -192,6 +203,8 @@ const totalScrapAll = {{ total_scrap_loss|default:0 }};
 
 let revYear = 'all';
 let revTrendMode = 'annual';
+let revTrendChartType = 'revenue';
+let scrapChartType = 'units';
 let catDiscMetric = 'loss';
 let revTab = 'scrap';
 let revSortKey = 'TotalScrappedQty';
@@ -205,6 +218,8 @@ const fmtInt = v => Math.round(v || 0).toLocaleString();
 const DEFAULT_REPORT_FILTERS = {
     year: 'all',
     trendMode: 'annual',
+    trendChartType: 'revenue',
+    scrapChartType: 'units',
     catDiscMetric: 'loss',
     tab: 'scrap',
     search: '',
@@ -217,6 +232,8 @@ function getCurrentReportFilters() {
     return {
         year: revYear,
         trendMode: revTrendMode,
+        trendChartType: revTrendChartType,
+        scrapChartType: scrapChartType,
         catDiscMetric: catDiscMetric,
         tab: revTab,
         search: (document.getElementById('revSearch').value || '').trim(),
@@ -241,6 +258,8 @@ function applyReportPreset(params) {
     revYear = yearVal;
 
     setRevTrendMode(params.trendMode || DEFAULT_REPORT_FILTERS.trendMode);
+    setRevTrendChartType(params.trendChartType || DEFAULT_REPORT_FILTERS.trendChartType);
+    setScrapChartType(params.scrapChartType || DEFAULT_REPORT_FILTERS.scrapChartType);
     setCatDiscMetric(params.catDiscMetric || DEFAULT_REPORT_FILTERS.catDiscMetric);
 
     const targetTab = (params.tab && REV_SCHEMAS[params.tab]) ? params.tab : DEFAULT_REPORT_FILTERS.tab;
@@ -295,27 +314,161 @@ function renderRevWaterfall() {
     const totalAllNet = rawRevYear.reduce((s, r) => s + (parseFloat(r.NetRevenue) || 0), 0);
     const scrap = revYear === 'all' ? totalScrapAll : (totalAllNet > 0 ? Math.round(totalScrapAll * (net / totalAllNet)) : 0);
     const afterScrap = net - scrap;
-    const toM = v => +(v / 1e6).toFixed(2);
+    const toM = v => +(v / 1e6).toFixed(4);
+    const toK = v => +(v / 1e3).toFixed(1);
 
+    // Fixed reference maxima so bar lengths visibly change when switching years
+    const maxYearGrossM = revYear === 'all'
+        ? toM(gross)
+        : Math.max(...rawRevYear.map(r => toM(parseFloat(r.GrossAmount) || 0)), toM(gross), 1);
+    const maxYearLossK = revYear === 'all'
+        ? Math.max(toK(disc), toK(scrap), 10)
+        : Math.max(...rawRevYear.map(r => {
+            const d = toK(parseFloat(r.DiscountLoss) || 0);
+            const rNet = parseFloat(r.NetRevenue) || 0;
+            const sc = totalAllNet > 0 ? toK(totalScrapAll * (rNet / totalAllNet)) : 0;
+            return Math.max(d, sc);
+        }), toK(disc), toK(scrap), 10);
+
+    const niceStep = (val, targetTicks) => {
+        const raw = Math.max(val, 0.1) / targetTicks;
+        const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+        const norm = raw / pow;
+        const step = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10;
+        return +(step * pow).toFixed(4);
+    };
+    const yStep = niceStep(maxYearGrossM * 1.2, 4);
+    const yMax = +(Math.ceil((maxYearGrossM * 1.2) / yStep) * yStep).toFixed(4);
+    const yMinMag = +(Math.ceil((yMax * 0.45) / yStep) * yStep).toFixed(4);
+    const y1Step = niceStep(maxYearLossK * 1.25, 2);
+    const y1Max = +(Math.ceil((maxYearLossK * 1.25) / y1Step) * y1Step).toFixed(1);
+    const y1PosMax = +(y1Max * (yMax / yMinMag)).toFixed(1);
+
+    const mData = [toM(gross), null, toM(net), null, toM(afterScrap)];
+    const kData = [null, -toK(disc), null, -toK(scrap), null];
+    const rawAmounts = [gross, -disc, net, -scrap, afterScrap];
+
+    const wfLabelsPlugin = {
+        id: 'revWfBarLabels',
+        afterDatasetsDraw(chart) {
+            const { ctx, chartArea } = chart;
+            ctx.save();
+            ctx.font = '600 10px ui-sans-serif, system-ui, -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            [0, 1].forEach(dsIdx => {
+                const meta = chart.getDatasetMeta(dsIdx);
+                if (!meta || !meta.data) return;
+                meta.data.forEach((bar, i) => {
+                    const dsVal = chart.data.datasets[dsIdx].data[i];
+                    if (dsVal === null || dsVal === undefined) return;
+                    const val = rawAmounts[i];
+                    const abs = Math.abs(val);
+                    const sign = val < 0 ? '-' : '';
+                    const text = abs >= 1e6
+                        ? sign + '$' + (abs / 1e6).toFixed(1) + 'M'
+                        : abs >= 1e3
+                            ? sign + '$' + Math.round(abs / 1e3) + 'K'
+                            : sign + '$' + Math.round(abs);
+                    const labelY = val < 0
+                        ? Math.min(bar.y + 4, chartArea.bottom - 14)
+                        : Math.max(bar.y - 4, chartArea.top + 14);
+                    const boxW = ctx.measureText(text).width + 6;
+                    const boxY = val < 0 ? labelY - 1 : labelY - 11;
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+                    ctx.fillRect(bar.x - boxW / 2, boxY, boxW, 12);
+                    ctx.fillStyle = val < 0 ? '#DC2626' : '#334155';
+                    ctx.textBaseline = val < 0 ? 'top' : 'bottom';
+                    ctx.fillText(text, bar.x, labelY);
+                });
+            });
+            ctx.restore();
+        }
+    };
     document.getElementById('revWaterfallSub').textContent = revYear === 'all' ? 'All years (2011 to 2014)' : 'Year ' + revYear;
     const ctx = document.getElementById('revWaterfallChart').getContext('2d');
     if (waterfallChart) waterfallChart.destroy();
     waterfallChart = new Chart(ctx, {
         type: 'bar',
+        plugins: [wfLabelsPlugin],
         data: {
             labels: ['Gross Sales', 'Discounts', 'Net Revenue', 'Scrap Loss', 'Net After Scrap'],
-            datasets: [{
-                data: [[0, toM(gross)], [toM(net), toM(gross)], [0, toM(net)], [toM(afterScrap), toM(net)], [0, toM(afterScrap)]],
-                backgroundColor: ['#1E293B', '#F59E0B', '#3B82F6', '#EF4444', '#10B981'],
-                borderRadius: 5
-            }]
+            datasets: [
+                {
+                    label: 'Revenue ($M)',
+                    data: mData,
+                    backgroundColor: ['#1E293B', 'transparent', '#3B82F6', 'transparent', afterScrap >= 0 ? '#10B981' : '#EF4444'],
+                    borderRadius: 5,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Losses ($K)',
+                    data: kData,
+                    backgroundColor: ['transparent', '#F59E0B', 'transparent', '#EF4444', 'transparent'],
+                    borderRadius: 5,
+                    yAxisID: 'y1'
+                }
+            ]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: { x: { grid: { display: false } }, y: { grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v + 'M' } } }
+            layout: { padding: { top: 18, bottom: 18 } },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: c => {
+                            const val = rawAmounts[c.dataIndex];
+                            return c.label + ': ' + fmtDollar(val) + ' (' + (val < 0 ? '-' : '') + '$' + (Math.abs(val) / 1e6).toFixed(2) + 'M)';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { stacked: true, grid: { display: false } },
+                y: {
+                    position: 'left',
+                    min: -yMinMag,
+                    max: yMax,
+                    title: { display: true, text: 'Revenue ($M)', font: { size: 10, weight: '600' }, color: '#475569' },
+                    grid: {
+                        color: c => (c.tick && c.tick.value === 0) ? '#64748B' : '#F1F5F9',
+                        lineWidth: c => (c.tick && c.tick.value === 0) ? 1.5 : 1
+                    },
+                    ticks: { stepSize: yStep, font: { size: 10 }, callback: v => v < 0 ? '' : '$' + v + 'M' }
+                },
+                y1: {
+                    position: 'right',
+                    min: -y1Max,
+                    max: y1PosMax,
+                    title: { display: true, text: 'Discounts / Scrap ($K)', font: { size: 10, weight: '600' }, color: '#DC2626' },
+                    grid: { drawOnChartArea: false },
+                    afterBuildTicks: axis => {
+                        const t = [];
+                        for (let v = 0; v >= -y1Max - 1e-6; v -= y1Step) t.push({ value: +v.toFixed(1) });
+                        axis.ticks = t;
+                    },
+                    ticks: {
+                        font: { size: 10 },
+                        color: '#DC2626',
+                        callback: v => (v < 0 ? '-' : '') + '$' + Math.round(Math.abs(v)) + 'K'
+                    }
+                }
+            }
         }
     });
+}
+
+function setRevTrendChartType(t) {
+    revTrendChartType = t;
+    const map = { revenue: 'btnRevTypeRev', discount: 'btnRevTypeDisc', grouped: 'btnRevTypeGrouped' };
+    Object.entries(map).forEach(([k, id]) => {
+        const el = document.getElementById(id);
+        if (el) el.className = k === t
+            ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition'
+            : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    });
+    renderRevTrend();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function setRevTrendMode(m) {
@@ -338,25 +491,64 @@ function renderRevTrend() {
         return g > 0 ? +((d / g) * 100).toFixed(2) : 0;
     });
 
+    let chartType = 'bar';
+    let datasets = [];
+    let scales = {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } }
+    };
+
+    if (revTrendChartType === 'revenue') {
+        chartType = 'bar';
+        datasets = [
+            { label: 'Net Revenue ($M)', data: netVals, backgroundColor: '#1E293B', borderRadius: 4 }
+        ];
+        scales.y = {
+            beginAtZero: true,
+            title: { display: true, text: 'Net Revenue ($M)', font: { size: 10, weight: '600' }, color: '#475569' },
+            grid: { color: '#F1F5F9' },
+            ticks: { callback: v => '$' + v + 'M' }
+        };
+    } else if (revTrendChartType === 'discount') {
+        chartType = 'line';
+        datasets = [
+            { label: 'Discount Rate %', data: discRates, borderColor: '#FF5B26', backgroundColor: 'rgba(255, 91, 38, 0.12)', fill: true, tension: 0.3, pointRadius: 3 }
+        ];
+        scales.y = {
+            beginAtZero: true,
+            title: { display: true, text: 'Discount Rate (%)', font: { size: 10, weight: '600' }, color: '#FF5B26' },
+            grid: { color: '#F1F5F9' },
+            ticks: { callback: v => v + '%' }
+        };
+    } else {
+        chartType = 'bar';
+        datasets = [
+            { label: 'Net Revenue ($M)', data: netVals, backgroundColor: '#1E293B', borderRadius: 4, yAxisID: 'y' },
+            { label: 'Discount Rate %', data: discRates, backgroundColor: '#FF5B26', borderRadius: 4, yAxisID: 'y1' }
+        ];
+        scales.y = {
+            beginAtZero: true,
+            title: { display: true, text: 'Net Revenue ($M)', font: { size: 10, weight: '600' }, color: '#475569' },
+            grid: { color: '#F1F5F9' },
+            ticks: { callback: v => '$' + v + 'M' }
+        };
+        scales.y1 = {
+            position: 'right',
+            beginAtZero: true,
+            title: { display: true, text: 'Discount Rate (%)', font: { size: 10, weight: '600' }, color: '#FF5B26' },
+            grid: { drawOnChartArea: false },
+            ticks: { callback: v => v + '%' }
+        };
+    }
+
     const ctx = document.getElementById('revTrendChart').getContext('2d');
     if (revTrendChart) revTrendChart.destroy();
     revTrendChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels,
-            datasets: [
-                { label: 'Net Revenue ($M)', data: netVals, backgroundColor: '#1E293B', borderRadius: 4, yAxisID: 'y' },
-                { label: 'Discount Rate %', data: discRates, type: 'line', borderColor: '#FF5B26', backgroundColor: '#FF5B26', tension: 0.3, yAxisID: 'y1' }
-            ]
-        },
+        type: chartType,
+        data: { labels, datasets },
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
-            scales: {
-                x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
-                y: { grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v + 'M' } },
-                y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => v + '%' } }
-            }
+            scales
         }
     });
 }
@@ -399,31 +591,87 @@ function renderCatDiscountChart() {
     });
 }
 
+function setScrapChartType(t) {
+    scrapChartType = t;
+    const map = { units: 'btnScrapTypeUnits', cumulative: 'btnScrapTypeCum', grouped: 'btnScrapTypeGrouped' };
+    Object.entries(map).forEach(([k, id]) => {
+        const el = document.getElementById(id);
+        if (el) el.className = k === t
+            ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition'
+            : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    });
+    renderScrapPareto();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
+}
+
 function renderScrapPareto() {
     const rows = rawScrap.slice(0, 8);
     const totalQty = rows.reduce((s, r) => s + (parseInt(r.TotalScrappedQty, 10) || 0), 0) || 1;
     let running = 0;
     const cumPct = rows.map(r => { running += (parseInt(r.TotalScrappedQty, 10) || 0); return +((running / totalQty) * 100).toFixed(1); });
+    const labels = rows.map(r => (r.ScrapReason || '').slice(0, 14));
+    const unitVals = rows.map(r => parseInt(r.TotalScrappedQty, 10) || 0);
+
+    let chartType = 'bar';
+    let datasets = [];
+    let scales = {
+        x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+    };
+
+    if (scrapChartType === 'units') {
+        chartType = 'bar';
+        datasets = [
+            { label: 'Scrapped Units', data: unitVals, backgroundColor: '#EF4444', borderRadius: 4 }
+        ];
+        scales.y = {
+            beginAtZero: true,
+            title: { display: true, text: 'Scrapped Units', font: { size: 10, weight: '600' }, color: '#EF4444' },
+            grid: { color: '#F1F5F9' },
+            ticks: { callback: v => fmtInt(v) }
+        };
+    } else if (scrapChartType === 'cumulative') {
+        chartType = 'line';
+        datasets = [
+            { label: 'Cumulative %', data: cumPct, borderColor: '#1E293B', backgroundColor: 'rgba(30, 41, 59, 0.10)', fill: true, tension: 0.25, pointRadius: 3 }
+        ];
+        scales.y = {
+            min: 0,
+            max: 100,
+            title: { display: true, text: 'Cumulative Share (%)', font: { size: 10, weight: '600' }, color: '#1E293B' },
+            grid: { color: '#F1F5F9' },
+            ticks: { callback: v => v + '%' }
+        };
+    } else {
+        chartType = 'bar';
+        datasets = [
+            { label: 'Scrapped Units', data: unitVals, backgroundColor: '#EF4444', borderRadius: 4, yAxisID: 'y' },
+            { label: 'Cumulative %', data: cumPct, backgroundColor: '#1E293B', borderRadius: 4, yAxisID: 'y1' }
+        ];
+        scales.y = {
+            beginAtZero: true,
+            title: { display: true, text: 'Scrapped Units', font: { size: 10, weight: '600' }, color: '#EF4444' },
+            grid: { color: '#F1F5F9' },
+            ticks: { callback: v => fmtInt(v) }
+        };
+        scales.y1 = {
+            position: 'right',
+            min: 0,
+            max: 100,
+            title: { display: true, text: 'Cumulative Share (%)', font: { size: 10, weight: '600' }, color: '#1E293B' },
+            grid: { drawOnChartArea: false },
+            ticks: { callback: v => v + '%' }
+        };
+    }
 
     const ctx = document.getElementById('scrapParetoChart').getContext('2d');
     if (paretoChart) paretoChart.destroy();
     paretoChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: rows.map(r => (r.ScrapReason || '').slice(0, 14)),
-            datasets: [
-                { label: 'Scrapped Units', data: rows.map(r => parseInt(r.TotalScrappedQty, 10) || 0), backgroundColor: '#EF4444', borderRadius: 4, yAxisID: 'y' },
-                { label: 'Cumulative %', data: cumPct, type: 'line', borderColor: '#1E293B', backgroundColor: '#1E293B', tension: 0.25, yAxisID: 'y1' }
-            ]
-        },
+        type: chartType,
+        data: { labels, datasets },
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
-            scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 9 } } },
-                y: { grid: { color: '#F1F5F9' } },
-                y1: { position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, ticks: { callback: v => v + '%' } }
-            }
+            scales
         }
     });
 }

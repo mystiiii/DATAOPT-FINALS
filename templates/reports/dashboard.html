@@ -480,6 +480,28 @@ function renderCategoryChart() {
         };
     });
 
+    const allVals = datasets.flatMap(d => d.data);
+    const hasNeg = allVals.some(v => v < 0);
+    const minVal = Math.min(0, ...allVals);
+    const maxVal = Math.max(...allVals);
+    const yScale = {
+        beginAtZero: true,
+        grace: '10%',
+        grid: {
+            color: c => (hasNeg && c.tick && c.tick.value === 0) ? '#64748B' : '#F1F5F9',
+            lineWidth: c => (hasNeg && c.tick && c.tick.value === 0) ? 1.5 : 1
+        },
+        ticks: {
+            font: { size: 10 },
+            callback: v => catMetric === 'units'
+                ? Number(v).toLocaleString()
+                : (v < 0 ? '-' : '') + '$' + Math.abs(v) + 'M'
+        }
+    };
+    if (hasNeg) {
+        yScale.suggestedMax = Math.max(maxVal, Math.abs(minVal), 0.5);
+    }
+
     const ctx = document.getElementById('categoryChart').getContext('2d');
     if (categoryChart) categoryChart.destroy();
     categoryChart = new Chart(ctx, {
@@ -496,21 +518,16 @@ function renderCategoryChart() {
                 tooltip: {
                     callbacks: {
                         label: function(c) {
-                            if (catMetric === 'units') return c.dataset.label + ': ' + Number(c.raw).toLocaleString() + ' units';
-                            return c.dataset.label + ': $' + Number(c.raw).toFixed(2) + 'M';
+                            const n = Number(c.raw);
+                            if (catMetric === 'units') return c.dataset.label + ': ' + n.toLocaleString() + ' units';
+                            return c.dataset.label + ': ' + (n < 0 ? '-' : '') + '$' + Math.abs(n).toFixed(2) + 'M';
                         }
                     }
                 }
             },
             scales: {
                 x: { grid: { display: false }, ticks: { font: { size: 11 } } },
-                y: {
-                    grid: { color: '#F1F5F9' },
-                    ticks: {
-                        font: { size: 10 },
-                        callback: v => catMetric === 'units' ? Number(v).toLocaleString() : '$' + v + 'M'
-                    }
-                }
+                y: yScale
             }
         }
     });
@@ -539,52 +556,156 @@ function renderWaterfallChart() {
         : (totalAllNet > 0 ? Math.round(totalScrapLossAll * (net / totalAllNet)) : 0);
 
     const realProfit = net - mfgCost - scrap;
-    const toM = v => +(v / 1e6).toFixed(2);
+    const toM = v => +(v / 1e6).toFixed(4);
+    const toK = v => +(v / 1e3).toFixed(1);
 
-    const bars = [
-        [0, toM(gross)],
-        [toM(net), toM(gross)],
-        [toM(net - mfgCost), toM(net)],
-        [toM(realProfit), toM(net - mfgCost)],
-        [0, toM(realProfit)]
-    ];
+    // Fixed reference maxima so bar lengths visibly change when switching years
+    const refRevRows = globalYear === 'all' ? rawRevenueData : rawRevenueData;
+    const maxYearGrossM = globalYear === 'all'
+        ? toM(gross)
+        : Math.max(...refRevRows.map(r => toM(parseFloat(r.GrossAmount) || 0)), toM(gross), 1);
+    const maxYearMfgM = globalYear === 'all'
+        ? toM(mfgCost)
+        : Math.max(...rawRevenueData.map(r => {
+            const yr = r.Year;
+            const m = rawCatYearData.filter(c => String(c.Year) === String(yr)).reduce((s, c) => s + (parseFloat(c.ManufacturingCost) || 0), 0);
+            return toM(m);
+        }), toM(mfgCost), 1);
+    const maxYearLossK = globalYear === 'all'
+        ? Math.max(toK(discount), toK(scrap), 10)
+        : Math.max(...refRevRows.map(r => {
+            const d = toK(parseFloat(r.DiscountLoss) || 0);
+            const rNet = parseFloat(r.NetRevenue) || 0;
+            const sc = totalAllNet > 0 ? toK(totalScrapLossAll * (rNet / totalAllNet)) : 0;
+            return Math.max(d, sc);
+        }), toK(discount), toK(scrap), 10);
+
+    const niceStep = (val, targetTicks) => {
+        const raw = Math.max(val, 0.1) / targetTicks;
+        const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+        const norm = raw / pow;
+        const step = norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10;
+        return +(step * pow).toFixed(4);
+    };
+    const yStep = niceStep(maxYearGrossM * 1.2, 4);
+    const yMax = +(Math.ceil((maxYearGrossM * 1.2) / yStep) * yStep).toFixed(4);
+    const yMinMag = +(Math.ceil(Math.max(maxYearMfgM * 1.25, yMax * 0.45) / yStep) * yStep).toFixed(4);
+    const y1Step = niceStep(maxYearLossK * 1.25, 2);
+    const y1Max = +(Math.ceil((maxYearLossK * 1.25) / y1Step) * y1Step).toFixed(1);
+    const y1PosMax = +(y1Max * (yMax / yMinMag)).toFixed(1);
+
+    const mData = [toM(gross), null, -toM(mfgCost), null, toM(realProfit)];
+    const kData = [null, -toK(discount), null, -toK(scrap), null];
     const rawAmounts = [gross, -discount, -mfgCost, -scrap, realProfit];
 
     document.getElementById('waterfallSubtitle').textContent = globalYear === 'all'
         ? 'From gross sales to profit (2011 to 2014)'
         : 'From gross sales to profit in ' + globalYear;
 
+    const wfLabelsPlugin = {
+        id: 'wfBarLabels',
+        afterDatasetsDraw(chart) {
+            const { ctx, chartArea } = chart;
+            ctx.save();
+            ctx.font = '600 10px ui-sans-serif, system-ui, -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            [0, 1].forEach(dsIdx => {
+                const meta = chart.getDatasetMeta(dsIdx);
+                if (!meta || !meta.data) return;
+                meta.data.forEach((bar, i) => {
+                    const dsVal = chart.data.datasets[dsIdx].data[i];
+                    if (dsVal === null || dsVal === undefined) return;
+                    const val = rawAmounts[i];
+                    const abs = Math.abs(val);
+                    const sign = val < 0 ? '-' : '';
+                    const text = abs >= 1e6
+                        ? sign + '$' + (abs / 1e6).toFixed(1) + 'M'
+                        : abs >= 1e3
+                            ? sign + '$' + Math.round(abs / 1e3) + 'K'
+                            : sign + '$' + Math.round(abs);
+                    const labelY = val < 0
+                        ? Math.min(bar.y + 4, chartArea.bottom - 14)
+                        : Math.max(bar.y - 4, chartArea.top + 14);
+                    const boxW = ctx.measureText(text).width + 6;
+                    const boxY = val < 0 ? labelY - 1 : labelY - 11;
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+                    ctx.fillRect(bar.x - boxW / 2, boxY, boxW, 12);
+                    ctx.fillStyle = val < 0 ? '#DC2626' : '#334155';
+                    ctx.textBaseline = val < 0 ? 'top' : 'bottom';
+                    ctx.fillText(text, bar.x, labelY);
+                });
+            });
+            ctx.restore();
+        }
+    };
     const ctx = canvas.getContext('2d');
     if (waterfallChart) waterfallChart.destroy();
     waterfallChart = new Chart(ctx, {
         type: 'bar',
+        plugins: [wfLabelsPlugin],
         data: {
             labels: ['Gross sales', 'Discounts', 'Mfg cost', 'Scrap', 'Net profit'],
-            datasets: [{
-                data: bars,
-                backgroundColor: ['#1E293B', '#F59E0B', '#EF4444', '#DC2626', '#10B981'],
-                borderRadius: 5
-            }]
+            datasets: [
+                {
+                    label: 'Revenue / Profit ($M)',
+                    data: mData,
+                    backgroundColor: ['#1E293B', 'transparent', '#EF4444', 'transparent', realProfit >= 0 ? '#10B981' : '#EF4444'],
+                    borderRadius: 5,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Discounts / Scrap ($K)',
+                    data: kData,
+                    backgroundColor: ['transparent', '#F59E0B', 'transparent', '#DC2626', 'transparent'],
+                    borderRadius: 5,
+                    yAxisID: 'y1'
+                }
+            ]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            layout: { padding: { top: 18, bottom: 18 } },
             plugins: {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
                         label: function(c) {
                             const val = rawAmounts[c.dataIndex];
-                            return c.label + ': ' + fmtDollar(val) + ' (' + (val / 1e6).toFixed(2) + 'M)';
+                            return c.label + ': ' + fmtDollar(val) + ' (' + (val < 0 ? '-' : '') + '$' + (Math.abs(val) / 1e6).toFixed(2) + 'M)';
                         }
                     }
                 }
             },
             scales: {
-                x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 } } },
                 y: {
-                    grid: { color: '#F1F5F9' },
-                    ticks: { font: { size: 10 }, callback: v => '$' + v + 'M' }
+                    position: 'left',
+                    min: -yMinMag,
+                    max: yMax,
+                    title: { display: true, text: 'Sales / Mfg / Profit ($M)', font: { size: 10, weight: '600' }, color: '#475569' },
+                    grid: {
+                        color: c => (c.tick && c.tick.value === 0) ? '#64748B' : '#F1F5F9',
+                        lineWidth: c => (c.tick && c.tick.value === 0) ? 1.5 : 1
+                    },
+                    ticks: { stepSize: yStep, font: { size: 10 }, callback: v => (v < 0 ? '-' : '') + '$' + Math.abs(v) + 'M' }
+                },
+                y1: {
+                    position: 'right',
+                    min: -y1Max,
+                    max: y1PosMax,
+                    title: { display: true, text: 'Discounts / Scrap ($K)', font: { size: 10, weight: '600' }, color: '#DC2626' },
+                    grid: { drawOnChartArea: false },
+                    afterBuildTicks: axis => {
+                        const t = [];
+                        for (let v = 0; v >= -y1Max - 1e-6; v -= y1Step) t.push({ value: +v.toFixed(1) });
+                        axis.ticks = t;
+                    },
+                    ticks: {
+                        font: { size: 10 },
+                        color: '#DC2626',
+                        callback: v => (v < 0 ? '-' : '') + '$' + Math.round(Math.abs(v)) + 'K'
+                    }
                 }
             }
         }

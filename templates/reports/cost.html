@@ -177,7 +177,7 @@ let costSortAsc = false;
 
 let catCostChart = null, scatterChart = null, vendChart = null, histChart = null;
 
-const fmtDollar = v => '$' + Math.round(v || 0).toLocaleString();
+const fmtDollar = v => (v < 0 ? '-' : '') + '$' + Math.round(Math.abs(v || 0)).toLocaleString();
 const fmtDec = v => '$' + Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtInt = v => Math.round(v || 0).toLocaleString();
 
@@ -255,6 +255,25 @@ function updateCostKPIs() {
 }
 
 function renderCatCostChart() {
+    const margins = rawCatCost.map(c => parseFloat(c.MarginPercentage) || 0);
+    const hasNegMargin = margins.some(v => v < 0);
+    const minMargin = Math.min(0, ...margins);
+    const maxMargin = Math.max(...margins);
+    const y1Scale = {
+        position: 'right',
+        beginAtZero: true,
+        grace: '10%',
+        grid: {
+            drawOnChartArea: hasNegMargin,
+            color: c => (hasNegMargin && c.tick && c.tick.value === 0) ? '#64748B' : 'transparent',
+            lineWidth: c => (hasNegMargin && c.tick && c.tick.value === 0) ? 1.5 : 0
+        },
+        ticks: { callback: v => v + '%' }
+    };
+    if (hasNegMargin) {
+        y1Scale.suggestedMax = Math.max(maxMargin, Math.abs(minMargin), 10);
+    }
+
     const ctx = document.getElementById('catCostChart').getContext('2d');
     if (catCostChart) catCostChart.destroy();
     catCostChart = new Chart(ctx, {
@@ -264,7 +283,7 @@ function renderCatCostChart() {
             datasets: [
                 { label: 'Total Revenue ($M)', data: rawCatCost.map(c => +(parseFloat(c.TotalRevenue) / 1e6).toFixed(2)), backgroundColor: '#1E293B', borderRadius: 4, yAxisID: 'y' },
                 { label: 'Total COGS ($M)', data: rawCatCost.map(c => +(parseFloat(c.TotalCOGS) / 1e6).toFixed(2)), backgroundColor: '#EF4444', borderRadius: 4, yAxisID: 'y' },
-                { label: 'Margin %', data: rawCatCost.map(c => parseFloat(c.MarginPercentage) || 0), type: 'line', borderColor: '#10B981', backgroundColor: '#10B981', tension: 0.2, yAxisID: 'y1' }
+                { label: 'Margin %', data: margins, type: 'line', borderColor: '#10B981', backgroundColor: '#10B981', tension: 0.2, yAxisID: 'y1' }
             ]
         },
         options: {
@@ -272,8 +291,8 @@ function renderCatCostChart() {
             plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
             scales: {
                 x: { grid: { display: false } },
-                y: { grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v + 'M' } },
-                y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => v + '%' } }
+                y: { beginAtZero: true, grid: { color: '#F1F5F9' }, ticks: { callback: v => (v < 0 ? '-' : '') + '$' + Math.abs(v) + 'M' } },
+                y1: y1Scale
             }
         }
     });

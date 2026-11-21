@@ -44,7 +44,7 @@
                 <span class="text-[11px] font-medium text-slate-500">Gross sales</span>
                 <span id="revKpiOrders" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">Orders</span>
             </div>
-            <div id="revKpiGross" class="text-2xl font-bold text-slate-900 mt-2">${{ total_gross|floatformat:0|intcomma }}</div>
+            <div id="revKpiGross" class="text-xl xl:text-2xl font-bold tabular-nums truncate text-slate-900 mt-2">${{ total_gross|floatformat:0|intcomma }}</div>
             <div class="text-[11px] text-slate-500 mt-1">Before discounts</div>
         </div>
 
@@ -53,7 +53,7 @@
                 <span class="text-[11px] font-medium text-slate-500">Discounts given</span>
                 <span id="revKpiDiscRate" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700">0.0%</span>
             </div>
-            <div id="revKpiDiscount" class="text-2xl font-bold text-amber-600 mt-2">-${{ total_discount|floatformat:0|intcomma }}</div>
+            <div id="revKpiDiscount" class="text-xl xl:text-2xl font-bold tabular-nums truncate text-amber-600 mt-2">-${{ total_discount|floatformat:0|intcomma }}</div>
             <div class="text-[11px] text-slate-500 mt-1">Line item discounts</div>
         </div>
 
@@ -62,7 +62,7 @@
                 <span class="text-[11px] font-medium text-slate-500">Factory scrap loss</span>
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-700">Work orders</span>
             </div>
-            <div id="revKpiScrap" class="text-2xl font-bold text-rose-600 mt-2">-${{ total_scrap_loss|floatformat:0|intcomma }}</div>
+            <div id="revKpiScrap" class="text-xl xl:text-2xl font-bold tabular-nums truncate text-rose-600 mt-2">-${{ total_scrap_loss|floatformat:0|intcomma }}</div>
             <div class="text-[11px] text-slate-500 mt-1">{{ total_scrapped_qty|intcomma }} units scrapped</div>
         </div>
 
@@ -71,7 +71,7 @@
                 <span class="text-[11px] font-medium text-slate-500">Net revenue</span>
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700">After discounts</span>
             </div>
-            <div id="revKpiNet" class="text-2xl font-bold text-emerald-700 mt-2">${{ total_net|floatformat:0|intcomma }}</div>
+            <div id="revKpiNet" class="text-xl xl:text-2xl font-bold tabular-nums truncate text-emerald-700 mt-2">${{ total_net|floatformat:0|intcomma }}</div>
             <div class="text-[11px] text-slate-500 mt-1">Collected order total</div>
         </div>
     </div>
@@ -224,7 +224,7 @@ let revSortAsc = false;
 
 let waterfallChart = null, revTrendChart = null, catDiscChart = null, paretoChart = null;
 
-const fmtDollar = v => (v < 0 ? '-' : '') + '$' + Math.round(Math.abs(v || 0)).toLocaleString();
+const fmtDollar = v => fmtCurrDollar(v);
 const fmtInt = v => Math.round(v || 0).toLocaleString();
 
 const DEFAULT_REPORT_FILTERS = {
@@ -326,8 +326,8 @@ function renderRevWaterfall() {
     const totalAllNet = rawRevYear.reduce((s, r) => s + (parseFloat(r.NetRevenue) || 0), 0);
     const scrap = revYear === 'all' ? totalScrapAll : (totalAllNet > 0 ? Math.round(totalScrapAll * (net / totalAllNet)) : 0);
     const afterScrap = net - scrap;
-    const toM = v => +(v / 1e6).toFixed(4);
-    const toK = v => +(v / 1e3).toFixed(1);
+    const toM = v => +(toCurr(v) / 1e6).toFixed(4);
+    const toK = v => +(toCurr(v) / 1e3).toFixed(1);
 
     // Fixed reference maxima so bar lengths visibly change when switching years
     const maxYearGrossM = revYear === 'all'
@@ -374,13 +374,15 @@ function renderRevWaterfall() {
                     const dsVal = chart.data.datasets[dsIdx].data[i];
                     if (dsVal === null || dsVal === undefined) return;
                     const val = rawAmounts[i];
-                    const abs = Math.abs(val);
-                    const sign = val < 0 ? '-' : '';
+                    const convVal = toCurr(val);
+                    const abs = Math.abs(convVal);
+                    const sign = convVal < 0 ? '-' : '';
+                    const sym = currSymbol();
                     const text = abs >= 1e6
-                        ? sign + '$' + (abs / 1e6).toFixed(1) + 'M'
+                        ? sign + sym + (abs / 1e6).toFixed(1) + 'M'
                         : abs >= 1e3
-                            ? sign + '$' + Math.round(abs / 1e3) + 'K'
-                            : sign + '$' + Math.round(abs);
+                            ? sign + sym + Math.round(abs / 1e3) + 'K'
+                            : sign + sym + Math.round(abs);
                     const labelY = val < 0
                         ? Math.min(bar.y + 4, chartArea.bottom - 14)
                         : Math.max(bar.y - 4, chartArea.top + 14);
@@ -406,14 +408,14 @@ function renderRevWaterfall() {
             labels: ['Gross Sales', 'Discounts', 'Net Revenue', 'Scrap Loss', 'Net After Scrap'],
             datasets: [
                 {
-                    label: 'Revenue ($M)',
+                    label: `Revenue (${currSymbol()}M)`,
                     data: mData,
                     backgroundColor: ['#1E293B', 'transparent', '#3B82F6', 'transparent', afterScrap >= 0 ? '#10B981' : '#EF4444'],
                     borderRadius: 5,
                     yAxisID: 'y'
                 },
                 {
-                    label: 'Losses ($K)',
+                    label: `Losses (${currSymbol()}K)`,
                     data: kData,
                     backgroundColor: ['transparent', '#F59E0B', 'transparent', '#EF4444', 'transparent'],
                     borderRadius: 5,
@@ -430,7 +432,8 @@ function renderRevWaterfall() {
                     callbacks: {
                         label: c => {
                             const val = rawAmounts[c.dataIndex];
-                            return c.label + ': ' + fmtDollar(val) + ' (' + (val < 0 ? '-' : '') + '$' + (Math.abs(val) / 1e6).toFixed(2) + 'M)';
+                            const conv = toCurr(val);
+                            return c.label + ': ' + fmtDollar(val) + ' (' + (conv < 0 ? '-' : '') + currSymbol() + (Math.abs(conv) / 1e6).toFixed(2) + 'M)';
                         }
                     }
                 }
@@ -441,18 +444,18 @@ function renderRevWaterfall() {
                     position: 'left',
                     min: -yMinMag,
                     max: yMax,
-                    title: { display: true, text: 'Revenue ($M)', font: { size: 10, weight: '600' }, color: '#475569' },
+                    title: { display: true, text: `Revenue (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#475569' },
                     grid: {
                         color: c => (c.tick && c.tick.value === 0) ? '#64748B' : '#F1F5F9',
                         lineWidth: c => (c.tick && c.tick.value === 0) ? 1.5 : 1
                     },
-                    ticks: { stepSize: yStep, font: { size: 10 }, callback: v => v < 0 ? '' : '$' + v + 'M' }
+                    ticks: { stepSize: yStep, font: { size: 10 }, callback: v => v < 0 ? '' : currSymbol() + v + 'M' }
                 },
                 y1: {
                     position: 'right',
                     min: -y1Max,
                     max: y1PosMax,
-                    title: { display: true, text: 'Discounts / Scrap ($K)', font: { size: 10, weight: '600' }, color: '#DC2626' },
+                    title: { display: true, text: `Discounts / Scrap (${currSymbol()}K)`, font: { size: 10, weight: '600' }, color: '#DC2626' },
                     grid: { drawOnChartArea: false },
                     afterBuildTicks: axis => {
                         const t = [];
@@ -462,7 +465,7 @@ function renderRevWaterfall() {
                     ticks: {
                         font: { size: 10 },
                         color: '#DC2626',
-                        callback: v => (v < 0 ? '-' : '') + '$' + Math.round(Math.abs(v)) + 'K'
+                        callback: v => (v < 0 ? '-' : '') + currSymbol() + Math.round(Math.abs(v)) + 'K'
                     }
                 }
             }
@@ -496,7 +499,7 @@ function renderRevTrend() {
         ? rawRevYear
         : (revYear === 'all' ? rawMonthlyRev : rawMonthlyRev.filter(r => String(r.Year) === String(revYear)));
     const labels = revTrendMode === 'annual' ? rows.map(r => 'FY' + r.Year) : rows.map(r => `${r.Year}-${String(r.Month).padStart(2, '0')}`);
-    const netVals = rows.map(r => +(parseFloat(r.NetRevenue) / 1e6).toFixed(2));
+    const netVals = rows.map(r => +(toCurr(r.NetRevenue) / 1e6).toFixed(2));
     const discRates = rows.map(r => {
         const g = parseFloat(r.GrossAmount) || 0;
         const d = parseFloat(r.DiscountLoss) || 0;
@@ -512,13 +515,13 @@ function renderRevTrend() {
     if (revTrendChartType === 'revenue') {
         chartType = 'bar';
         datasets = [
-            { label: 'Net Revenue ($M)', data: netVals, backgroundColor: '#1E293B', borderRadius: 4 }
+            { label: `Net Revenue (${currSymbol()}M)`, data: netVals, backgroundColor: '#1E293B', borderRadius: 4 }
         ];
         scales.y = {
             beginAtZero: true,
-            title: { display: true, text: 'Net Revenue ($M)', font: { size: 10, weight: '600' }, color: '#475569' },
+            title: { display: true, text: `Net Revenue (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#475569' },
             grid: { color: '#F1F5F9' },
-            ticks: { callback: v => '$' + v + 'M' }
+            ticks: { callback: v => currSymbol() + v + 'M' }
         };
     } else if (revTrendChartType === 'discount') {
         chartType = 'line';
@@ -534,14 +537,14 @@ function renderRevTrend() {
     } else {
         chartType = 'bar';
         datasets = [
-            { label: 'Net Revenue ($M)', data: netVals, backgroundColor: '#1E293B', borderRadius: 4, yAxisID: 'y' },
+            { label: `Net Revenue (${currSymbol()}M)`, data: netVals, backgroundColor: '#1E293B', borderRadius: 4, yAxisID: 'y' },
             { label: 'Discount Rate %', data: discRates, backgroundColor: '#FF5B26', borderRadius: 4, yAxisID: 'y1' }
         ];
         scales.y = {
             beginAtZero: true,
-            title: { display: true, text: 'Net Revenue ($M)', font: { size: 10, weight: '600' }, color: '#475569' },
+            title: { display: true, text: `Net Revenue (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#475569' },
             grid: { color: '#F1F5F9' },
-            ticks: { callback: v => '$' + v + 'M' }
+            ticks: { callback: v => currSymbol() + v + 'M' }
         };
         scales.y1 = {
             position: 'right',
@@ -590,15 +593,15 @@ function renderCatDiscountChart() {
         data: {
             labels: list.map(r => r.Category),
             datasets: [{
-                data: list.map(r => catDiscMetric === 'loss' ? Math.round(r.Disc) : (r.Gross > 0 ? +((r.Disc / r.Gross) * 100).toFixed(2) : 0)),
+                data: list.map(r => catDiscMetric === 'loss' ? Math.round(toCurr(r.Disc)) : (r.Gross > 0 ? +((r.Disc / r.Gross) * 100).toFixed(2) : 0)),
                 backgroundColor: ['#F59E0B', '#FF5B26', '#3B82F6', '#10B981'],
                 borderRadius: 4
             }]
         },
         options: {
             indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => catDiscMetric === 'loss' ? fmtDollar(c.raw) : c.raw + '%' } } },
-            scales: { x: { beginAtZero: true, title: { display: true, text: catDiscMetric === 'loss' ? 'Discount Loss ($)' : 'Discount Rate (%)', font: { size: 10, weight: '600' }, color: '#475569' }, grid: { color: '#F1F5F9' }, ticks: { callback: v => catDiscMetric === 'loss' ? '$' + Math.round(v / 1e3) + 'K' : v + '%' } }, y: { grid: { display: false } } }
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => catDiscMetric === 'loss' ? fmtDollar(list[c.dataIndex].Disc) : c.raw + '%' } } },
+            scales: { x: { beginAtZero: true, title: { display: true, text: catDiscMetric === 'loss' ? `Discount Loss (${currSymbol()})` : 'Discount Rate (%)', font: { size: 10, weight: '600' }, color: '#475569' }, grid: { color: '#F1F5F9' }, ticks: { callback: v => catDiscMetric === 'loss' ? currSymbol() + Math.round(v / 1e3) + 'K' : v + '%' } }, y: { grid: { display: false } } }
         }
     });
 }
@@ -789,7 +792,7 @@ function renderRevFindings() {
     el.innerHTML = items.map(t => `<li>${t}</li>`).join('');
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+window.onCurrencyChange = () => {
     updateRevKPIs();
     renderRevWaterfall();
     renderRevTrend();
@@ -797,6 +800,10 @@ document.addEventListener('DOMContentLoaded', () => {
     renderScrapPareto();
     renderRevFindings();
     renderRevTable();
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.onCurrencyChange();
 });
 </script>
 {% endblock %}

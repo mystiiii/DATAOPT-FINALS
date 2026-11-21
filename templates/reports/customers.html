@@ -51,7 +51,7 @@
                 <span class="text-[11px] font-medium text-slate-500">Lifetime sales</span>
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700">Incl. tax &amp; freight</span>
             </div>
-            <div id="custKpiRev" class="text-2xl font-bold text-slate-900 mt-2">$0</div>
+            <div id="custKpiRev" class="text-xl xl:text-2xl font-bold tabular-nums truncate text-slate-900 mt-2">$0</div>
             <div id="custKpiAvgSpend" class="text-[11px] text-slate-500 mt-1">Avg per buyer: $0</div>
         </div>
 
@@ -70,7 +70,7 @@
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral">#1</span>
             </div>
             <div class="text-lg font-bold text-slate-900 mt-2 truncate">{% if top_customers %}{{ top_customers.0.CustomerName }}{% else %}-{% endif %}</div>
-            <div class="text-[11px] text-slate-500 mt-1">{% if top_customers %}${{ top_customers.0.TotalSpent|floatformat:0|intcomma }} ({{ top_customers.0.Orders }} orders){% else %}No data{% endif %}</div>
+            <div class="text-[11px] text-slate-500 mt-1">{% if top_customers %}<span data-usd="{{ top_customers.0.TotalSpent }}">${{ top_customers.0.TotalSpent|floatformat:0|intcomma }}</span> ({{ top_customers.0.Orders }} orders){% else %}No data{% endif %}</div>
         </div>
     </div>
 
@@ -217,8 +217,8 @@ let worldCountriesGeo = null;
 
 let splitChart = null, freqChart = null, geoChart = null, trendChart = null;
 
-const fmtCompact = v => Math.abs(v) >= 1e6 ? '$' + (v / 1e6).toFixed(1) + 'M' : (Math.abs(v) >= 1e3 ? '$' + Math.round(v / 1e3) + 'K' : '$' + Math.round(v).toLocaleString());
-const fmtDollar = v => '$' + Math.round(v || 0).toLocaleString();
+const fmtCompact = v => fmtCurrCompact(v);
+const fmtDollar = v => fmtCurrDollar(v);
 const fmtInt = v => Math.round(v || 0).toLocaleString();
 
 const DEFAULT_REPORT_FILTERS = {
@@ -337,7 +337,8 @@ function renderCustSplitChart() {
         document.getElementById('cdB2B').textContent = fmtDollar(v1);
         document.getElementById('cdB2C').textContent = fmtDollar(v2);
 
-        const avgValues = [v1, v2];
+        const avgValues = [toCurr(v1), toCurr(v2)];
+        const rawAvgUsd = [v1, v2];
         const avgLabelsPlugin = {
             id: 'cdAvgBarLabels',
             afterDatasetsDraw(chart) {
@@ -350,8 +351,8 @@ function renderCustSplitChart() {
                 cctx.textBaseline = 'bottom';
                 cctx.fillStyle = '#334155';
                 meta.data.forEach((bar, idx) => {
-                    const val = avgValues[idx] || 0;
-                    const txt = Math.abs(val) >= 1e4 ? fmtCompact(val) : fmtDollar(val);
+                    const usd = rawAvgUsd[idx] || 0;
+                    const txt = Math.abs(toCurr(usd)) >= 1e4 ? fmtCompact(usd) : fmtDollar(usd);
                     cctx.fillText(txt, bar.x, bar.y - 4);
                 });
                 cctx.restore();
@@ -380,7 +381,7 @@ function renderCustSplitChart() {
                         callbacks: {
                             label: c => {
                                 const buyers = c.dataIndex === 0 ? b2bBuyers : b2cBuyers;
-                                return `${c.label}: ${fmtDollar(c.raw)} avg (${fmtInt(buyers)} active buyers)`;
+                                return `${c.label}: ${fmtDollar(rawAvgUsd[c.dataIndex])} avg (${fmtInt(buyers)} active buyers)`;
                             }
                         }
                     }
@@ -390,9 +391,9 @@ function renderCustSplitChart() {
                     y: {
                         beginAtZero: true,
                         grace: '15%',
-                        title: { display: true, text: 'Avg Sales / Buyer', font: { size: 10, weight: '600' }, color: '#475569' },
+                        title: { display: true, text: `Avg Sales / Buyer (${currSymbol()})`, font: { size: 10, weight: '600' }, color: '#475569' },
                         grid: { color: '#F1F5F9' },
-                        ticks: { font: { size: 10 }, callback: v => v >= 1e3 ? '$' + Math.round(v / 1e3) + 'K' : '$' + v }
+                        ticks: { font: { size: 10 }, callback: v => v >= 1e3 ? currSymbol() + Math.round(v / 1e3) + 'K' : currSymbol() + v }
                     }
                 }
             }
@@ -457,8 +458,8 @@ function renderFreqChart() {
         data: {
             labels: rawFreqBuckets.map(b => b.FrequencyBucket),
             datasets: [{
-                label: freqMetric === 'customers' ? 'Customers' : 'Revenue ($M)',
-                data: rawFreqBuckets.map(b => freqMetric === 'customers' ? (parseInt(b.CustomerCount, 10) || 0) : +(parseFloat(b.TotalRevenue) / 1e6).toFixed(2)),
+                label: freqMetric === 'customers' ? 'Customers' : `Revenue (${currSymbol()}M)`,
+                data: rawFreqBuckets.map(b => freqMetric === 'customers' ? (parseInt(b.CustomerCount, 10) || 0) : +(toCurr(b.TotalRevenue) / 1e6).toFixed(2)),
                 backgroundColor: ['#94A3B8', '#3B82F6', '#10B981', '#F59E0B', '#FF5B26'],
                 borderRadius: 5
             }]
@@ -468,7 +469,7 @@ function renderFreqChart() {
             plugins: { legend: { display: false } },
             scales: {
                 x: { grid: { display: false } },
-                y: { beginAtZero: true, title: { display: true, text: freqMetric === 'customers' ? 'Customers' : 'Sales ($M)', font: { size: 10, weight: '600' }, color: '#475569' }, grid: { color: '#F1F5F9' }, ticks: { callback: v => freqMetric === 'customers' ? fmtInt(v) : '$' + v + 'M' } }
+                y: { beginAtZero: true, title: { display: true, text: freqMetric === 'customers' ? 'Customers' : `Sales (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#475569' }, grid: { color: '#F1F5F9' }, ticks: { callback: v => freqMetric === 'customers' ? fmtInt(v) : currSymbol() + v + 'M' } }
             }
         }
     });
@@ -534,12 +535,12 @@ async function renderCustGeoChart() {
         type: 'bar',
         data: {
             labels: sourceRows.map(r => r.CountryName),
-            datasets: [{ data: sourceRows.map(r => +(parseFloat(r.TotalRevenue) / 1e6).toFixed(2)), backgroundColor: '#FF5B26', borderRadius: 4 }]
+            datasets: [{ data: sourceRows.map(r => +(toCurr(r.TotalRevenue) / 1e6).toFixed(2)), backgroundColor: '#FF5B26', borderRadius: 4 }]
         },
         options: {
             indexAxis: 'y', responsive: true, maintainAspectRatio: false,
             plugins: { legend: { display: false } },
-            scales: { x: { grid: { color: '#F1F5F9' }, ticks: { callback: v => '$' + v + 'M' } }, y: { grid: { display: false } } }
+            scales: { x: { beginAtZero: true, title: { display: true, text: `Sales (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#475569' }, grid: { color: '#F1F5F9' }, ticks: { callback: v => currSymbol() + v + 'M' } }, y: { grid: { display: false } } }
         }
     });
 }
@@ -557,12 +558,12 @@ function renderCustTrendChart() {
     const b2bData = years.map(y => {
         const r = rawCustTrends.find(t => t.Year === y && t.CustomerType.includes('B2B'));
         if (!r) return 0;
-        return trendMetric === 'revenue' ? +(parseFloat(r.TotalRevenue) / 1e6).toFixed(2) : (parseInt(r.ActiveCustomers, 10) || 0);
+        return trendMetric === 'revenue' ? +(toCurr(r.TotalRevenue) / 1e6).toFixed(2) : (parseInt(r.ActiveCustomers, 10) || 0);
     });
     const b2cData = years.map(y => {
         const r = rawCustTrends.find(t => t.Year === y && t.CustomerType.includes('B2C'));
         if (!r) return 0;
-        return trendMetric === 'revenue' ? +(parseFloat(r.TotalRevenue) / 1e6).toFixed(2) : (parseInt(r.ActiveCustomers, 10) || 0);
+        return trendMetric === 'revenue' ? +(toCurr(r.TotalRevenue) / 1e6).toFixed(2) : (parseInt(r.ActiveCustomers, 10) || 0);
     });
     const datasets = [];
     if (custSegment === 'all' || custSegment === 'B2B') datasets.push({ label: 'Stores (B2B)', data: b2bData, backgroundColor: '#FF5B26', borderRadius: 4 });
@@ -576,7 +577,7 @@ function renderCustTrendChart() {
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
-            scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: { display: true, text: trendMetric === 'revenue' ? 'Sales ($M)' : 'Active Buyers', font: { size: 10, weight: '600' }, color: '#475569' }, grid: { color: '#F1F5F9' }, ticks: { callback: v => trendMetric === 'revenue' ? '$' + v + 'M' : fmtInt(v) } } }
+            scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: { display: true, text: trendMetric === 'revenue' ? `Sales (${currSymbol()}M)` : 'Active Buyers', font: { size: 10, weight: '600' }, color: '#475569' }, grid: { color: '#F1F5F9' }, ticks: { callback: v => trendMetric === 'revenue' ? currSymbol() + v + 'M' : fmtInt(v) } } }
         }
     });
 }
@@ -675,7 +676,7 @@ function renderCustFindings() {
     el.innerHTML = items.map(t => `<li>${t}</li>`).join('');
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+window.onCurrencyChange = () => {
     updateCustKPIs();
     renderCustSplitChart();
     renderFreqChart();
@@ -683,6 +684,10 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCustTrendChart();
     renderCustFindings();
     renderCustTable();
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.onCurrencyChange();
 });
 </script>
 {% endblock %}

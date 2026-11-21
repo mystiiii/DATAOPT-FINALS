@@ -162,8 +162,8 @@
                 <button type="button" onclick="switchCustTab('regions')" data-ctab="regions" class="ctab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">States &amp; regions</button>
             </div>
             <div class="flex items-center gap-2 text-xs">
-                <input type="text" id="custSearch" oninput="renderCustTable()" placeholder="Search customers or regions..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral w-48 sm:w-60">
-                <select id="custLimit" onchange="renderCustTable()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 font-medium">
+                <input type="text" id="custSearch" oninput="renderCustTable(); if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();" placeholder="Search customers or regions..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral w-48 sm:w-60">
+                <select id="custLimit" onchange="renderCustTable(); if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 font-medium">
                     <option value="5">Top 5</option>
                     <option value="10" selected>Top 10</option>
                     <option value="20">Top 20</option>
@@ -207,15 +207,67 @@ const fmtCompact = v => Math.abs(v) >= 1e6 ? '$' + (v / 1e6).toFixed(1) + 'M' : 
 const fmtDollar = v => '$' + Math.round(v || 0).toLocaleString();
 const fmtInt = v => Math.round(v || 0).toLocaleString();
 
-function applyReportPreset(filterVal) {
-    const sel = document.getElementById('custSegmentFilter');
-    if ([...sel.options].some(o => o.value === filterVal)) {
-        sel.value = filterVal;
-        onCustSegmentChange(filterVal);
-    } else {
-        document.getElementById('custSearch').value = filterVal === 'all' ? '' : filterVal;
-        renderCustTable();
+const DEFAULT_REPORT_FILTERS = {
+    segment: 'all',
+    donutMetric: 'revenue',
+    freqMetric: 'customers',
+    geoView: 'map',
+    trendMetric: 'revenue',
+    tab: 'accounts',
+    search: '',
+    limit: '10',
+    sortKey: 'TotalSpent',
+    sortAsc: false
+};
+
+function getCurrentReportFilters() {
+    return {
+        segment: custSegment,
+        donutMetric: donutMetric,
+        freqMetric: freqMetric,
+        geoView: geoView,
+        trendMetric: trendMetric,
+        tab: custTab,
+        search: (document.getElementById('custSearch').value || '').trim(),
+        limit: document.getElementById('custLimit').value,
+        sortKey: custSortKey,
+        sortAsc: custSortAsc
+    };
+}
+
+function applyReportPreset(params) {
+    if (!params) return;
+    if (typeof params === 'string') params = { filter: params };
+    if (params.filter && !params.segment) {
+        const val = params.filter;
+        const sel = document.getElementById('custSegmentFilter');
+        if ([...sel.options].some(o => o.value === val)) params.segment = val;
+        else params.search = val === 'all' ? '' : val;
     }
+
+    const segVal = params.segment || DEFAULT_REPORT_FILTERS.segment;
+    document.getElementById('custSegmentFilter').value = segVal;
+    custSegment = segVal;
+
+    setCustDonutMetric(params.donutMetric || DEFAULT_REPORT_FILTERS.donutMetric);
+    setFreqMetric(params.freqMetric || DEFAULT_REPORT_FILTERS.freqMetric);
+    setGeoView(params.geoView || DEFAULT_REPORT_FILTERS.geoView);
+    setTrendMetric(params.trendMetric || DEFAULT_REPORT_FILTERS.trendMetric);
+
+    const targetTab = (params.tab && CUST_SCHEMAS[params.tab]) ? params.tab : DEFAULT_REPORT_FILTERS.tab;
+    switchCustTab(targetTab);
+
+    document.getElementById('custSearch').value = params.search || '';
+    document.getElementById('custLimit').value = String(params.limit || DEFAULT_REPORT_FILTERS.limit);
+    if (params.sortKey) {
+        custSortKey = params.sortKey;
+        custSortAsc = Boolean(params.sortAsc);
+    }
+
+    updateCustKPIs();
+    renderCustTrendChart();
+    renderCustTable();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function onCustSegmentChange(val) {
@@ -223,6 +275,7 @@ function onCustSegmentChange(val) {
     updateCustKPIs();
     renderCustTrendChart();
     renderCustTable();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function updateCustKPIs() {
@@ -249,6 +302,7 @@ function setCustDonutMetric(m) {
         document.getElementById(id).className = k === m ? 'flex-1 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     });
     renderCustSplitChart();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function renderCustSplitChart() {
@@ -288,6 +342,7 @@ function setFreqMetric(m) {
     document.getElementById('btnFreqCust').className = m === 'customers' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     document.getElementById('btnFreqRev').className = m === 'revenue' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     renderFreqChart();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function renderFreqChart() {
@@ -326,6 +381,7 @@ function setGeoView(v) {
     document.getElementById('btnGeoMap').className = v === 'map' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     document.getElementById('btnGeoBar').className = v === 'bar' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     renderCustGeoChart();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 async function getWorldGeo() {
@@ -389,6 +445,7 @@ function setTrendMetric(m) {
     document.getElementById('btnCTRev').className = m === 'revenue' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     document.getElementById('btnCTCust').className = m === 'customers' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     renderCustTrendChart();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function renderCustTrendChart() {
@@ -454,12 +511,14 @@ function switchCustTab(tab) {
         el.className = el.dataset.ctab === tab ? 'ctab-btn px-3 py-1.5 rounded-lg bg-coral text-white font-semibold transition' : 'ctab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
     });
     renderCustTable();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function sortCustBy(key) {
     if (custSortKey === key) custSortAsc = !custSortAsc;
     else { custSortKey = key; custSortAsc = false; }
     renderCustTable();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function renderCustTable() {

@@ -143,7 +143,7 @@
                         <button type="button" onclick="setSalesTerrView('map')" id="btnSTerrMap" class="px-2 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Map</button>
                         <button type="button" onclick="setSalesTerrView('bar')" id="btnSTerrBar" class="px-2 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Bars</button>
                     </div>
-                    <select id="salesContinentFilter" onchange="renderSalesTerritoryChart()" class="border border-slate-200 rounded-lg px-2 py-1 text-slate-700 bg-slate-50 font-medium">
+                    <select id="salesContinentFilter" onchange="renderSalesTerritoryChart(); if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();" class="border border-slate-200 rounded-lg px-2 py-1 text-slate-700 bg-slate-50 font-medium">
                         <option value="all">All regions</option>
                         <option value="North America">North America</option>
                         <option value="Europe">Europe</option>
@@ -184,8 +184,8 @@
                 <button type="button" onclick="switchSalesTab('territories')" data-stab="territories" class="stab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Territories</button>
             </div>
             <div class="flex items-center gap-2 text-xs">
-                <input type="text" id="salesSearch" oninput="renderSalesTable()" placeholder="Search records..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral w-48 sm:w-60">
-                <select id="salesLimit" onchange="renderSalesTable()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 font-medium">
+                <input type="text" id="salesSearch" oninput="renderSalesTable(); if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();" placeholder="Search records..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral w-48 sm:w-60">
+                <select id="salesLimit" onchange="renderSalesTable(); if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 font-medium">
                     <option value="5">Top 5</option>
                     <option value="10" selected>Top 10</option>
                     <option value="15">Top 15</option>
@@ -231,15 +231,80 @@ let monthlyChart = null, salesCatChart = null, salesTerrChart = null, prodExtrem
 const fmtDollar = v => (v < 0 ? '-' : '') + '$' + Math.round(Math.abs(v || 0)).toLocaleString();
 const fmtInt = v => Math.round(v || 0).toLocaleString();
 
-function applyReportPreset(filterVal) {
-    const sel = document.getElementById('salesYearFilter');
-    if ([...sel.options].some(o => o.value === filterVal)) {
-        sel.value = filterVal;
-        onSalesYearChange(filterVal);
-    } else {
-        document.getElementById('salesSearch').value = filterVal === 'all' ? '' : filterVal;
-        renderSalesTable();
+const DEFAULT_REPORT_FILTERS = {
+    year: 'all',
+    monthlyMetric: 'revenue',
+    category: 'all',
+    catMetric: 'revenue',
+    terrView: 'map',
+    region: 'all',
+    prodExtreme: 'top',
+    tab: 'top',
+    search: '',
+    limit: '10',
+    sortKey: 'TotalRevenue',
+    sortAsc: false
+};
+
+function getCurrentReportFilters() {
+    return {
+        year: salesYear,
+        monthlyMetric: monthlyMetric,
+        category: salesCatFilter,
+        catMetric: salesCatMetric,
+        terrView: salesTerrView,
+        region: document.getElementById('salesContinentFilter').value,
+        prodExtreme: prodExtremeMode,
+        tab: salesTab,
+        search: (document.getElementById('salesSearch').value || '').trim(),
+        limit: document.getElementById('salesLimit').value,
+        sortKey: salesSortKey,
+        sortAsc: salesSortAsc
+    };
+}
+
+function applyReportPreset(params) {
+    if (!params) return;
+    if (typeof params === 'string') params = { filter: params };
+    if (params.filter && !params.year && !params.category) {
+        const val = params.filter;
+        const sel = document.getElementById('salesYearFilter');
+        if ([...sel.options].some(o => o.value === val)) params.year = val;
+        else params.search = val === 'all' ? '' : val;
     }
+
+    const yearVal = params.year || DEFAULT_REPORT_FILTERS.year;
+    document.getElementById('salesYearFilter').value = yearVal;
+    salesYear = yearVal;
+
+    setMonthlyMetric(params.monthlyMetric || DEFAULT_REPORT_FILTERS.monthlyMetric);
+    setSalesCatFilter(params.category || DEFAULT_REPORT_FILTERS.category);
+
+    let cm = params.catMetric || DEFAULT_REPORT_FILTERS.catMetric;
+    if (cm === 'profit' && !IS_MANAGER) cm = 'revenue';
+    setSalesCatMetric(cm);
+
+    setSalesTerrView(params.terrView || DEFAULT_REPORT_FILTERS.terrView);
+    document.getElementById('salesContinentFilter').value = params.region || DEFAULT_REPORT_FILTERS.region;
+    setProductExtreme(params.prodExtreme || DEFAULT_REPORT_FILTERS.prodExtreme);
+
+    const targetTab = (params.tab && SALES_SCHEMAS[params.tab]) ? params.tab : DEFAULT_REPORT_FILTERS.tab;
+    switchSalesTab(targetTab);
+
+    document.getElementById('salesSearch').value = params.search || '';
+    document.getElementById('salesLimit').value = String(params.limit || DEFAULT_REPORT_FILTERS.limit);
+    if (params.sortKey) {
+        salesSortKey = params.sortKey;
+        salesSortAsc = Boolean(params.sortAsc);
+    }
+
+    updateSalesKPIs();
+    renderMonthlyChart();
+    renderSalesCatChart();
+    renderSalesTerritoryChart();
+    renderProductExtremeChart();
+    renderSalesTable();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function onSalesYearChange(val) {
@@ -247,10 +312,14 @@ function onSalesYearChange(val) {
     updateSalesKPIs();
     renderMonthlyChart();
     renderSalesCatChart();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function updateSalesKPIs() {
-    const catRows = salesYear === 'all' ? rawSalesCatYear : rawSalesCatYear.filter(r => String(r.Year) === String(salesYear));
+    let catRows = salesYear === 'all' ? rawSalesCatYear : rawSalesCatYear.filter(r => String(r.Year) === String(salesYear));
+    if (salesCatFilter !== 'all') {
+        catRows = catRows.filter(r => r.Category === salesCatFilter);
+    }
     const monRows = salesYear === 'all' ? rawMonthlyTrend : rawMonthlyTrend.filter(r => String(r.Year) === String(salesYear));
 
     const rev = catRows.reduce((s, r) => s + (parseFloat(r.Revenue) || 0), 0);
@@ -263,7 +332,9 @@ function updateSalesKPIs() {
     const sortedCats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
     if (sortedCats.length) {
         document.getElementById('salesKpiTopCat').textContent = sortedCats[0][0];
-        document.getElementById('salesKpiTopCatShare').textContent = (rev > 0 ? ((sortedCats[0][1] / rev) * 100).toFixed(1) : '0.0') + '%';
+        document.getElementById('salesKpiTopCatShare').textContent = salesCatFilter !== 'all'
+            ? 'Filtered'
+            : (rev > 0 ? ((sortedCats[0][1] / rev) * 100).toFixed(1) : '0.0') + '%';
     }
 
     document.getElementById('salesKpiRevenue').textContent = fmtDollar(rev);
@@ -277,6 +348,7 @@ function setMonthlyMetric(m) {
     document.getElementById('btnMonthRev').className = m === 'revenue' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     document.getElementById('btnMonthOrd').className = m === 'orders' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     renderMonthlyChart();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function renderMonthlyChart() {
@@ -319,6 +391,7 @@ function setSalesCatMetric(m) {
         if (el) el.className = k === m ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     });
     renderSalesCatChart();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function setSalesCatFilter(cat) {
@@ -326,7 +399,11 @@ function setSalesCatFilter(cat) {
     document.querySelectorAll('.scat-pill').forEach(el => {
         el.className = el.dataset.scat === cat ? 'scat-pill px-2.5 py-0.5 rounded-full bg-coral text-white font-semibold transition' : 'scat-pill px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
     });
+    updateSalesKPIs();
     renderSalesCatChart();
+    renderProductExtremeChart();
+    renderSalesTable();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function renderSalesCatChart() {
@@ -375,6 +452,7 @@ function setSalesTerrView(v) {
     document.getElementById('btnSTerrMap').className = v === 'map' ? 'px-2 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     document.getElementById('btnSTerrBar').className = v === 'bar' ? 'px-2 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     renderSalesTerritoryChart();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 async function getWorldGeo() {
@@ -445,10 +523,12 @@ function setProductExtreme(mode) {
     document.getElementById('btnProdLow').className = mode === 'low' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     document.getElementById('prodExtremeSub').textContent = mode === 'top' ? 'Top 10 products by revenue' : 'Bottom 10 products by revenue';
     renderProductExtremeChart();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function renderProductExtremeChart() {
-    const rows = (prodExtremeMode === 'top' ? rawTopProducts : rawLowProducts).slice(0, 10);
+    const source = prodExtremeMode === 'top' ? rawTopProducts : rawLowProducts;
+    const rows = (salesCatFilter === 'all' ? source : source.filter(r => r.Category === salesCatFilter)).slice(0, 10);
     const ctx = document.getElementById('productExtremeChart').getContext('2d');
     if (prodExtremeChart) prodExtremeChart.destroy();
     prodExtremeChart = new Chart(ctx, {
@@ -479,7 +559,7 @@ const SALES_SCHEMAS = {
             { key: 'TotalRevenue', label: 'Revenue', align: 'right', type: 'num', fmt: fmtDollar }
             {% if is_manager %}, { key: 'MarginPercentage', label: 'Margin %', align: 'right', type: 'num', fmt: v => Number(v || 0).toFixed(1) + '%' }{% endif %}
         ],
-        getRows: () => rawTopProducts
+        getRows: () => salesCatFilter === 'all' ? rawTopProducts : rawTopProducts.filter(r => r.Category === salesCatFilter)
     },
     low: {
         defaultSort: 'TotalRevenue',
@@ -489,7 +569,7 @@ const SALES_SCHEMAS = {
             { key: 'TotalQuantity', label: 'Units Sold', align: 'right', type: 'num', fmt: fmtInt },
             { key: 'TotalRevenue', label: 'Revenue', align: 'right', type: 'num', fmt: fmtDollar }
         ],
-        getRows: () => rawLowProducts
+        getRows: () => salesCatFilter === 'all' ? rawLowProducts : rawLowProducts.filter(r => r.Category === salesCatFilter)
     },
     subcat: {
         defaultSort: 'Revenue',
@@ -500,7 +580,7 @@ const SALES_SCHEMAS = {
             { key: 'UnitsSold', label: 'Units Sold', align: 'right', type: 'num', fmt: fmtInt },
             { key: 'Revenue', label: 'Revenue', align: 'right', type: 'num', fmt: fmtDollar }
         ],
-        getRows: () => rawSubcategories
+        getRows: () => salesCatFilter === 'all' ? rawSubcategories : rawSubcategories.filter(r => r.Category === salesCatFilter)
     },
     territories: {
         defaultSort: 'TotalRevenue',
@@ -522,12 +602,14 @@ function switchSalesTab(tab) {
         el.className = el.dataset.stab === tab ? 'stab-btn px-3 py-1.5 rounded-lg bg-coral text-white font-semibold transition' : 'stab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
     });
     renderSalesTable();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function sortSalesBy(key) {
     if (salesSortKey === key) salesSortAsc = !salesSortAsc;
     else { salesSortKey = key; salesSortAsc = false; }
     renderSalesTable();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function renderSalesTable() {

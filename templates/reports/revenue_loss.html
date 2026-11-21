@@ -163,8 +163,8 @@
                 <button type="button" onclick="switchRevTab('catdisc')" data-rtab="catdisc" class="rtab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Category discounts</button>
             </div>
             <div class="flex items-center gap-2 text-xs">
-                <input type="text" id="revSearch" oninput="renderRevTable()" placeholder="Search records..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral w-48 sm:w-60">
-                <select id="revLimit" onchange="renderRevTable()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 font-medium">
+                <input type="text" id="revSearch" oninput="renderRevTable(); if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();" placeholder="Search records..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral w-48 sm:w-60">
+                <select id="revLimit" onchange="renderRevTable(); if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 font-medium">
                     <option value="10" selected>Top 10</option>
                     <option value="20">Top 20</option>
                 </select>
@@ -202,15 +202,63 @@ let waterfallChart = null, revTrendChart = null, catDiscChart = null, paretoChar
 const fmtDollar = v => (v < 0 ? '-' : '') + '$' + Math.round(Math.abs(v || 0)).toLocaleString();
 const fmtInt = v => Math.round(v || 0).toLocaleString();
 
-function applyReportPreset(filterVal) {
-    const sel = document.getElementById('revYearFilter');
-    if ([...sel.options].some(o => o.value === filterVal)) {
-        sel.value = filterVal;
-        onRevYearChange(filterVal);
-    } else {
-        document.getElementById('revSearch').value = filterVal === 'all' ? '' : filterVal;
-        renderRevTable();
+const DEFAULT_REPORT_FILTERS = {
+    year: 'all',
+    trendMode: 'annual',
+    catDiscMetric: 'loss',
+    tab: 'scrap',
+    search: '',
+    limit: '10',
+    sortKey: 'TotalScrappedQty',
+    sortAsc: false
+};
+
+function getCurrentReportFilters() {
+    return {
+        year: revYear,
+        trendMode: revTrendMode,
+        catDiscMetric: catDiscMetric,
+        tab: revTab,
+        search: (document.getElementById('revSearch').value || '').trim(),
+        limit: document.getElementById('revLimit').value,
+        sortKey: revSortKey,
+        sortAsc: revSortAsc
+    };
+}
+
+function applyReportPreset(params) {
+    if (!params) return;
+    if (typeof params === 'string') params = { filter: params };
+    if (params.filter && !params.year) {
+        const val = params.filter;
+        const sel = document.getElementById('revYearFilter');
+        if ([...sel.options].some(o => o.value === val)) params.year = val;
+        else params.search = val === 'all' ? '' : val;
     }
+
+    const yearVal = params.year || DEFAULT_REPORT_FILTERS.year;
+    document.getElementById('revYearFilter').value = yearVal;
+    revYear = yearVal;
+
+    setRevTrendMode(params.trendMode || DEFAULT_REPORT_FILTERS.trendMode);
+    setCatDiscMetric(params.catDiscMetric || DEFAULT_REPORT_FILTERS.catDiscMetric);
+
+    const targetTab = (params.tab && REV_SCHEMAS[params.tab]) ? params.tab : DEFAULT_REPORT_FILTERS.tab;
+    switchRevTab(targetTab);
+
+    document.getElementById('revSearch').value = params.search || '';
+    document.getElementById('revLimit').value = String(params.limit || DEFAULT_REPORT_FILTERS.limit);
+    if (params.sortKey) {
+        revSortKey = params.sortKey;
+        revSortAsc = Boolean(params.sortAsc);
+    }
+
+    updateRevKPIs();
+    renderRevWaterfall();
+    renderRevTrend();
+    renderCatDiscountChart();
+    renderRevTable();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function onRevYearChange(val) {
@@ -219,6 +267,7 @@ function onRevYearChange(val) {
     renderRevWaterfall();
     renderRevTrend();
     renderCatDiscountChart();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function updateRevKPIs() {
@@ -274,6 +323,7 @@ function setRevTrendMode(m) {
     document.getElementById('btnRevAnnual').className = m === 'annual' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     document.getElementById('btnRevMonthly').className = m === 'monthly' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     renderRevTrend();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function renderRevTrend() {
@@ -316,6 +366,7 @@ function setCatDiscMetric(m) {
     document.getElementById('btnDiscDollar').className = m === 'loss' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     document.getElementById('btnDiscRate').className = m === 'rate' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     renderCatDiscountChart();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function renderCatDiscountChart() {
@@ -420,12 +471,14 @@ function switchRevTab(tab) {
         el.className = el.dataset.rtab === tab ? 'rtab-btn px-3 py-1.5 rounded-lg bg-coral text-white font-semibold transition' : 'rtab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
     });
     renderRevTable();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function sortRevBy(key) {
     if (revSortKey === key) revSortAsc = !revSortAsc;
     else { revSortKey = key; revSortAsc = false; }
     renderRevTable();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function renderRevTable() {

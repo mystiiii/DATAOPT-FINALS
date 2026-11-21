@@ -141,8 +141,8 @@
                 <button type="button" onclick="switchCostTab('history')" data-costtab="history" class="costtab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Cost history</button>
             </div>
             <div class="flex items-center gap-2 text-xs">
-                <input type="text" id="costSearch" oninput="renderCostTable()" placeholder="Search products or vendors..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral w-48 sm:w-60">
-                <select id="costLimit" onchange="renderCostTable()" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 font-medium">
+                <input type="text" id="costSearch" oninput="renderCostTable(); if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();" placeholder="Search products or vendors..." class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral w-48 sm:w-60">
+                <select id="costLimit" onchange="renderCostTable(); if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();" class="border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 bg-slate-50 font-medium">
                     <option value="10" selected>Top 10</option>
                     <option value="20">Top 20</option>
                     <option value="30">Top 30</option>
@@ -181,15 +181,58 @@ const fmtDollar = v => '$' + Math.round(v || 0).toLocaleString();
 const fmtDec = v => '$' + Number(v || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const fmtInt = v => Math.round(v || 0).toLocaleString();
 
-function applyReportPreset(filterVal) {
-    const sel = document.getElementById('costCatFilter');
-    if ([...sel.options].some(o => o.value === filterVal)) {
-        sel.value = filterVal;
-        onCostCatChange(filterVal);
-    } else {
-        document.getElementById('costSearch').value = filterVal === 'all' ? '' : filterVal;
-        renderCostTable();
+const DEFAULT_REPORT_FILTERS = {
+    category: 'all',
+    vendMode: 'vendors',
+    tab: 'margins',
+    search: '',
+    limit: '10',
+    sortKey: 'MarginPercentage',
+    sortAsc: false
+};
+
+function getCurrentReportFilters() {
+    return {
+        category: costCat,
+        vendMode: vendMode,
+        tab: costTab,
+        search: (document.getElementById('costSearch').value || '').trim(),
+        limit: document.getElementById('costLimit').value,
+        sortKey: costSortKey,
+        sortAsc: costSortAsc
+    };
+}
+
+function applyReportPreset(params) {
+    if (!params) return;
+    if (typeof params === 'string') params = { filter: params };
+    if (params.filter && !params.category) {
+        const val = params.filter;
+        const sel = document.getElementById('costCatFilter');
+        if ([...sel.options].some(o => o.value === val)) params.category = val;
+        else params.search = val === 'all' ? '' : val;
     }
+
+    const catVal = params.category || DEFAULT_REPORT_FILTERS.category;
+    document.getElementById('costCatFilter').value = catVal;
+    costCat = catVal;
+
+    setVendMode(params.vendMode || DEFAULT_REPORT_FILTERS.vendMode);
+
+    const targetTab = (params.tab && COST_SCHEMAS[params.tab]) ? params.tab : DEFAULT_REPORT_FILTERS.tab;
+    switchCostTab(targetTab);
+
+    document.getElementById('costSearch').value = params.search || '';
+    document.getElementById('costLimit').value = String(params.limit || DEFAULT_REPORT_FILTERS.limit);
+    if (params.sortKey) {
+        costSortKey = params.sortKey;
+        costSortAsc = Boolean(params.sortAsc);
+    }
+
+    updateCostKPIs();
+    renderScatterChart();
+    renderCostTable();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function onCostCatChange(val) {
@@ -197,6 +240,7 @@ function onCostCatChange(val) {
     updateCostKPIs();
     renderScatterChart();
     renderCostTable();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function updateCostKPIs() {
@@ -287,6 +331,7 @@ function setVendMode(m) {
     document.getElementById('btnVendTop').className = m === 'vendors' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     document.getElementById('btnVendYear').className = m === 'yearly' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     renderVendorSpendChart();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function renderVendorSpendChart() {
@@ -403,12 +448,14 @@ function switchCostTab(tab) {
         el.className = el.dataset.costtab === tab ? 'costtab-btn px-3 py-1.5 rounded-lg bg-coral text-white font-semibold transition' : 'costtab-btn px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
     });
     renderCostTable();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function sortCostBy(key) {
     if (costSortKey === key) costSortAsc = !costSortAsc;
     else { costSortKey = key; costSortAsc = false; }
     renderCostTable();
+    if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function renderCostTable() {

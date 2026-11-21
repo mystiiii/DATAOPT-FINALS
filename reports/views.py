@@ -355,23 +355,38 @@ def cost_report_view(request):
     })
 
 
+def _parse_filter_params(post_data, fallback=None):
+    raw_json = post_data.get('filter_params_json', '').strip()
+    if raw_json:
+        try:
+            parsed = json.loads(raw_json)
+            if isinstance(parsed, dict) and parsed:
+                return parsed
+        except (ValueError, TypeError):
+            pass
+    filter_param = post_data.get('filter_param', '').strip()
+    if filter_param:
+        return {'filter': filter_param}
+    return fallback if fallback is not None else {'filter': 'all'}
+
+
 @login_required
 def save_preset_view(request):
     if request.method == 'POST':
         module = request.POST.get('module', 'sales')
         _require_governance_access(request, module)
         name = request.POST.get('name', '').strip() or 'My Saved Filter'
-        filter_param = request.POST.get('filter_param', 'all').strip() or 'all'
+        filter_params = _parse_filter_params(request.POST)
         preset = SavedReportPreset.objects.create(
             name=name,
             module=module,
-            filter_params={'filter': filter_param},
+            filter_params=filter_params,
             created_by=request.user
         )
         log_audit_event(
             request.user, 'CREATE', 'SavedReportPreset',
             target_id=preset.id, module=module,
-            details=f"Created preset '{preset.name}' with filter '{filter_param}'."
+            details=f"Created preset '{preset.name}' with filters {json.dumps(filter_params)}."
         )
         messages.success(request, f"Saved preset '{preset.name}' successfully.")
         return redirect(f'report_{module}')
@@ -385,14 +400,15 @@ def edit_preset_view(request, preset_id):
     if request.method == 'POST':
         old_name = preset.name
         new_name = request.POST.get('name', '').strip() or old_name
-        new_filter = request.POST.get('filter_param', '').strip() or preset.filter_params.get('filter', 'all')
         preset.name = new_name
-        preset.filter_params = {'filter': new_filter}
+        replace_filters = request.POST.get('replace_filters') == '1'
+        if replace_filters or 'filter_param' in request.POST:
+            preset.filter_params = _parse_filter_params(request.POST, fallback=preset.filter_params)
         preset.save()
         log_audit_event(
             request.user, 'EDIT', 'SavedReportPreset',
             target_id=preset.id, module=preset.module,
-            details=f"Updated preset '{old_name}' -> '{preset.name}' (filter: '{new_filter}')."
+            details=f"Updated preset '{old_name}' -> '{preset.name}' (filters: {json.dumps(preset.filter_params)})."
         )
         messages.success(request, f"Updated preset '{preset.name}'.")
     return redirect(f'report_{preset.module}')

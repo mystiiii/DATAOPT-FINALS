@@ -75,13 +75,27 @@ class RBACTestCase(TestCase):
             self.client.post(reverse('save_preset'), {'module': 'cost', 'name': 'Cost Hack', 'filter_param': 'all'}).status_code,
             403
         )
-        self.client.post(reverse('save_preset'), {'module': 'sales', 'name': 'Sup Filter', 'filter_param': '2013'})
+        self.client.post(reverse('save_preset'), {
+            'module': 'sales',
+            'name': 'Sup Filter',
+            'filter_params_json': '{"year": "2013", "category": "Clothing", "region": "all"}'
+        })
         preset = SavedReportPreset.objects.get(name='Sup Filter')
         self.assertEqual(preset.created_by, self.supervisor_user)
+        self.assertEqual(preset.filter_params, {'year': '2013', 'category': 'Clothing', 'region': 'all'})
 
-        self.client.post(reverse('edit_preset', args=[preset.id]), {'name': 'Sup Filter v2', 'filter_param': '2014'})
+        # Verify preset JSON script tag renders with its numeric ID so Apply button can find it
+        res_sales = self.client.get(reverse('report_sales'))
+        self.assertIn(f'id="preset-data-{preset.id}"', res_sales.content.decode())
+
+        self.client.post(reverse('edit_preset', args=[preset.id]), {
+            'name': 'Sup Filter v2',
+            'replace_filters': '1',
+            'filter_params_json': '{"year": "2014", "category": "Bikes"}'
+        })
         preset.refresh_from_db()
         self.assertEqual(preset.name, 'Sup Filter v2')
+        self.assertEqual(preset.filter_params, {'year': '2014', 'category': 'Bikes'})
 
         self.client.post(reverse('save_annotation'), {'module': 'sales', 'title': 'Q4 Spike', 'content': 'Strong holiday sales.'})
         note = ReportAnnotation.objects.get(title='Q4 Spike')

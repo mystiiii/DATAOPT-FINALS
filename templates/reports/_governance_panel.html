@@ -6,34 +6,47 @@
             <div>
                 <h2 class="text-sm font-bold text-slate-900">Saved presets</h2>
                 <p class="text-[11px] text-slate-400">
-                    {% if can_edit_governance %}Save filters to reuse later{% else %}View-only filter presets{% endif %}
+                    {% if can_edit_governance %}Saves your current page filters to reuse later{% else %}View-only filter presets{% endif %}
                 </p>
             </div>
             <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">{{ presets|length }} saved</span>
         </div>
 
         {% if can_edit_governance %}
-        <form method="post" action="{% url 'save_preset' %}" class="flex flex-wrap sm:flex-nowrap gap-2 text-xs">
+        <form id="savePresetForm" method="post" action="{% url 'save_preset' %}" onsubmit="syncPresetJsonBeforeSubmit(this)" class="space-y-2 text-xs">
             {% csrf_token %}
             <input type="hidden" name="module" value="{{ module }}">
-            <input type="text" name="name" required placeholder="Preset name (e.g. 2013 focus)" class="flex-1 min-w-0 px-3 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-coral">
-            <input type="text" name="filter_param" value="all" placeholder="Filter value" class="w-28 px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 focus:outline-none focus:ring-1 focus:ring-coral">
-            <button type="submit" class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-semibold transition shrink-0">Save</button>
+            <input type="hidden" name="filter_params_json" value="{}">
+            <div class="flex flex-wrap sm:flex-nowrap gap-2">
+                <input type="text" name="name" required placeholder="Preset name (e.g. Clothing Sales 2013)" class="flex-1 min-w-0 px-3 py-1.5 rounded-lg border border-slate-200 focus:outline-none focus:ring-1 focus:ring-coral">
+                <button type="submit" class="px-3 py-1.5 rounded-lg bg-coral hover:bg-coral-hover text-white font-semibold transition shrink-0">Save current filters</button>
+            </div>
+            <div class="flex items-center gap-1.5 text-[11px] text-slate-500">
+                <span>Will save:</span>
+                <span id="livePresetPreview" class="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">All (default)</span>
+            </div>
         </form>
         {% endif %}
 
         <div class="space-y-2 max-h-60 overflow-y-auto">
             {% for p in presets %}
+            {% with id_str=p.id|stringformat:"s" %}
+            {% with script_id="preset-data-"|add:id_str %}
+            {{ p.filter_params|json_script:script_id }}
+            {% endwith %}
+            {% endwith %}
             <div class="p-2.5 rounded-lg border border-slate-100 bg-[#FAFAFA] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
                 <div class="min-w-0">
-                    <div class="flex items-center space-x-2">
+                    <div class="flex flex-wrap items-center gap-1.5">
                         <span class="font-semibold text-slate-900 truncate">{{ p.name }}</span>
-                        <span class="px-1.5 py-0.5 rounded bg-coral-light text-coral text-[10px] font-mono">{{ p.filter_params.filter|default:"all" }}</span>
+                        <span id="preset-chips-{{ p.id }}" class="inline-flex flex-wrap items-center gap-1">
+                            <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-medium">Default view</span>
+                        </span>
                     </div>
                     <p class="text-[10px] text-slate-400 mt-0.5">{{ p.created_by.username }}, {{ p.updated_at|date:"M d, Y" }}</p>
                 </div>
                 <div class="flex items-center space-x-1.5 shrink-0">
-                    <button type="button" onclick="if (typeof applyReportPreset === 'function') applyReportPreset('{{ p.filter_params.filter|default:'all'|escapejs }}')" class="px-2 py-1 rounded bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 text-[11px] font-medium">Apply</button>
+                    <button type="button" onclick="triggerApplyPreset('preset-data-{{ p.id }}', '{{ p.name|escapejs }}')" class="px-2.5 py-1 rounded bg-white border border-slate-200 text-slate-700 hover:bg-coral-light hover:text-coral hover:border-coral-border text-[11px] font-medium transition">Apply</button>
                     {% if can_edit_governance %}
                         {% if is_manager or p.created_by_id == request.user.id %}
                         <button type="button" onclick="document.getElementById('editPresetForm-{{ p.id }}').classList.toggle('hidden')" class="px-2 py-1 rounded bg-white border border-slate-200 text-blue-600 hover:bg-blue-50 text-[11px] font-medium">Edit</button>
@@ -44,11 +57,17 @@
             </div>
             {% if can_edit_governance %}
                 {% if is_manager or p.created_by_id == request.user.id %}
-                <form id="editPresetForm-{{ p.id }}" method="post" action="{% url 'edit_preset' p.id %}" class="hidden p-2.5 rounded-lg bg-blue-50/60 border border-blue-100 flex flex-wrap gap-2 text-xs">
+                <form id="editPresetForm-{{ p.id }}" method="post" action="{% url 'edit_preset' p.id %}" onsubmit="syncPresetJsonBeforeSubmit(this)" class="hidden p-2.5 rounded-lg bg-blue-50/60 border border-blue-100 space-y-2 text-xs">
                     {% csrf_token %}
-                    <input type="text" name="name" value="{{ p.name }}" required class="flex-1 min-w-0 px-2.5 py-1 rounded border border-slate-200 bg-white">
-                    <input type="text" name="filter_param" value="{{ p.filter_params.filter|default:'all' }}" class="w-24 px-2 py-1 rounded border border-slate-200 bg-white">
-                    <button type="submit" class="px-2.5 py-1 rounded bg-slate-900 text-white font-semibold">Update</button>
+                    <input type="hidden" name="filter_params_json" value="{}">
+                    <div class="flex flex-wrap gap-2">
+                        <input type="text" name="name" value="{{ p.name }}" required class="flex-1 min-w-0 px-2.5 py-1 rounded border border-slate-200 bg-white">
+                        <button type="submit" class="px-2.5 py-1 rounded bg-slate-900 text-white font-semibold">Update</button>
+                    </div>
+                    <label class="flex items-center gap-1.5 text-[11px] text-slate-600 cursor-pointer">
+                        <input type="checkbox" name="replace_filters" value="1" class="rounded border-slate-300 text-coral focus:ring-coral">
+                        <span>Replace saved filters with current page filters</span>
+                    </label>
                 </form>
                 {% endif %}
             {% endif %}
@@ -117,3 +136,85 @@
         </div>
     </div>
 </div>
+
+<script>
+function getNonDefaultEntries(params) {
+    if (!params || typeof params !== 'object') return [];
+    const defaults = (typeof DEFAULT_REPORT_FILTERS === 'object' && DEFAULT_REPORT_FILTERS) ? DEFAULT_REPORT_FILTERS : {};
+    return Object.entries(params).filter(([k, v]) => {
+        if (v === undefined || v === null || v === '') return false;
+        if (k in defaults) return String(v) !== String(defaults[k]);
+        return v !== 'all';
+    });
+}
+
+function formatPresetSummary(params) {
+    const entries = getNonDefaultEntries(params);
+    return entries.length ? entries.map(([k, v]) => `${k}: ${v}`).join(' | ') : 'Default view';
+}
+
+function renderAllPresetChips() {
+    document.querySelectorAll('[id^="preset-chips-"]').forEach(container => {
+        const pid = container.id.replace('preset-chips-', '');
+        const scriptEl = document.getElementById('preset-data-' + pid);
+        if (!scriptEl) return;
+        let params = {};
+        try { params = JSON.parse(scriptEl.textContent); } catch (e) {}
+        const entries = getNonDefaultEntries(params);
+        if (!entries.length) {
+            container.innerHTML = '<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] font-medium">Default view</span>';
+        } else {
+            container.innerHTML = entries
+                .map(([k, v]) => `<span class="px-1.5 py-0.5 rounded bg-coral-light text-coral text-[10px] font-medium">${k}: ${v}</span>`)
+                .join('');
+        }
+    });
+}
+
+function updateLivePresetPreview() {
+    const el = document.getElementById('livePresetPreview');
+    if (!el || typeof getCurrentReportFilters !== 'function') return;
+    el.textContent = formatPresetSummary(getCurrentReportFilters());
+}
+
+function syncPresetJsonBeforeSubmit(form) {
+    const input = form.querySelector('input[name="filter_params_json"]');
+    if (input && typeof getCurrentReportFilters === 'function') {
+        input.value = JSON.stringify(getCurrentReportFilters());
+    }
+}
+
+function showAppliedPresetBanner(presetName, params) {
+    let banner = document.getElementById('appliedPresetBanner');
+    if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'appliedPresetBanner';
+        banner.className = 'mb-4 px-4 py-2.5 rounded-xl bg-coral-light border border-coral-border text-xs text-slate-800 flex items-center justify-between shadow-sm';
+        const main = document.querySelector('main');
+        if (main) main.prepend(banner);
+    }
+    const summary = formatPresetSummary(params);
+    banner.innerHTML = `<div><strong class="text-coral">Preset applied:</strong> <span class="font-semibold">${presetName}</span> <span class="text-slate-500 ml-1">(${summary})</span></div>` +
+        `<button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-700 font-bold px-1">&times;</button>`;
+}
+
+function triggerApplyPreset(scriptId, presetName) {
+    const scriptEl = document.getElementById(scriptId);
+    if (!scriptEl) return;
+    let params = {};
+    try { params = JSON.parse(scriptEl.textContent); } catch (e) {}
+    if (typeof applyReportPreset === 'function') {
+        applyReportPreset(params);
+    }
+    updateLivePresetPreview();
+    showAppliedPresetBanner(presetName, params);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        renderAllPresetChips();
+        updateLivePresetPreview();
+    }, 50);
+});
+</script>

@@ -85,9 +85,9 @@
             <span class="text-[11px] text-slate-400 font-medium">Showing {{ logs|length }} recent event{{ logs|length|pluralize }}</span>
         </div>
 
-        <div class="overflow-x-auto rounded-lg border border-slate-200">
+        <div class="max-h-[440px] overflow-x-auto overflow-y-auto rounded-lg border border-slate-200 print:max-h-none print:overflow-visible">
             <table class="min-w-full divide-y divide-slate-200 text-left text-xs">
-                <thead class="bg-slate-50">
+                <thead class="bg-slate-50 sticky top-0 z-10 shadow-[0_1px_0_0_#E2E8F0]">
                     <tr class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
                         <th class="px-3.5 py-2.5">Time</th>
                         <th class="px-3.5 py-2.5">User</th>

@@ -722,8 +722,14 @@ function renderCustFindings() {
         const coreNote = b7_12 ? ` Meanwhile, the <em>7-12 Orders</em> tier (${fmtInt(b7_12.CustomerCount)} wholesale store buyers) drives ${fmtDollar(b7_12.TotalRevenue)}, whereas the <em>13+ Orders</em> tier consists of high-frequency B2C accessory shoppers.` : '';
         items.push(`<strong>Repeat-purchase &amp; tier dynamics:</strong> ${onePct}% of active buyers (${fmtInt(oneTime.CustomerCount)}) placed only 1 order; automated post-purchase replenishment offers can lift second-order conversion.${coreNote}`);
     }
-    if (rawTopCustomers[0]) {
-        items.push(`<strong>Key account concentration:</strong> ${rawTopCustomers[0].CustomerName} (${rawTopCustomers[0].CustomerType}) leads with ${fmtDollar(rawTopCustomers[0].TotalSpent)} across ${fmtInt(rawTopCustomers[0].Orders)} orders.`);
+    if (rawTopCustomers.length) {
+        const segCustomers = custSegment === 'all'
+            ? rawTopCustomers
+            : rawTopCustomers.filter(c => (c.CustomerType || '').includes(custSegment));
+        if (segCustomers[0]) {
+            const segLabel = custSegment === 'all' ? 'All segments' : custSegment;
+            items.push(`<strong>Key account concentration (${segLabel}):</strong> ${segCustomers[0].CustomerName} (${segCustomers[0].CustomerType}) leads with ${fmtDollar(segCustomers[0].TotalSpent)} across ${fmtInt(segCustomers[0].Orders)} orders.`);
+        }
     }
     el.innerHTML = items.map(t => `<li>${t}</li>`).join('');
 }

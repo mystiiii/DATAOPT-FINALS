@@ -299,7 +299,9 @@ function applyReportPreset(params) {
     renderRevWaterfall();
     renderRevTrend();
     renderCatDiscountChart();
+    renderScrapPareto();
     renderRevTable();
+    renderRevFindings();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
@@ -311,6 +313,7 @@ function onRevYearChange(val) {
     renderCatDiscountChart();
     renderScrapPareto();
     renderRevTable();
+    renderRevFindings();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
@@ -796,23 +799,31 @@ function renderRevTable() {
 function renderRevFindings() {
     const el = document.getElementById('revFindingsList');
     if (!el) return;
-    const gross = rawRevYear.reduce((s, r) => s + (parseFloat(r.GrossAmount) || 0), 0);
-    const disc = rawRevYear.reduce((s, r) => s + (parseFloat(r.DiscountLoss) || 0), 0);
-    const topScrapQty = rawScrap[0];
-    const topScrapCost = rawScrap.slice().sort((a, b) => (parseFloat(b.ActualScrapCost) || 0) - (parseFloat(a.ActualScrapCost) || 0))[0];
-    const negCatYears = rawCatDiscounts.filter(r => (parseFloat(r.GrossProfit) || 0) < 0);
+    const periodLabel = revYear === 'all' ? '2011–2014' : `FY${revYear}`;
+    const revRows = revYear === 'all' ? rawRevYear : rawRevYear.filter(r => String(r.Year) === String(revYear));
+    const catRows = revYear === 'all' ? rawCatDiscounts : rawCatDiscounts.filter(r => String(r.Year) === String(revYear));
+    const scrapRows = getScrapForSelectedYear();
+
+    const gross = revRows.reduce((s, r) => s + (parseFloat(r.GrossAmount) || 0), 0);
+    const disc = revRows.reduce((s, r) => s + (parseFloat(r.DiscountLoss) || 0), 0);
+    const topScrapQty = scrapRows.slice().sort((a, b) => (parseInt(b.TotalScrappedQty, 10) || 0) - (parseInt(a.TotalScrappedQty, 10) || 0))[0];
+    const topScrapCost = scrapRows.slice().sort((a, b) => (parseFloat(b.ActualScrapCost) || 0) - (parseFloat(a.ActualScrapCost) || 0))[0];
+    const negCatYears = catRows.filter(r => (parseFloat(r.GrossProfit) || 0) < 0);
     const catAgg = {};
-    rawCatDiscounts.forEach(r => { catAgg[r.Category] = (catAgg[r.Category] || 0) + (parseFloat(r.DiscountLoss) || 0); });
+    catRows.forEach(r => { catAgg[r.Category] = (catAgg[r.Category] || 0) + (parseFloat(r.DiscountLoss) || 0); });
     const topDiscCat = Object.entries(catAgg).sort((a, b) => b[1] - a[1])[0];
     const items = [];
     if (gross > 0) {
-        items.push(`<strong>Discount leakage:</strong> Promotional discounts reduced gross sales by ${fmtDollar(disc)} (${((disc / gross) * 100).toFixed(2)}% overall), led by ${topDiscCat ? `${topDiscCat[0]} (${fmtDollar(topDiscCat[1])})` : 'Bikes'}; cap promotional discount tiers on low-margin SKUs to protect net realization.`);
+        items.push(`<strong>Discount leakage (${periodLabel}):</strong> Promotional discounts reduced gross sales by ${fmtDollar(disc)} (${((disc / gross) * 100).toFixed(2)}% in ${periodLabel}), led by ${topDiscCat ? `${topDiscCat[0]} (${fmtDollar(topDiscCat[1])})` : 'Bikes'}; cap promotional discount tiers on low-margin SKUs to protect net realization.`);
     }
     if (negCatYears.length) {
-        items.push(`<strong>Negative gross profit segments:</strong> ${negCatYears.map(r => `${r.Category} in FY${r.Year} (${fmtDollar(r.GrossProfit)})`).join(' and ')} operated at a negative gross margin where manufacturing standard cost exceeded net revenue.`);
+        items.push(`<strong>Negative gross profit segments (${periodLabel}):</strong> ${negCatYears.map(r => `${r.Category} in FY${r.Year} (${fmtDollar(r.GrossProfit)})`).join(' and ')} operated at a negative gross margin where manufacturing standard cost exceeded net revenue.`);
+    } else if (revRows.length) {
+        const gp = revRows.reduce((s, r) => s + (parseFloat(r.GrossProfit) || 0), 0);
+        if (gp > 0) items.push(`<strong>Gross profit realization (${periodLabel}):</strong> All product categories achieved positive gross profit totaling ${fmtDollar(gp)} after discounts and standard manufacturing cost.`);
     }
     if (topScrapQty && topScrapCost) {
-        items.push(`<strong>Scrap volume vs. dollar value:</strong> <em>${topScrapQty.ScrapReason}</em> scrapped the most units (${fmtInt(topScrapQty.TotalScrappedQty)} units, ${fmtDollar(topScrapQty.ActualScrapCost || topScrapQty.TotalScrappedQty * 36.5)}), whereas <em>${topScrapCost.ScrapReason}</em> inflicted the highest dollar loss (${fmtDollar(topScrapCost.ActualScrapCost || topScrapCost.TotalScrappedQty * 36.5)} across ${fmtInt(topScrapCost.TotalScrappedQty)} high-cost components) — prioritize QC interventions by dollar scrap impact.`);
+        items.push(`<strong>Scrap volume vs. dollar value (${periodLabel}):</strong> <em>${topScrapQty.ScrapReason}</em> scrapped the most units (${fmtInt(topScrapQty.TotalScrappedQty)} units, ${fmtDollar(topScrapQty.ActualScrapCost || topScrapQty.TotalScrappedQty * 36.5)}), whereas <em>${topScrapCost.ScrapReason}</em> inflicted the highest dollar loss (${fmtDollar(topScrapCost.ActualScrapCost || topScrapCost.TotalScrappedQty * 36.5)} across ${fmtInt(topScrapCost.TotalScrappedQty)} units) — prioritize QC interventions by dollar scrap impact.`);
     }
     el.innerHTML = items.map(t => `<li>${t}</li>`).join('');
 }

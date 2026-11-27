@@ -315,6 +315,7 @@ function applyReportPreset(params) {
     renderSalesTerritoryChart();
     renderProductExtremeChart();
     renderSalesTable();
+    renderSalesFindings();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
@@ -323,6 +324,7 @@ function onSalesYearChange(val) {
     updateSalesKPIs();
     renderMonthlyChart();
     renderSalesCatChart();
+    renderSalesFindings();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
@@ -414,6 +416,7 @@ function setSalesCatFilter(cat) {
     renderSalesCatChart();
     renderProductExtremeChart();
     renderSalesTable();
+    renderSalesFindings();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
@@ -688,22 +691,41 @@ function renderSalesTable() {
 function renderSalesFindings() {
     const el = document.getElementById('salesFindingsList');
     if (!el) return;
+    const periodLabel = salesYear === 'all' ? '2011–2014' : `FY${salesYear}`;
+    const yearCatRows = salesYear === 'all' ? rawSalesCatYear : rawSalesCatYear.filter(r => String(r.Year) === String(salesYear));
+    const filteredCatRows = salesCatFilter === 'all' ? yearCatRows : yearCatRows.filter(r => r.Category === salesCatFilter);
+
     const byCat = {};
-    rawSalesCatYear.forEach(r => { byCat[r.Category] = (byCat[r.Category] || 0) + (parseFloat(r.Revenue) || 0); });
+    yearCatRows.forEach(r => { byCat[r.Category] = (byCat[r.Category] || 0) + (parseFloat(r.Revenue) || 0); });
     const sortedCats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
-    const topProd = rawTopProducts[0];
-    const lowProd = rawLowProducts[0];
-    const topTerr = rawTerritories[0];
+    const totalYearRev = sortedCats.reduce((s, [, v]) => s + v, 0) || 1;
+
+    const prodTopPool = salesCatFilter === 'all' ? rawTopProducts : rawTopProducts.filter(r => r.Category === salesCatFilter);
+    const prodLowPool = salesCatFilter === 'all' ? rawLowProducts : rawLowProducts.filter(r => r.Category === salesCatFilter);
+    const topProd = prodTopPool[0];
+    const lowProd = prodLowPool[0];
+
+    const continentEl = document.getElementById('salesContinentFilter');
+    const continent = continentEl ? continentEl.value : 'all';
+    const terrPool = (continent === 'all' ? [...rawTerritories] : rawTerritories.filter(t => t.TerritoryGroup === continent))
+        .sort((a, b) => (parseFloat(b.TotalRevenue) || 0) - (parseFloat(a.TotalRevenue) || 0));
+    const topTerr = terrPool[0];
+
     const items = [];
-    if (sortedCats.length) {
-        const total = sortedCats.reduce((s, [, v]) => s + v, 0) || 1;
-        items.push(`<strong>Category concentration:</strong> ${sortedCats[0][0]} drives ${((sortedCats[0][1] / total) * 100).toFixed(1)}% of total sales (${fmtDollar(sortedCats[0][1])}); cross-selling lower-share lines like Accessories and Clothing can diversify revenue.`);
+    if (salesCatFilter !== 'all') {
+        const catRev = filteredCatRows.reduce((s, r) => s + (parseFloat(r.Revenue) || 0), 0);
+        const catUnits = filteredCatRows.reduce((s, r) => s + (parseInt(r.UnitsSold, 10) || 0), 0);
+        items.push(`<strong>${salesCatFilter} performance (${periodLabel}):</strong> Generated ${fmtDollar(catRev)} (${((catRev / totalYearRev) * 100).toFixed(1)}% of ${periodLabel} sales) across ${fmtInt(catUnits)} units sold.`);
+    } else if (sortedCats.length) {
+        items.push(`<strong>Category concentration (${periodLabel}):</strong> ${sortedCats[0][0]} drives ${((sortedCats[0][1] / totalYearRev) * 100).toFixed(1)}% of sales (${fmtDollar(sortedCats[0][1])}); cross-selling lower-share lines like Accessories and Clothing can diversify revenue.`);
     }
     if (topProd && lowProd) {
-        items.push(`<strong>Product spread:</strong> Top SKU <em>${topProd.ProductName}</em> generated ${fmtDollar(topProd.TotalRevenue)}, while slowest SKU <em>${lowProd.ProductName}</em> generated ${fmtDollar(lowProd.TotalRevenue)} — review low-velocity SKUs for bundling or rationalization.`);
+        const catScope = salesCatFilter === 'all' ? 'All categories' : salesCatFilter;
+        items.push(`<strong>Product spread (${catScope}):</strong> Top SKU <em>${topProd.ProductName}</em> generated ${fmtDollar(topProd.TotalRevenue)} (${fmtInt(topProd.TotalQuantity)} units), while slowest SKU <em>${lowProd.ProductName}</em> generated ${fmtDollar(lowProd.TotalRevenue)} — review low-velocity SKUs for bundling or rationalization.`);
     }
     if (topTerr) {
-        items.push(`<strong>Regional performance:</strong> ${topTerr.TerritoryName} leads all territories with ${fmtDollar(topTerr.TotalRevenue)} (${fmtInt(topTerr.TotalOrders)} orders, incl. tax &amp; freight).`);
+        const regScope = continent === 'all' ? 'all territories' : continent;
+        items.push(`<strong>Regional performance (${regScope}):</strong> ${topTerr.TerritoryName} leads with ${fmtDollar(topTerr.TotalRevenue)} (${fmtInt(topTerr.TotalOrders)} orders, incl. tax &amp; freight).`);
     }
     el.innerHTML = items.map(t => `<li>${t}</li>`).join('');
 }

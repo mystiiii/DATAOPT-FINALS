@@ -257,6 +257,7 @@ function applyReportPreset(params) {
     updateCostKPIs();
     renderCostDriverChart();
     renderCostTable();
+    renderCostFindings();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
@@ -265,6 +266,7 @@ function onCostCatChange(val) {
     updateCostKPIs();
     renderCostDriverChart();
     renderCostTable();
+    renderCostFindings();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
@@ -654,21 +656,29 @@ function renderCostTable() {
 function renderCostFindings() {
     const el = document.getElementById('costFindingsList');
     if (!el) return;
-    const negProds = rawMargins.filter(m => (parseFloat(m.UnitsSold) || 0) > 0 && (parseFloat(m.RealizedProfit) || 0) < 0)
+    const catScope = costCat === 'all' ? 'All categories' : costCat;
+    const marginPool = costCat === 'all' ? rawMargins : rawMargins.filter(m => m.Category === costCat);
+    const negProds = marginPool.filter(m => (parseFloat(m.UnitsSold) || 0) > 0 && (parseFloat(m.RealizedProfit) || 0) < 0)
         .sort((a, b) => (parseFloat(a.RealizedProfit) || 0) - (parseFloat(b.RealizedProfit) || 0));
-    const topCostProd = rawTopCostProducts[0];
+    const driverPool = (costCat === 'all' ? rawTopCostProducts : rawTopCostProducts.filter(p => p.Category === costCat))
+        .slice()
+        .sort((a, b) => (parseFloat(b.TotalCOGS) || 0) - (parseFloat(a.TotalCOGS) || 0));
+    const topCostProd = driverPool[0];
     const topVend = rawVendors[0];
     const items = [];
     if (negProds.length) {
         const worst = negProds[0];
         const totalLoss = negProds.reduce((s, p) => s + Math.abs(parseFloat(p.RealizedProfit) || 0), 0);
-        items.push(`<strong>Catalog vs. realized margin erosion:</strong> While catalog list prices show positive margins (23%–64%), wholesale B2B pricing and discounts push ${negProds.length} sold SKUs into negative realized margins (${fmtDollar(-totalLoss)} cumulative gross loss, led by <em>${worst.ProductName}</em> at ${Number(worst.RealizedMarginPct).toFixed(1)}% / ${fmtDollar(worst.RealizedProfit)}). Enforce wholesale price floors above StandardCost.`);
+        items.push(`<strong>Catalog vs. realized margin erosion (${catScope}):</strong> While catalog list prices show positive margins, wholesale B2B pricing and discounts push ${negProds.length} sold SKUs in ${catScope} into negative realized margins (${fmtDollar(-totalLoss)} cumulative gross loss, led by <em>${worst.ProductName}</em> at ${Number(worst.RealizedMarginPct).toFixed(1)}% / ${fmtDollar(worst.RealizedProfit)}). Enforce wholesale price floors above StandardCost.`);
     } else if (rawCatCost.length) {
-        const sorted = rawCatCost.slice().sort((a, b) => (parseFloat(b.TotalCOGS) || 0) - (parseFloat(a.TotalCOGS) || 0));
-        items.push(`<strong>Primary cost category:</strong> ${sorted[0].Category} accounts for ${fmtDollar(sorted[0].TotalCOGS)} in COGS (${Number(sorted[0].MarginPercentage || 0).toFixed(1)}% realized gross margin vs. 50.0% on Accessories).`);
+        const catPool = costCat === 'all' ? rawCatCost : rawCatCost.filter(c => c.Category === costCat);
+        const sorted = catPool.slice().sort((a, b) => (parseFloat(b.TotalCOGS) || 0) - (parseFloat(a.TotalCOGS) || 0));
+        if (sorted[0]) {
+            items.push(`<strong>Category margin health (${catScope}):</strong> ${sorted[0].Category} accounts for ${fmtDollar(sorted[0].TotalCOGS)} in COGS against ${fmtDollar(sorted[0].TotalRevenue)} in sales (${Number(sorted[0].MarginPercentage || 0).toFixed(1)}% realized gross margin, with zero negative-margin SKUs).`);
+        }
     }
     if (topCostProd) {
-        items.push(`<strong>Top COGS driver:</strong> <em>${topCostProd.ProductName}</em> (${topCostProd.Category}) drives ${fmtDollar(topCostProd.TotalCOGS)} in total manufacturing cost across ${fmtInt(topCostProd.UnitsSold)} units (${Number(topCostProd.MarginPercentage || 0).toFixed(1)}% realized margin).`);
+        items.push(`<strong>Top COGS driver (${catScope}):</strong> <em>${topCostProd.ProductName}</em> (${topCostProd.Category}) drives ${fmtDollar(topCostProd.TotalCOGS)} in total manufacturing cost across ${fmtInt(topCostProd.UnitsSold)} units (${Number(topCostProd.MarginPercentage || 0).toFixed(1)}% realized margin).`);
     }
     if (topVend) {
         items.push(`<strong>Supplier concentration:</strong> ${topVend.VendorName} is the largest supplier at ${fmtDollar(topVend.TotalSpent)} (${fmtInt(topVend.PurchaseOrdersCount)} POs) — negotiate volume tiers or dual-source to reduce supply chain risk.`);

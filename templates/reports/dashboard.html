@@ -1139,11 +1139,11 @@ const EXPLORER_SCHEMAS = {
             { key: 'ScrapReason', label: 'Scrap Reason', align: 'left', type: 'str' },
             { key: 'ScrapOrders', label: 'Failed Work Orders', align: 'right', type: 'num', fmt: fmtInt },
             { key: 'TotalScrappedQty', label: 'Units Thrown Away', align: 'right', type: 'num', fmt: fmtInt },
-            { key: 'EstLoss', label: 'Estimated $ Loss', align: 'right', type: 'num', fmt: fmtDollar }
+            { key: 'EstLoss', label: 'Scrap Cost $', align: 'right', type: 'num', fmt: fmtDollar }
         ],
         getRows: () => rawScrapList.map(s => ({
             ...s,
-            EstLoss: Math.round((s.TotalScrappedQty || 0) * 36.50)
+            EstLoss: parseFloat(s.ActualScrapCost) || Math.round((s.TotalScrappedQty || 0) * 36.50)
         }))
     },
     vendors: {

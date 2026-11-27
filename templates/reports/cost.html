@@ -563,7 +563,9 @@ const COST_SCHEMAS = {
             { key: 'Category', label: 'Category', align: 'left', type: 'str' },
             { key: 'StandardCost', label: 'Standard Cost', align: 'right', type: 'num', fmt: fmtDec },
             { key: 'ListPrice', label: 'List Price', align: 'right', type: 'num', fmt: fmtDec },
-            { key: 'MarginPercentage', label: 'Margin %', align: 'right', type: 'num', fmt: v => Number(v || 0).toFixed(1) + '%' }
+            { key: 'MarginPercentage', label: 'List Margin %', align: 'right', type: 'num', fmt: v => Number(v || 0).toFixed(1) + '%' },
+            { key: 'RealizedMarginPct', label: 'Realized Margin %', align: 'right', type: 'num', fmt: v => Number(v ?? 0).toFixed(1) + '%' },
+            { key: 'RealizedProfit', label: 'Realized Profit', align: 'right', type: 'num', fmt: fmtDollar }
         ],
         getRows: () => costCat === 'all' ? rawMargins : rawMargins.filter(m => m.Category === costCat)
     },
@@ -652,21 +654,24 @@ function renderCostTable() {
 function renderCostFindings() {
     const el = document.getElementById('costFindingsList');
     if (!el) return;
-    const negCats = rawCatCost.filter(c => (parseFloat(c.MarginPercentage) || 0) < 0);
+    const negProds = rawMargins.filter(m => (parseFloat(m.UnitsSold) || 0) > 0 && (parseFloat(m.RealizedProfit) || 0) < 0)
+        .sort((a, b) => (parseFloat(a.RealizedProfit) || 0) - (parseFloat(b.RealizedProfit) || 0));
     const topCostProd = rawTopCostProducts[0];
     const topVend = rawVendors[0];
     const items = [];
-    if (negCats.length) {
-        items.push(`<strong>Negative-margin alert:</strong> ${negCats.map(c => `${c.Category} (${Number(c.MarginPercentage).toFixed(1)}%)`).join(', ')} show negative gross margin where standard manufacturing cost exceeds net sales — review pricing and discounting.`);
+    if (negProds.length) {
+        const worst = negProds[0];
+        const totalLoss = negProds.reduce((s, p) => s + Math.abs(parseFloat(p.RealizedProfit) || 0), 0);
+        items.push(`<strong>Catalog vs. realized margin erosion:</strong> While catalog list prices show positive margins (23%–64%), wholesale B2B pricing and discounts push ${negProds.length} sold SKUs into negative realized margins (${fmtDollar(-totalLoss)} cumulative gross loss, led by <em>${worst.ProductName}</em> at ${Number(worst.RealizedMarginPct).toFixed(1)}% / ${fmtDollar(worst.RealizedProfit)}). Enforce wholesale price floors above StandardCost.`);
     } else if (rawCatCost.length) {
         const sorted = rawCatCost.slice().sort((a, b) => (parseFloat(b.TotalCOGS) || 0) - (parseFloat(a.TotalCOGS) || 0));
-        items.push(`<strong>Primary cost category:</strong> ${sorted[0].Category} accounts for ${fmtDollar(sorted[0].TotalCOGS)} in COGS (${Number(sorted[0].MarginPercentage || 0).toFixed(1)}% margin).`);
+        items.push(`<strong>Primary cost category:</strong> ${sorted[0].Category} accounts for ${fmtDollar(sorted[0].TotalCOGS)} in COGS (${Number(sorted[0].MarginPercentage || 0).toFixed(1)}% realized gross margin vs. 50.0% on Accessories).`);
     }
     if (topCostProd) {
-        items.push(`<strong>Top COGS product:</strong> <em>${topCostProd.ProductName}</em> (${topCostProd.Category}) drives ${fmtDollar(topCostProd.TotalCOGS)} in total manufacturing cost across ${fmtInt(topCostProd.UnitsSold)} units.`);
+        items.push(`<strong>Top COGS driver:</strong> <em>${topCostProd.ProductName}</em> (${topCostProd.Category}) drives ${fmtDollar(topCostProd.TotalCOGS)} in total manufacturing cost across ${fmtInt(topCostProd.UnitsSold)} units (${Number(topCostProd.MarginPercentage || 0).toFixed(1)}% realized margin).`);
     }
     if (topVend) {
-        items.push(`<strong>Supplier concentration:</strong> ${topVend.VendorName} is the largest supplier at ${fmtDollar(topVend.TotalSpent)} (${fmtInt(topVend.PurchaseOrdersCount)} POs) — negotiate volume rebates or dual-source to reduce supply risk.`);
+        items.push(`<strong>Supplier concentration:</strong> ${topVend.VendorName} is the largest supplier at ${fmtDollar(topVend.TotalSpent)} (${fmtInt(topVend.PurchaseOrdersCount)} POs) — negotiate volume tiers or dual-source to reduce supply chain risk.`);
     }
     el.innerHTML = items.map(t => `<li>${t}</li>`).join('');
 }

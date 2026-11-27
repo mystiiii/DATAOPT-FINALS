@@ -11,10 +11,28 @@ def get_product_margins(limit=15):
         (p.ListPrice - p.StandardCost) AS Margin,
         CASE WHEN p.ListPrice > 0 
              THEN ROUND(((p.ListPrice - p.StandardCost) / p.ListPrice) * 100, 2) 
-             ELSE 0 END AS MarginPercentage
+             ELSE 0 END AS MarginPercentage,
+        COALESCE(s.UnitsSold, 0) AS UnitsSold,
+        COALESCE(s.TotalRevenue, 0) AS TotalRevenue,
+        COALESCE(s.TotalCOGS, 0) AS TotalCOGS,
+        COALESCE(s.RealizedProfit, 0) AS RealizedProfit,
+        CASE WHEN COALESCE(s.TotalRevenue, 0) > 0
+             THEN ROUND((s.RealizedProfit / s.TotalRevenue) * 100, 1)
+             ELSE ROUND(((p.ListPrice - p.StandardCost) / p.ListPrice) * 100, 1) END AS RealizedMarginPct
     FROM Production.Product p
     LEFT JOIN Production.ProductSubcategory ps ON ps.ProductSubcategoryID = p.ProductSubcategoryID
     LEFT JOIN Production.ProductCategory pc ON pc.ProductCategoryID = ps.ProductCategoryID
+    LEFT JOIN (
+        SELECT
+            sod.ProductID,
+            SUM(sod.OrderQty) AS UnitsSold,
+            SUM(sod.LineTotal) AS TotalRevenue,
+            SUM(sod.OrderQty * p2.StandardCost) AS TotalCOGS,
+            SUM(sod.LineTotal - (sod.OrderQty * p2.StandardCost)) AS RealizedProfit
+        FROM Sales.SalesOrderDetail sod
+        JOIN Production.Product p2 ON p2.ProductID = sod.ProductID
+        GROUP BY sod.ProductID
+    ) s ON s.ProductID = p.ProductID
     WHERE p.ListPrice > 0
     ORDER BY MarginPercentage DESC;
     """

@@ -144,9 +144,10 @@
                     <p class="text-[11px] text-slate-400">Top eight scrap causes and their share of wasted units</p>
                 </div>
                 <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
-                    <button type="button" onclick="setScrapChartType('units')" id="btnScrapTypeUnits" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Units (Bar)</button>
-                    <button type="button" onclick="setScrapChartType('cumulative')" id="btnScrapTypeCum" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Cumulative % (Line)</button>
-                    <button type="button" onclick="setScrapChartType('grouped')" id="btnScrapTypeGrouped" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Side-by-Side</button>
+                    <button type="button" onclick="setScrapChartType('cost')" id="btnScrapTypeCost" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Cost $ (Bar)</button>
+                    <button type="button" onclick="setScrapChartType('units')" id="btnScrapTypeUnits" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Units (Bar)</button>
+                    <button type="button" onclick="setScrapChartType('cumulative')" id="btnScrapTypeCum" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Cumulative %</button>
+                    <button type="button" onclick="setScrapChartType('grouped')" id="btnScrapTypeGrouped" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Pareto</button>
                 </div>
             </div>
             <div class="h-60">
@@ -205,12 +206,13 @@ const rawRevYear = {{ revenue_data_json|safe }} || [];
 const rawMonthlyRev = {{ monthly_rev_loss_json|safe }} || [];
 const rawCatDiscounts = {{ category_discounts_json|safe }} || [];
 const rawScrap = {{ scrap_data_json|safe }} || [];
+const rawScrapByYear = {{ scrap_by_year_json|safe }} || [];
 const totalScrapAll = {{ total_scrap_loss|default:0 }};
 
 let revYear = 'all';
 let revTrendMode = 'annual';
 let revTrendChartType = 'revenue';
-let scrapChartType = 'units';
+let scrapChartType = 'cost';
 let catDiscMetric = 'loss';
 let revTab = 'scrap';
 let revSortKey = 'TotalScrappedQty';
@@ -221,11 +223,26 @@ let waterfallChart = null, revTrendChart = null, catDiscChart = null, paretoChar
 const fmtDollar = v => fmtCurrDollar(v);
 const fmtInt = v => Math.round(v || 0).toLocaleString();
 
+function getScrapForSelectedYear() {
+    if (revYear === 'all' || !rawScrapByYear.length) return rawScrap;
+    return rawScrapByYear.filter(r => String(r.Year) === String(revYear));
+}
+
+function getScrapCostForSelectedYear(netForPeriod, totalAllNet) {
+    if (revYear !== 'all' && rawScrapByYear.length) {
+        const yrRows = rawScrapByYear.filter(r => String(r.Year) === String(revYear));
+        const actual = yrRows.reduce((s, r) => s + (parseFloat(r.ActualScrapCost) || 0), 0);
+        if (actual > 0) return Math.round(actual);
+    }
+    if (revYear === 'all') return totalScrapAll;
+    return totalAllNet > 0 ? Math.round(totalScrapAll * (netForPeriod / totalAllNet)) : 0;
+}
+
 const DEFAULT_REPORT_FILTERS = {
     year: 'all',
     trendMode: 'annual',
     trendChartType: 'revenue',
-    scrapChartType: 'units',
+    scrapChartType: 'cost',
     catDiscMetric: 'loss',
     tab: 'scrap',
     search: '',
@@ -292,6 +309,8 @@ function onRevYearChange(val) {
     renderRevWaterfall();
     renderRevTrend();
     renderCatDiscountChart();
+    renderScrapPareto();
+    renderRevTable();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
@@ -302,7 +321,7 @@ function updateRevKPIs() {
     const net = rows.reduce((s, r) => s + (parseFloat(r.NetRevenue) || 0), 0);
     const orders = rows.reduce((s, r) => s + (parseInt(r.OrderCount, 10) || 0), 0);
     const totalAllNet = rawRevYear.reduce((s, r) => s + (parseFloat(r.NetRevenue) || 0), 0);
-    const scrap = revYear === 'all' ? totalScrapAll : (totalAllNet > 0 ? Math.round(totalScrapAll * (net / totalAllNet)) : 0);
+    const scrap = getScrapCostForSelectedYear(net, totalAllNet);
 
     document.getElementById('revKpiGross').textContent = fmtDollar(gross);
     document.getElementById('revKpiOrders').textContent = fmtInt(orders) + ' orders';
@@ -318,7 +337,7 @@ function renderRevWaterfall() {
     const disc = rows.reduce((s, r) => s + (parseFloat(r.DiscountLoss) || 0), 0);
     const net = rows.reduce((s, r) => s + (parseFloat(r.NetRevenue) || 0), 0);
     const totalAllNet = rawRevYear.reduce((s, r) => s + (parseFloat(r.NetRevenue) || 0), 0);
-    const scrap = revYear === 'all' ? totalScrapAll : (totalAllNet > 0 ? Math.round(totalScrapAll * (net / totalAllNet)) : 0);
+    const scrap = getScrapCostForSelectedYear(net, totalAllNet);
     const afterScrap = net - scrap;
     const toM = v => +(toCurr(v) / 1e6).toFixed(4);
     const toK = v => +(toCurr(v) / 1e3).toFixed(1);
@@ -594,7 +613,7 @@ function renderCatDiscountChart() {
 
 function setScrapChartType(t) {
     scrapChartType = t;
-    const map = { units: 'btnScrapTypeUnits', cumulative: 'btnScrapTypeCum', grouped: 'btnScrapTypeGrouped' };
+    const map = { cost: 'btnScrapTypeCost', units: 'btnScrapTypeUnits', cumulative: 'btnScrapTypeCum', grouped: 'btnScrapTypeGrouped' };
     Object.entries(map).forEach(([k, id]) => {
         const el = document.getElementById(id);
         if (el) el.className = k === t
@@ -606,12 +625,13 @@ function setScrapChartType(t) {
 }
 
 function renderScrapPareto() {
-    const rows = rawScrap.slice(0, 8);
+    const rows = getScrapForSelectedYear().slice(0, 8);
     const totalQty = rows.reduce((s, r) => s + (parseInt(r.TotalScrappedQty, 10) || 0), 0) || 1;
     let running = 0;
     const cumPct = rows.map(r => { running += (parseInt(r.TotalScrappedQty, 10) || 0); return +((running / totalQty) * 100).toFixed(1); });
     const labels = rows.map(r => (r.ScrapReason || '').slice(0, 14));
     const unitVals = rows.map(r => parseInt(r.TotalScrappedQty, 10) || 0);
+    const costVals = rows.map(r => Math.round(toCurr(parseFloat(r.ActualScrapCost) || ((r.TotalScrappedQty || 0) * 36.50))));
 
     let chartType = 'bar';
     let datasets = [];
@@ -619,7 +639,18 @@ function renderScrapPareto() {
         x: { grid: { display: false }, ticks: { font: { size: 9 } } }
     };
 
-    if (scrapChartType === 'units') {
+    if (scrapChartType === 'cost') {
+        chartType = 'bar';
+        datasets = [
+            { label: `Scrap Cost (${currSymbol()})`, data: costVals, backgroundColor: '#B55068', borderRadius: 4 }
+        ];
+        scales.y = {
+            beginAtZero: true,
+            title: { display: true, text: `Scrap Cost (${currSymbol()})`, font: { size: 10, weight: '600' }, color: '#B55068' },
+            grid: { color: '#E6ECF2' },
+            ticks: { callback: v => currSymbol() + Math.round(v / 1e3) + 'K' }
+        };
+    } else if (scrapChartType === 'units') {
         chartType = 'bar';
         datasets = [
             { label: 'Scrapped Units', data: unitVals, backgroundColor: '#C9657B', borderRadius: 4 }
@@ -686,7 +717,7 @@ const REV_SCHEMAS = {
             { key: 'TotalScrappedQty', label: 'Units Scrapped', align: 'right', type: 'num', fmt: fmtInt },
             { key: 'EstLoss', label: 'Scrap Cost $', align: 'right', type: 'num', fmt: fmtDollar }
         ],
-        getRows: () => rawScrap.map(s => ({ ...s, EstLoss: parseFloat(s.ActualScrapCost) || Math.round((s.TotalScrappedQty || 0) * 36.50) }))
+        getRows: () => getScrapForSelectedYear().map(s => ({ ...s, EstLoss: parseFloat(s.ActualScrapCost) || Math.round((s.TotalScrappedQty || 0) * 36.50) }))
     },
     yearly: {
         defaultSort: 'Year',
@@ -695,9 +726,11 @@ const REV_SCHEMAS = {
             { key: 'OrderCount', label: 'Orders', align: 'right', type: 'num', fmt: fmtInt },
             { key: 'GrossAmount', label: 'Gross Sales', align: 'right', type: 'num', fmt: fmtDollar },
             { key: 'DiscountLoss', label: 'Discounts', align: 'right', type: 'num', fmt: fmtDollar },
-            { key: 'NetRevenue', label: 'Net Revenue', align: 'right', type: 'num', fmt: fmtDollar }
+            { key: 'NetRevenue', label: 'Net Revenue', align: 'right', type: 'num', fmt: fmtDollar },
+            { key: 'TotalCOGS', label: 'Mfg COGS', align: 'right', type: 'num', fmt: fmtDollar },
+            { key: 'GrossProfit', label: 'Gross Profit', align: 'right', type: 'num', fmt: fmtDollar }
         ],
-        getRows: () => rawRevYear
+        getRows: () => revYear === 'all' ? rawRevYear : rawRevYear.filter(r => String(r.Year) === String(revYear))
     },
     catdisc: {
         defaultSort: 'DiscountLoss',
@@ -706,9 +739,10 @@ const REV_SCHEMAS = {
             { key: 'Year', label: 'Year', align: 'right', type: 'num' },
             { key: 'GrossAmount', label: 'Gross Sales', align: 'right', type: 'num', fmt: fmtDollar },
             { key: 'DiscountLoss', label: 'Discount Loss', align: 'right', type: 'num', fmt: fmtDollar },
-            { key: 'DiscountRatePct', label: 'Rate %', align: 'right', type: 'num', fmt: v => Number(v || 0).toFixed(2) + '%' }
+            { key: 'DiscountRatePct', label: 'Rate %', align: 'right', type: 'num', fmt: v => Number(v || 0).toFixed(2) + '%' },
+            { key: 'GrossProfit', label: 'Gross Profit', align: 'right', type: 'num', fmt: fmtDollar }
         ],
-        getRows: () => rawCatDiscounts
+        getRows: () => revYear === 'all' ? rawCatDiscounts : rawCatDiscounts.filter(r => String(r.Year) === String(revYear))
     }
 };
 
@@ -764,19 +798,21 @@ function renderRevFindings() {
     if (!el) return;
     const gross = rawRevYear.reduce((s, r) => s + (parseFloat(r.GrossAmount) || 0), 0);
     const disc = rawRevYear.reduce((s, r) => s + (parseFloat(r.DiscountLoss) || 0), 0);
-    const topScrap = rawScrap[0];
+    const topScrapQty = rawScrap[0];
+    const topScrapCost = rawScrap.slice().sort((a, b) => (parseFloat(b.ActualScrapCost) || 0) - (parseFloat(a.ActualScrapCost) || 0))[0];
+    const negCatYears = rawCatDiscounts.filter(r => (parseFloat(r.GrossProfit) || 0) < 0);
     const catAgg = {};
     rawCatDiscounts.forEach(r => { catAgg[r.Category] = (catAgg[r.Category] || 0) + (parseFloat(r.DiscountLoss) || 0); });
     const topDiscCat = Object.entries(catAgg).sort((a, b) => b[1] - a[1])[0];
     const items = [];
     if (gross > 0) {
-        items.push(`<strong>Discount leakage:</strong> Discounts reduced gross sales by ${fmtDollar(disc)} (${((disc / gross) * 100).toFixed(2)}% overall); audit high-discount promotional tiers to protect net margin.`);
+        items.push(`<strong>Discount leakage:</strong> Promotional discounts reduced gross sales by ${fmtDollar(disc)} (${((disc / gross) * 100).toFixed(2)}% overall), led by ${topDiscCat ? `${topDiscCat[0]} (${fmtDollar(topDiscCat[1])})` : 'Bikes'}; cap promotional discount tiers on low-margin SKUs to protect net realization.`);
     }
-    if (topDiscCat) {
-        items.push(`<strong>Highest discount category:</strong> ${topDiscCat[0]} accounts for ${fmtDollar(topDiscCat[1])} in cumulative discounts.`);
+    if (negCatYears.length) {
+        items.push(`<strong>Negative gross profit segments:</strong> ${negCatYears.map(r => `${r.Category} in FY${r.Year} (${fmtDollar(r.GrossProfit)})`).join(' and ')} operated at a negative gross margin where manufacturing standard cost exceeded net revenue.`);
     }
-    if (topScrap) {
-        items.push(`<strong>Top scrap driver:</strong> <em>${topScrap.ScrapReason}</em> caused ${fmtInt(topScrap.TotalScrappedQty)} scrapped units across ${fmtInt(topScrap.ScrapOrders)} work orders — prioritize root-cause quality checks on this defect.`);
+    if (topScrapQty && topScrapCost) {
+        items.push(`<strong>Scrap volume vs. dollar value:</strong> <em>${topScrapQty.ScrapReason}</em> scrapped the most units (${fmtInt(topScrapQty.TotalScrappedQty)} units, ${fmtDollar(topScrapQty.ActualScrapCost || topScrapQty.TotalScrappedQty * 36.5)}), whereas <em>${topScrapCost.ScrapReason}</em> inflicted the highest dollar loss (${fmtDollar(topScrapCost.ActualScrapCost || topScrapCost.TotalScrappedQty * 36.5)} across ${fmtInt(topScrapCost.TotalScrappedQty)} high-cost components) — prioritize QC interventions by dollar scrap impact.`);
     }
     el.innerHTML = items.map(t => `<li>${t}</li>`).join('');
 }

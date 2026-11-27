@@ -87,12 +87,12 @@ def dashboard_view(request):
     try:
         sales_by_cat_year = sales_service.get_sales_by_category_and_year() or []
         territory_sales = sales_service.get_territory_sales() or []
-        top_products = sales_service.get_top_selling_products(50) or []
+        top_products = sales_service.get_top_selling_products(300) or []
         monthly_trend = sales_service.get_monthly_sales_trend() or []
 
         if is_supervisor:
             customer_types = customer_service.get_customer_type_breakdown() or []
-            top_customers = customer_service.get_top_customers(50) or []
+            top_customers = customer_service.get_top_customers(100) or []
             total_customers = sum(int(ct.get('ActiveBuyers') or ct.get('TotalCustomers') or 0) for ct in customer_types)
             for ct in customer_types:
                 ctype = ct.get('CustomerType', '')
@@ -192,8 +192,8 @@ def sales_report_view(request):
         sales_data = sales_service.get_sales_by_category_and_year() or []
         monthly_trend = sales_service.get_monthly_sales_trend() or []
         subcategories = sales_service.get_sales_by_subcategory(50) or []
-        top_products = sales_service.get_top_selling_products(50) or []
-        low_products = sales_service.get_low_performing_products(50) or []
+        top_products = sales_service.get_top_selling_products(300) or []
+        low_products = sales_service.get_low_performing_products(300) or []
         territory_sales = sales_service.get_territory_sales() or []
 
         category_summary = {}
@@ -255,7 +255,7 @@ def customer_report_view(request):
     country_geo, frequency_buckets, customer_trends = [], [], []
 
     try:
-        top_customers = customer_service.get_top_customers(50) or []
+        top_customers = customer_service.get_top_customers(100) or []
         customer_types = customer_service.get_customer_type_breakdown() or []
         geo_distribution = customer_service.get_customer_geographic_distribution(50) or []
         country_geo = customer_service.get_country_customer_distribution() or []
@@ -296,12 +296,13 @@ def customer_report_view(request):
 def revenue_loss_report_view(request):
     role_ctx = _get_role_context(request.user)
     db_error = None
-    revenue_data, scrap_data, monthly_rev_loss, category_discounts = [], [], [], []
+    revenue_data, scrap_data, scrap_by_year, monthly_rev_loss, category_discounts = [], [], [], [], []
     total_gross, total_discount, total_net, total_scrapped_qty, total_scrap_loss = 0, 0, 0, 0, 0
 
     try:
         revenue_data = revenue_loss_service.get_revenue_and_loss_by_year() or []
         scrap_data = revenue_loss_service.get_production_scrap_loss() or []
+        scrap_by_year = revenue_loss_service.get_production_scrap_by_year() or []
         monthly_rev_loss = revenue_loss_service.get_monthly_revenue_and_loss() or []
         category_discounts = revenue_loss_service.get_discount_loss_by_category() or []
 
@@ -333,6 +334,7 @@ def revenue_loss_report_view(request):
         'category_discounts_json': serialize_for_json(category_discounts),
         'scrap_data': scrap_data,
         'scrap_data_json': serialize_for_json(scrap_data),
+        'scrap_by_year_json': serialize_for_json(scrap_by_year),
         'total_gross': total_gross,
         'total_discount': total_discount,
         'total_net': total_net,
@@ -354,13 +356,13 @@ def cost_report_view(request):
     cogs_trend, top_cost_products = [], []
 
     try:
-        margins = cost_service.get_product_margins(50) or []
-        vendor_spend = cost_service.get_vendor_purchasing_spend(50) or []
-        cost_history = cost_service.get_standard_cost_history(50) or []
+        margins = cost_service.get_product_margins(350) or []
+        vendor_spend = cost_service.get_vendor_purchasing_spend(100) or []
+        cost_history = cost_service.get_standard_cost_history(100) or []
         category_cost = cost_service.get_category_cost_summary() or []
         purchasing_yearly = cost_service.get_purchasing_spend_by_year() or []
         cogs_trend = cost_service.get_cogs_trend_by_year_category() or []
-        top_cost_products = cost_service.get_top_cost_products(15) or []
+        top_cost_products = cost_service.get_top_cost_products(25) or []
     except DatabaseConnectionError as e:
         db_error = str(e)
         messages.error(request, f"Database Error: {e}")

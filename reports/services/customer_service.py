@@ -69,12 +69,14 @@ def get_purchase_frequency_buckets():
     sql = """
     SELECT
         FrequencyBucket,
+        CustomerSegment,
         COUNT(*) AS CustomerCount,
         SUM(TotalSpent) AS TotalRevenue,
         SUM(OrderCount) AS TotalOrders
     FROM (
         SELECT
             c.CustomerID,
+            CASE WHEN c.StoreID IS NOT NULL THEN 'B2B' ELSE 'B2C' END AS CustomerSegment,
             COUNT(soh.SalesOrderID) AS OrderCount,
             SUM(soh.TotalDue) AS TotalSpent,
             CASE
@@ -86,16 +88,16 @@ def get_purchase_frequency_buckets():
             END AS FrequencyBucket
         FROM Sales.Customer c
         JOIN Sales.SalesOrderHeader soh ON soh.CustomerID = c.CustomerID
-        GROUP BY c.CustomerID
+        GROUP BY c.CustomerID, c.StoreID
     ) t
-    GROUP BY FrequencyBucket
+    GROUP BY FrequencyBucket, CustomerSegment
     ORDER BY CASE FrequencyBucket
         WHEN '1 Order' THEN 1
         WHEN '2-3 Orders' THEN 2
         WHEN '4-6 Orders' THEN 3
         WHEN '7-12 Orders' THEN 4
         ELSE 5
-    END;
+    END, CustomerSegment;
     """
     return execute_query(sql)
 

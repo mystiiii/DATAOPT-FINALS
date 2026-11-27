@@ -1,5 +1,6 @@
 from django.test import TestCase, Client
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
+from django.contrib.admin.models import LogEntry
 from django.urls import reverse
 from accounts.models import UserProfile, Role
 from governance.models import SavedReportPreset, ReportAnnotation, AuditLog
@@ -120,3 +121,64 @@ class RBACTestCase(TestCase):
         self.assertTrue(AuditLog.objects.filter(action='CREATE', target_type='SavedReportPreset').exists())
         self.assertTrue(AuditLog.objects.filter(action='EDIT', target_type='ReportAnnotation').exists())
         self.assertTrue(AuditLog.objects.filter(action='DELETE', target_type='SavedReportPreset').exists())
+
+    def test_custom_user_management_admin_ui_and_django_admin_system(self):
+        """Only Administrators can access custom Users & Roles UI; CRUD syncs Django User, Group, UserProfile, and admin LogEntry."""
+        # Non-admins are denied
+        for uname in ['employee', 'supervisor', 'manager']:
+            self.client.login(username=uname, password='Password123!')
+            self.assertEqual(self.client.get(reverse('user_management')).status_code, 403)
+            self.assertEqual(self.client.post(reverse('create_user'), {'username': 'x', 'password': 'pw'}).status_code, 403)
+
+        # Administrator accesses custom Users & Roles page (and /admin/ redirects to it)
+        self.client.login(username='admin', password='Password123!')
+        res_redirect = self.client.get('/admin/')
+        self.assertEqual(res_redirect.status_code, 302)
+        self.assertEqual(res_redirect.url, reverse('user_management'))
+
+        res_page = self.client.get(reverse('user_management'))
+        self.assertEqual(res_page.status_code, 200)
+        self.assertIn('Users &amp; roles administration', res_page.content.decode())
+
+        # Create a new Supervisor user via custom UI
+        self.client.post(reverse('create_user'), {
+            'username': 'new_sup',
+            'password': 'NewPassword123!',
+            'email': 'new_sup@adventureworks.com',
+            'first_name': 'New',
+            'last_name': 'Supervisor',
+            'role': Role.SUPERVISOR,
+            'department': 'Regional Sales',
+            'is_active': '1',
+        })
+        created_u = User.objects.get(username='new_sup')
+        self.assertEqual(created_u.profile.role, Role.SUPERVISOR)
+        self.assertEqual(created_u.profile.department, 'Regional Sales')
+        self.assertTrue(created_u.groups.filter(name=Role.SUPERVISOR).exists())
+        self.assertTrue(LogEntry.objects.filter(object_repr='new_sup').exists())
+
+        # Edit user role to Manager and reset password
+        self.client.post(reverse('edit_user', args=[created_u.pk]), {
+            'username': 'new_sup',
+            'email': 'promoted@adventureworks.com',
+            'first_name': 'Promoted',
+            'last_name': 'Manager',
+            'role': Role.MANAGER,
+            'department': 'Executive Finance',
+            'password': 'UpdatedPassword123!',
+            'is_active': '1',
+        })
+        created_u.refresh_from_db()
+        created_u.profile.refresh_from_db()
+        self.assertEqual(created_u.profile.role, Role.MANAGER)
+        self.assertEqual(created_u.email, 'promoted@adventureworks.com')
+        self.assertTrue(created_u.groups.filter(name=Role.MANAGER).exists())
+        self.assertTrue(created_u.check_password('UpdatedPassword123!'))
+
+        # Admin cannot delete or demote themselves
+        self.client.post(reverse('delete_user', args=[self.admin_user.pk]))
+        self.assertTrue(User.objects.filter(pk=self.admin_user.pk).exists())
+
+        # Delete created user
+        self.client.post(reverse('delete_user', args=[created_u.pk]))
+        self.assertFalse(User.objects.filter(pk=created_u.pk).exists())

@@ -283,16 +283,20 @@ function applyReportPreset(params) {
     }
 
     updateCustKPIs();
+    renderFreqChart();
     renderCustTrendChart();
     renderCustTable();
+    renderCustFindings();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function onCustSegmentChange(val) {
     custSegment = val;
     updateCustKPIs();
+    renderFreqChart();
     renderCustTrendChart();
     renderCustTable();
+    renderCustFindings();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
@@ -302,15 +306,23 @@ function updateCustKPIs() {
         const isB2B = (t.CustomerType || '').includes('Store') || (t.CustomerType || '').includes('B2B');
         return custSegment === 'B2B' ? isB2B : !isB2B;
     });
-    const totalCust = rows.reduce((s, r) => s + (parseInt(r.TotalCustomers, 10) || 0), 0);
+    const totalCust = rows.reduce((s, r) => s + (parseInt(r.ActiveBuyers || r.TotalCustomers, 10) || 0), 0);
+    const registeredCust = rows.reduce((s, r) => s + (parseInt(r.TotalCustomers, 10) || 0), 0);
     const totalRev = rows.reduce((s, r) => s + (parseFloat(r.TotalRevenue) || 0), 0);
     const totalOrders = rows.reduce((s, r) => s + (parseInt(r.TotalOrders, 10) || 0), 0);
     document.getElementById('custKpiTotal').textContent = fmtInt(totalCust);
     document.getElementById('custKpiRev').textContent = fmtDollar(totalRev);
     document.getElementById('custKpiOrders').textContent = fmtInt(totalOrders);
-    document.getElementById('custKpiAvgSpend').textContent = 'Avg per buyer: ' + fmtDollar(totalCust > 0 ? totalRev / totalCust : 0);
+    document.getElementById('custKpiAvgSpend').textContent = 'Avg per active buyer: ' + fmtDollar(totalCust > 0 ? totalRev / totalCust : 0);
     document.getElementById('custKpiOrdersPerCust').textContent = 'Avg orders/buyer: ' + (totalCust > 0 ? (totalOrders / totalCust).toFixed(1) : '0.0');
-    document.getElementById('custKpiSegmentSub').textContent = custSegment === 'all' ? 'Stores and individuals' : (custSegment === 'B2B' ? 'Store accounts' : 'Individual buyers');
+    const inactiveDiff = registeredCust - totalCust;
+    if (custSegment === 'B2B' && inactiveDiff > 0) {
+        document.getElementById('custKpiSegmentSub').textContent = `Active stores (${fmtInt(registeredCust)} registered, ${fmtInt(inactiveDiff)} inactive)`;
+    } else if (custSegment === 'all' && inactiveDiff > 0) {
+        document.getElementById('custKpiSegmentSub').textContent = `Active buyers (${fmtInt(registeredCust)} total registered)`;
+    } else {
+        document.getElementById('custKpiSegmentSub').textContent = custSegment === 'all' ? 'Stores and individuals' : (custSegment === 'B2B' ? 'Store accounts' : 'Individual buyers');
+    }
 }
 
 function setCustDonutMetric(m) {
@@ -454,23 +466,50 @@ function setFreqMetric(m) {
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
+function getAggregatedFreqBuckets() {
+    const order = ['1 Order', '2-3 Orders', '4-6 Orders', '7-12 Orders', '13+ Orders'];
+    const map = {};
+    rawFreqBuckets.forEach(b => {
+        if (custSegment !== 'all' && b.CustomerSegment && b.CustomerSegment !== custSegment) return;
+        const k = b.FrequencyBucket;
+        if (!map[k]) map[k] = { FrequencyBucket: k, CustomerCount: 0, TotalRevenue: 0, TotalOrders: 0 };
+        map[k].CustomerCount += parseInt(b.CustomerCount, 10) || 0;
+        map[k].TotalRevenue += parseFloat(b.TotalRevenue) || 0;
+        map[k].TotalOrders += parseInt(b.TotalOrders, 10) || 0;
+    });
+    return order.filter(k => map[k]).map(k => map[k]);
+}
+
 function renderFreqChart() {
+    const buckets = getAggregatedFreqBuckets();
     const ctx = document.getElementById('frequencyChart').getContext('2d');
     if (freqChart) freqChart.destroy();
     freqChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: rawFreqBuckets.map(b => b.FrequencyBucket),
+            labels: buckets.map(b => b.FrequencyBucket),
             datasets: [{
                 label: freqMetric === 'customers' ? 'Customers' : `Revenue (${currSymbol()}M)`,
-                data: rawFreqBuckets.map(b => freqMetric === 'customers' ? (parseInt(b.CustomerCount, 10) || 0) : +(toCurr(b.TotalRevenue) / 1e6).toFixed(2)),
+                data: buckets.map(b => freqMetric === 'customers' ? (parseInt(b.CustomerCount, 10) || 0) : +(toCurr(b.TotalRevenue) / 1e6).toFixed(2)),
                 backgroundColor: ['#93A7BC', '#7A7EC9', '#3E9B8C', '#9A72B5', '#4A89C7'],
                 borderRadius: 5
             }]
         },
         options: {
             responsive: true, maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: c => {
+                            const row = buckets[c.dataIndex];
+                            if (!row) return '';
+                            const avgOrd = row.TotalOrders > 0 ? row.TotalRevenue / row.TotalOrders : 0;
+                            return `${fmtInt(row.CustomerCount)} buyers · ${fmtDollar(row.TotalRevenue)} sales (${fmtDollar(avgOrd)} avg order)`;
+                        }
+                    }
+                }
+            },
             scales: {
                 x: { grid: { display: false } },
                 y: { beginAtZero: true, title: { display: true, text: freqMetric === 'customers' ? 'Customers' : `Sales (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#5B6D82' }, grid: { color: '#E6ECF2' }, ticks: { callback: v => freqMetric === 'customers' ? fmtInt(v) : fmtAxisMillions(v) } }
@@ -667,18 +706,24 @@ function renderCustFindings() {
     const b2bRev = parseFloat(b2b.TotalRevenue) || 0;
     const b2cRev = parseFloat(b2c.TotalRevenue) || 0;
     const totRev = (b2bRev + b2cRev) || 1;
-    const oneTime = rawFreqBuckets.find(b => b.FrequencyBucket === '1 Order');
-    const totalFreqCust = rawFreqBuckets.reduce((s, b) => s + (parseInt(b.CustomerCount, 10) || 0), 0) || 1;
+    const buckets = getAggregatedFreqBuckets();
+    const oneTime = buckets.find(b => b.FrequencyBucket === '1 Order');
+    const b7_12 = buckets.find(b => b.FrequencyBucket === '7-12 Orders');
+    const totalFreqCust = buckets.reduce((s, b) => s + (parseInt(b.CustomerCount, 10) || 0), 0) || 1;
     const items = [];
     if (totRev > 1) {
-        items.push(`<strong>Channel split:</strong> Stores (B2B) generate ${((b2bRev / totRev) * 100).toFixed(1)}% of sales (${fmtDollar(b2bRev)}), while Individuals (B2C) place ${fmtInt(b2c.TotalOrders)} orders — prioritize B2B account retention alongside B2C conversion.`);
+        const b2bActive = parseInt(b2b.ActiveBuyers || b2b.TotalCustomers, 10) || 0;
+        const b2bTotal = parseInt(b2b.TotalCustomers, 10) || 0;
+        const inactiveStores = Math.max(0, b2bTotal - b2bActive);
+        items.push(`<strong>Channel economics &amp; dormant B2B accounts:</strong> ${fmtInt(b2bActive)} active Stores (B2B) generate ${((b2bRev / totRev) * 100).toFixed(1)}% of sales (${fmtDollar(b2bRev)}), while ${fmtInt(b2c.ActiveBuyers || b2c.TotalCustomers)} Individuals (B2C) place ${fmtInt(b2c.TotalOrders)} orders. Notably, ${fmtInt(inactiveStores)} of ${fmtInt(b2bTotal)} registered store accounts have zero orders — launching a B2B reactivation campaign is a high-ROI growth lever.`);
     }
     if (oneTime) {
         const onePct = (((parseInt(oneTime.CustomerCount, 10) || 0) / totalFreqCust) * 100).toFixed(1);
-        items.push(`<strong>Repeat-purchase opportunity:</strong> ${onePct}% of active buyers (${fmtInt(oneTime.CustomerCount)}) placed only 1 order; targeted follow-up offers can lift repeat frequency.`);
+        const coreNote = b7_12 ? ` Meanwhile, the <em>7-12 Orders</em> tier (${fmtInt(b7_12.CustomerCount)} wholesale store buyers) drives ${fmtDollar(b7_12.TotalRevenue)}, whereas the <em>13+ Orders</em> tier consists of high-frequency B2C accessory shoppers.` : '';
+        items.push(`<strong>Repeat-purchase &amp; tier dynamics:</strong> ${onePct}% of active buyers (${fmtInt(oneTime.CustomerCount)}) placed only 1 order; automated post-purchase replenishment offers can lift second-order conversion.${coreNote}`);
     }
     if (rawTopCustomers[0]) {
-        items.push(`<strong>Top account:</strong> ${rawTopCustomers[0].CustomerName} (${rawTopCustomers[0].CustomerType}) leads with ${fmtDollar(rawTopCustomers[0].TotalSpent)} across ${fmtInt(rawTopCustomers[0].Orders)} orders.`);
+        items.push(`<strong>Key account concentration:</strong> ${rawTopCustomers[0].CustomerName} (${rawTopCustomers[0].CustomerType}) leads with ${fmtDollar(rawTopCustomers[0].TotalSpent)} across ${fmtInt(rawTopCustomers[0].Orders)} orders.`);
     }
     el.innerHTML = items.map(t => `<li>${t}</li>`).join('');
 }

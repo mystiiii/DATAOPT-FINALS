@@ -7,9 +7,12 @@ def get_revenue_and_loss_by_year():
         COUNT(DISTINCT soh.SalesOrderID) AS OrderCount,
         SUM(sod.OrderQty * sod.UnitPrice) AS GrossAmount,
         SUM(sod.OrderQty * sod.UnitPrice * sod.UnitPriceDiscount) AS DiscountLoss,
-        SUM(sod.LineTotal) AS NetRevenue
+        SUM(sod.LineTotal) AS NetRevenue,
+        SUM(sod.OrderQty * p.StandardCost) AS TotalCOGS,
+        SUM(sod.LineTotal - (sod.OrderQty * p.StandardCost)) AS GrossProfit
     FROM Sales.SalesOrderHeader soh
     JOIN Sales.SalesOrderDetail sod ON sod.SalesOrderID = soh.SalesOrderID
+    JOIN Production.Product p ON p.ProductID = sod.ProductID
     GROUP BY YEAR(soh.OrderDate)
     ORDER BY [Year];
     """
@@ -28,6 +31,23 @@ def get_production_scrap_loss():
     WHERE wo.ScrappedQty > 0
     GROUP BY sr.Name
     ORDER BY TotalScrappedQty DESC;
+    """
+    return execute_query(sql)
+
+def get_production_scrap_by_year():
+    sql = """
+    SELECT
+        YEAR(wo.StartDate) AS [Year],
+        sr.Name AS ScrapReason,
+        COUNT(wo.WorkOrderID) AS ScrapOrders,
+        SUM(wo.ScrappedQty) AS TotalScrappedQty,
+        SUM(wo.ScrappedQty * p.StandardCost) AS ActualScrapCost
+    FROM Production.WorkOrder wo
+    JOIN Production.ScrapReason sr ON sr.ScrapReasonID = wo.ScrapReasonID
+    JOIN Production.Product p ON p.ProductID = wo.ProductID
+    WHERE wo.ScrappedQty > 0
+    GROUP BY YEAR(wo.StartDate), sr.Name
+    ORDER BY [Year], TotalScrappedQty DESC;
     """
     return execute_query(sql)
 
@@ -58,6 +78,8 @@ def get_discount_loss_by_category():
         SUM(sod.OrderQty * sod.UnitPrice) AS GrossAmount,
         SUM(sod.OrderQty * sod.UnitPrice * sod.UnitPriceDiscount) AS DiscountLoss,
         SUM(sod.LineTotal) AS NetRevenue,
+        SUM(sod.OrderQty * p.StandardCost) AS TotalCOGS,
+        SUM(sod.LineTotal - (sod.OrderQty * p.StandardCost)) AS GrossProfit,
         CASE WHEN SUM(sod.OrderQty * sod.UnitPrice) > 0
              THEN ROUND((SUM(sod.OrderQty * sod.UnitPrice * sod.UnitPriceDiscount) / SUM(sod.OrderQty * sod.UnitPrice)) * 100, 2)
              ELSE 0 END AS DiscountRatePct

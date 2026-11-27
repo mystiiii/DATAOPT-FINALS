@@ -1,11 +1,18 @@
 from django.contrib import admin
 from django.urls import path
+from django.views.generic import RedirectView
 from accounts import views as account_views
 from reports import views as report_views
 from governance import views as governance_views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # Custom in-app User & Role Administration (replaces stock Django Admin UI)
+    path('governance/users/', account_views.user_management_view, name='user_management'),
+    path('governance/users/create/', account_views.create_user_view, name='create_user'),
+    path('governance/users/<int:user_id>/edit/', account_views.edit_user_view, name='edit_user'),
+    path('governance/users/<int:user_id>/delete/', account_views.delete_user_view, name='delete_user'),
+    path('admin/', RedirectView.as_view(pattern_name='user_management', permanent=False)),
+    path('django-admin/', admin.site.urls),
 
     # Auth URLs
     path('login/', account_views.login_view, name='login'),

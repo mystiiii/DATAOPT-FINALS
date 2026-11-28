@@ -15,43 +15,11 @@
             </div>
             <div>
                 <h1 class="text-lg font-bold text-slate-900 tracking-tight">Audit log</h1>
-                <p class="text-xs text-slate-500">Changes to presets and notes, blocked requests, and known data limits (administrators only)</p>
+                <p class="text-xs text-slate-500">Changes to presets and notes, and blocked requests (administrators only)</p>
             </div>
         </div>
         <div class="flex items-center space-x-2 text-xs">
             <a href="{% url 'user_management' %}" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition font-medium">Manage Users &amp; Roles</a>
-        </div>
-    </div>
-
-    <!-- Summary KPIs -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
-            <div class="flex items-center justify-between">
-                <span class="text-[11px] font-medium text-slate-500">Logged events</span>
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 text-slate-600">All</span>
-            </div>
-            <div class="text-2xl font-bold text-slate-900 mt-1.5">{{ total_events|intcomma }}</div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
-            <div class="flex items-center justify-between">
-                <span class="text-[11px] font-medium text-slate-500">Dashboard &amp; report views</span>
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700">Activity</span>
-            </div>
-            <div class="text-2xl font-bold text-indigo-600 mt-1.5">{{ view_events|intcomma }}</div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
-            <div class="flex items-center justify-between">
-                <span class="text-[11px] font-medium text-slate-500">Blocked access attempts</span>
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-700">Security</span>
-            </div>
-            <div class="text-2xl font-bold text-rose-600 mt-1.5">{{ denied_events|intcomma }}</div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-[#E5E7EB] shadow-sm">
-            <div class="flex items-center justify-between">
-                <span class="text-[11px] font-medium text-slate-500">Known data limits</span>
-                <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700">Quality</span>
-            </div>
-            <div class="text-2xl font-bold text-amber-600 mt-1.5">{{ data_quality_logs|length }}</div>
         </div>
     </div>
 
@@ -132,23 +100,6 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-    </div>
-
-    <!-- Data Quality Log -->
-    <div class="bg-white p-5 rounded-xl border border-[#E5E7EB] shadow-sm space-y-3">
-        <h2 class="text-sm font-bold text-slate-900">Known data limits</h2>
-        <div class="space-y-2">
-            {% for dq in data_quality_logs %}
-            <div class="p-3 rounded-lg border border-slate-100 bg-[#FAFAFA] text-xs space-y-1">
-                <div class="flex items-center justify-between">
-                    <span class="font-bold text-slate-900">{{ dq.issue_title }}</span>
-                    <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold {% if dq.severity == 'HIGH' %}bg-rose-50 text-rose-700{% elif dq.severity == 'MEDIUM' %}bg-amber-50 text-amber-700{% else %}bg-blue-50 text-blue-700{% endif %}">{{ dq.severity }}</span>
-                </div>
-                <p class="text-slate-600">{{ dq.impact_description }} Handling: {{ dq.handling_strategy }}</p>
-                <p class="text-[10px] text-slate-400 font-mono">Tables: {{ dq.affected_tables }}</p>
-            </div>
-            {% endfor %}
         </div>
     </div>
 </div>

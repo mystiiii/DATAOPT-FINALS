@@ -25,7 +25,8 @@ class GovernanceAndAuthSecurityTests(TestCase):
         resp = self.client.get(reverse('audit_log'), {'action': 'CREATE', 'module': 'sales', 'q': 'test'})
         self.assertEqual(resp.status_code, 200)
         self.assertContains(resp, 'Created test preset')
-        self.assertContains(resp, 'Test limit')
+        self.assertNotContains(resp, 'Known data limits')
+        self.assertNotContains(resp, 'Logged events')
 
     def test_login_blocks_external_next_redirect(self):
         resp = self.client.post(reverse('login'), {

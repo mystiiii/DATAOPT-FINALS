@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from accounts.decorators import role_required
 from accounts.models import Role
-from .models import AuditLog, DataQualityLog
+from .models import AuditLog
 
 
 @login_required
@@ -27,15 +27,10 @@ def audit_log_view(request):
         )
 
     logs = list(logs[:150])
-    data_quality_logs = DataQualityLog.objects.all()
 
     return render(request, 'governance/audit_log.html', {
         'logs': logs,
-        'data_quality_logs': data_quality_logs,
         'action_filter': action_filter,
         'module_filter': module_filter,
         'search_q': search_q,
-        'total_events': AuditLog.objects.count(),
-        'view_events': AuditLog.objects.filter(action='VIEW').count(),
-        'denied_events': AuditLog.objects.filter(action='ACCESS_DENIED').count(),
     })

@@ -236,7 +236,7 @@
                 </div>
             </div>
 
-            <div class="relative h-48 flex items-center justify-center">
+            <div class="relative h-48 w-full">
                 <canvas id="customerSplitChart"></canvas>
                 <div id="custCenterWrap" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <span id="custCenterLabel" class="text-[10px] font-medium text-slate-400 uppercase">Total Sales</span>
@@ -246,12 +246,12 @@
 
             <div id="custBreakdownFooter" class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-[11px]">
                 <div>
-                    <span class="inline-block w-2 h-2 rounded-full bg-coral mr-1"></span>
+                    <span class="inline-block w-2 h-2 rounded-full mr-1" style="background-color: var(--theme-chart-primary);"></span>
                     <span class="text-slate-500">Stores (B2B):</span>
                     <strong id="custB2BVal" class="text-slate-900 block mt-0.5">-</strong>
                 </div>
                 <div>
-                    <span class="inline-block w-2 h-2 rounded-full bg-slate-800 mr-1"></span>
+                    <span class="inline-block w-2 h-2 rounded-full mr-1" style="background-color: var(--theme-chart-anchor);"></span>
                     <span class="text-slate-500">Individuals (B2C):</span>
                     <strong id="custB2CVal" class="text-slate-900 block mt-0.5">-</strong>
                 </div>
@@ -434,12 +434,14 @@ function updateTopKPIs() {
 }
 
 // 2. Chart 1: Category Performance
-const CAT_COLORS = {
-    'Bikes': '#4A89C7',
-    'Components': '#5B7FA6',
-    'Clothing': '#7A7EC9',
-    'Accessories': '#3E9B8C'
-};
+function getCatColors() {
+    return {
+        'Bikes': themeColor('primary'),
+        'Components': themeColor('anchor'),
+        'Clothing': themeColor('secondary'),
+        'Accessories': themeColor('positive')
+    };
+}
 
 function setCatMetric(m) {
     catMetric = m;
@@ -481,11 +483,12 @@ function renderCategoryChart() {
             if (catMetric === 'profit') return +(toCurr(row.GrossProfit) / 1e6).toFixed(2);
             return parseInt(row.UnitsSold, 10) || 0;
         });
+        const catColors = getCatColors();
         const bgColors = years.map(yr => {
             if (globalYear !== 'all' && String(yr) !== String(globalYear)) {
-                return CAT_COLORS[cat] + '33';
+                return catColors[cat] + '33';
             }
-            return CAT_COLORS[cat];
+            return catColors[cat];
         });
         return {
             label: cat,
@@ -503,7 +506,7 @@ function renderCategoryChart() {
         beginAtZero: true,
         grace: '10%',
         grid: {
-            color: c => (hasNeg && c.tick && c.tick.value === 0) ? '#64748B' : '#E6ECF2',
+            color: c => (hasNeg && c.tick && c.tick.value === 0) ? '#64748B' : themeColor('grid'),
             lineWidth: c => (hasNeg && c.tick && c.tick.value === 0) ? 1.5 : 1
         },
         ticks: {
@@ -639,7 +642,7 @@ function renderWaterfallChart() {
                     const boxY = val < 0 ? labelY - 1 : labelY - 11;
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
                     ctx.fillRect(bar.x - boxW / 2, boxY, boxW, 12);
-                    ctx.fillStyle = val < 0 ? '#B55068' : '#3E5166';
+                    ctx.fillStyle = val < 0 ? themeColor('negativeText') : themeColor('labelText');
                     ctx.textBaseline = val < 0 ? 'top' : 'bottom';
                     ctx.fillText(text, bar.x, labelY);
                 });
@@ -658,14 +661,14 @@ function renderWaterfallChart() {
                 {
                     label: `Revenue / Profit (${currSymbol()}M)`,
                     data: mData,
-                    backgroundColor: ['#5B7FA6', 'transparent', '#C9657B', 'transparent', realProfit >= 0 ? '#3E9B8C' : '#C9657B'],
+                    backgroundColor: [themeColor('anchor'), 'transparent', themeColor('negative'), 'transparent', realProfit >= 0 ? themeColor('positive') : themeColor('negative')],
                     borderRadius: 5,
                     yAxisID: 'y'
                 },
                 {
                     label: `Discounts / Scrap (${currSymbol()}K)`,
                     data: kData,
-                    backgroundColor: ['transparent', '#9A72B5', 'transparent', '#B55068', 'transparent'],
+                    backgroundColor: ['transparent', themeColor('warning'), 'transparent', themeColor('negativeText'), 'transparent'],
                     borderRadius: 5,
                     yAxisID: 'y1'
                 }
@@ -693,9 +696,9 @@ function renderWaterfallChart() {
                     position: 'left',
                     min: -yMinMag,
                     max: yMax,
-                    title: { display: true, text: `Sales / Mfg / Profit (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#5B6D82' },
+                    title: { display: true, text: `Sales / Mfg / Profit (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: themeColor('axisTitle') },
                     grid: {
-                        color: c => (c.tick && c.tick.value === 0) ? '#64748B' : '#E6ECF2',
+                        color: c => (c.tick && c.tick.value === 0) ? '#64748B' : themeColor('grid'),
                         lineWidth: c => (c.tick && c.tick.value === 0) ? 1.5 : 1
                     },
                     ticks: { stepSize: yStep, font: { size: 10 }, callback: v => fmtAxisMillions(v) }
@@ -704,7 +707,7 @@ function renderWaterfallChart() {
                     position: 'right',
                     min: -y1Max,
                     max: y1PosMax,
-                    title: { display: true, text: `Discounts / Scrap (${currSymbol()}K)`, font: { size: 10, weight: '600' }, color: '#B55068' },
+                    title: { display: true, text: `Discounts / Scrap (${currSymbol()}K)`, font: { size: 10, weight: '600' }, color: themeColor('negativeText') },
                     grid: { drawOnChartArea: false },
                     afterBuildTicks: axis => {
                         const t = [];
@@ -713,7 +716,7 @@ function renderWaterfallChart() {
                     },
                     ticks: {
                         font: { size: 10 },
-                        color: '#B55068',
+                        color: themeColor('negativeText'),
                         callback: v => fmtAxisThousands(v)
                     }
                 }
@@ -743,8 +746,8 @@ function renderVelocityChart() {
             datasets: [{
                 label: 'Sales Revenue',
                 data: rows.map(r => +(toCurr(r.Revenue) / 1e6).toFixed(2)),
-                borderColor: '#4A89C7',
-                backgroundColor: 'rgba(74, 137, 199, 0.12)',
+                borderColor: themeColor('primary'),
+                backgroundColor: themeAlpha('primary', 0.12),
                 fill: true,
                 tension: 0.3,
                 pointRadius: 2
@@ -756,7 +759,7 @@ function renderVelocityChart() {
             plugins: { legend: { display: false } },
             scales: {
                 x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 10 } } },
-                y: { beginAtZero: true, title: { display: true, text: `Revenue (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#5B6D82' }, grid: { color: '#E6ECF2' }, ticks: { font: { size: 10 }, callback: v => fmtAxisMillions(v) } }
+                y: { beginAtZero: true, title: { display: true, text: `Revenue (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: themeColor('axisTitle') }, grid: { color: themeColor('grid') }, ticks: { font: { size: 10 }, callback: v => fmtAxisMillions(v) } }
             }
         }
     });
@@ -841,9 +844,9 @@ async function renderTerritoryChart() {
                 });
 
             const pointColors = mapPoints.map((pt, idx) => {
-                if (idx === 0) return 'rgba(74, 137, 199, 0.92)';
+                if (idx === 0) return themeAlpha('primary', 0.92);
                 if (idx === mapPoints.length - 1 && mapPoints.length > 1) return 'rgba(100, 116, 139, 0.85)';
-                return 'rgba(74, 137, 199, 0.62)';
+                return themeAlpha('primary', 0.62);
             });
 
             territoryChart = new Chart(ctx, {
@@ -854,7 +857,7 @@ async function renderTerritoryChart() {
                         label: 'Sales Territories',
                         outline: countries,
                         showOutline: true,
-                        outlineBackgroundColor: '#E6ECF2',
+                        outlineBackgroundColor: themeColor('grid'),
                         outlineBorderColor: '#CBD5E1',
                         outlineBorderWidth: 0.6,
                         backgroundColor: pointColors,
@@ -908,9 +911,9 @@ async function renderTerritoryChart() {
         : +(toCurr(r.TotalRevenue) / 1e6).toFixed(2)
     );
     const colors = rows.map((_, idx) => {
-        if (idx === 0) return '#4A89C7';
-        if (idx === rows.length - 1 && rows.length > 1) return '#93A7BC';
-        return 'rgba(74, 137, 199, 0.45)';
+        if (idx === 0) return themeColor('primary');
+        if (idx === rows.length - 1 && rows.length > 1) return themeColor('neutral');
+        return themeAlpha('primary', 0.45);
     });
 
     if (territoryChart) territoryChart.destroy();
@@ -944,7 +947,7 @@ async function renderTerritoryChart() {
             },
             scales: {
                 x: {
-                    grid: { color: '#E6ECF2' },
+                    grid: { color: themeColor('grid') },
                     ticks: {
                         font: { size: 10 },
                         callback: v => territorySort === 'orders' ? Number(v).toLocaleString() : fmtAxisMillions(v)
@@ -1002,7 +1005,7 @@ function renderCustomerChart() {
                 cctx.font = '600 10px ui-sans-serif, system-ui, -apple-system, sans-serif';
                 cctx.textAlign = 'center';
                 cctx.textBaseline = 'bottom';
-                cctx.fillStyle = '#3E5166';
+                cctx.fillStyle = themeColor('labelText');
                 meta.data.forEach((bar, idx) => {
                     const usd = rawAvgUsd[idx] || 0;
                     const txt = Math.abs(toCurr(usd)) >= 1e4 ? fmtCompact(usd) : fmtDollar(usd);
@@ -1019,7 +1022,7 @@ function renderCustomerChart() {
                 labels: ['Stores (B2B)', 'Individuals (B2C)'],
                 datasets: [{
                     data: avgValues,
-                    backgroundColor: ['#4A89C7', '#5B7FA6'],
+                    backgroundColor: [themeColor('primary'), themeColor('anchor')],
                     borderRadius: 5,
                     minBarLength: c => c.raw === 0 ? 0 : 6
                 }]
@@ -1044,8 +1047,8 @@ function renderCustomerChart() {
                     y: {
                         beginAtZero: true,
                         grace: '15%',
-                        title: { display: true, text: `Avg Sales / Buyer (${currSymbol()})`, font: { size: 10, weight: '600' }, color: '#5B6D82' },
-                        grid: { color: '#E6ECF2' },
+                        title: { display: true, text: `Avg Sales / Buyer (${currSymbol()})`, font: { size: 10, weight: '600' }, color: themeColor('axisTitle') },
+                        grid: { color: themeColor('grid') },
                         ticks: { font: { size: 10 }, callback: v => v >= 1e3 ? currSymbol() + Math.round(v / 1e3) + 'K' : currSymbol() + v }
                     }
                 }
@@ -1084,7 +1087,7 @@ function renderCustomerChart() {
             labels: ['Stores (B2B)', 'Individuals (B2C)'],
             datasets: [{
                 data: [b2bVal, b2cVal],
-                backgroundColor: ['#4A89C7', '#5B7FA6'],
+                backgroundColor: [themeColor('primary'), themeColor('anchor')],
                 borderWidth: 0
             }]
         },

@@ -1,0 +1,412 @@
+{% extends 'base.html' %}
+
+{% block title %}Settings | AdventureWorks BI{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b border-[#DCE3EC] gap-3">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-coral-light text-coral flex items-center justify-center shrink-0 border border-coral-border">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold text-slate-900 tracking-tight">Settings</h1>
+                <p class="text-xs text-slate-500">Choose your own interface and chart colors — saved personally to your account</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+            <span class="px-2.5 py-1 rounded-lg bg-coral-light text-coral border border-coral-border font-semibold">{{ user.username }} · {{ profile.role }}</span>
+        </div>
+    </div>
+
+    <form method="post" id="colorSettingsForm" class="space-y-6">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="settingsActionInput" value="save">
+        <input type="hidden" name="color_scheme" id="colorSchemeInput" value="{{ profile.color_scheme|default:'slate-blue' }}">
+
+        <!-- Quick Presets -->
+        <div class="bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Quick starting presets</h2>
+                    <p class="text-[11px] text-slate-400">Pick a preset directly or click one to load its colors into the pickers below and customize freely</p>
+                </div>
+                <span id="activeModeBadge" class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-coral-light text-coral border border-coral-border">
+                    {% if profile.color_scheme == 'custom' %}Custom Palette{% else %}{{ profile.get_color_scheme_display }}{% endif %}
+                </span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                <button type="button" onclick="selectPreset('slate-blue')" data-preset-card="slate-blue"
+                    class="preset-card text-left p-3 rounded-xl border border-slate-200 hover:border-coral transition space-y-2 focus:outline-none">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#2F6396"></span>
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#4A89C7"></span>
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#3E9B8C"></span>
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#C9657B"></span>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-900">Classic Slate</div>
+                        <div class="text-[10px] text-slate-400">Default business blue</div>
+                    </div>
+                </button>
+
+                <button type="button" onclick="selectPreset('calm-teal')" data-preset-card="calm-teal"
+                    class="preset-card text-left p-3 rounded-xl border border-slate-200 hover:border-coral transition space-y-2 focus:outline-none">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#1F7A7A"></span>
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#2A928F"></span>
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#42A37A"></span>
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#C8687C"></span>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-900">Ocean Teal</div>
+                        <div class="text-[10px] text-slate-400">Calm analytical teal</div>
+                    </div>
+                </button>
+
+                <button type="button" onclick="selectPreset('forest-sage')" data-preset-card="forest-sage"
+                    class="preset-card text-left p-3 rounded-xl border border-slate-200 hover:border-coral transition space-y-2 focus:outline-none">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#2E6F56"></span>
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#3F8E6E"></span>
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#5D84BA"></span>
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#C46A7B"></span>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-900">Forest Sage</div>
+                        <div class="text-[10px] text-slate-400">Grounded executive green</div>
+                    </div>
+                </button>
+
+                <button type="button" onclick="selectPreset('royal-plum')" data-preset-card="royal-plum"
+                    class="preset-card text-left p-3 rounded-xl border border-slate-200 hover:border-coral transition space-y-2 focus:outline-none">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#624C91"></span>
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#7760B0"></span>
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#3F9A8E"></span>
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#C96584"></span>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-900">Soft Plum</div>
+                        <div class="text-[10px] text-slate-400">Refined muted violet</div>
+                    </div>
+                </button>
+
+                <button type="button" onclick="selectPreset('warm-sand')" data-preset-card="warm-sand"
+                    class="preset-card text-left p-3 rounded-xl border border-slate-200 hover:border-coral transition space-y-2 focus:outline-none">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#3D6A7E"></span>
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#F6F3EC"></span>
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#4A947C"></span>
+                        <span class="w-4 h-4 rounded-full border border-slate-200" style="background:#C26973"></span>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-900">Warm Stone</div>
+                        <div class="text-[10px] text-slate-400">Low-glare warm canvas</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Custom Color Pickers (Interface + Charts) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <!-- Interface Colors -->
+            <div class="bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm space-y-4">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Interface colors</h2>
+                    <p class="text-[11px] text-slate-400">Pick your own accent, background, card surface, and main text colors</p>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between gap-3 p-2.5 rounded-lg border border-slate-100" style="background-color: var(--theme-card-subtle);">
+                        <div class="min-w-0">
+                            <label for="picker_accent" class="block text-xs font-semibold text-slate-900">Brand Accent</label>
+                            <span class="text-[10px] text-slate-400">Active tabs, buttons, highlights</span>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <input type="color" id="picker_accent" data-color-key="accent" value="{{ effective_custom_colors.accent }}" class="w-9 h-8 rounded-lg border border-slate-200 cursor-pointer bg-transparent p-0.5">
+                            <input type="text" name="color_accent" id="hex_accent" data-hex-key="accent" value="{{ effective_custom_colors.accent }}" maxlength="7" class="w-20 px-2 py-1 text-xs font-mono uppercase rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-3 p-2.5 rounded-lg border border-slate-100" style="background-color: var(--theme-card-subtle);">
+                        <div class="min-w-0">
+                            <label for="picker_canvas" class="block text-xs font-semibold text-slate-900">Page Background</label>
+                            <span class="text-[10px] text-slate-400">Main workspace backdrop</span>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <input type="color" id="picker_canvas" data-color-key="canvas" value="{{ effective_custom_colors.canvas }}" class="w-9 h-8 rounded-lg border border-slate-200 cursor-pointer bg-transparent p-0.5">
+                            <input type="text" name="color_canvas" id="hex_canvas" data-hex-key="canvas" value="{{ effective_custom_colors.canvas }}" maxlength="7" class="w-20 px-2 py-1 text-xs font-mono uppercase rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-3 p-2.5 rounded-lg border border-slate-100" style="background-color: var(--theme-card-subtle);">
+                        <div class="min-w-0">
+                            <label for="picker_card" class="block text-xs font-semibold text-slate-900">Card &amp; Sidebar Surface</label>
+                            <span class="text-[10px] text-slate-400">Panels, chart cards, navigation bar</span>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <input type="color" id="picker_card" data-color-key="card" value="{{ effective_custom_colors.card }}" class="w-9 h-8 rounded-lg border border-slate-200 cursor-pointer bg-transparent p-0.5">
+                            <input type="text" name="color_card" id="hex_card" data-hex-key="card" value="{{ effective_custom_colors.card }}" maxlength="7" class="w-20 px-2 py-1 text-xs font-mono uppercase rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-3 p-2.5 rounded-lg border border-slate-100" style="background-color: var(--theme-card-subtle);">
+                        <div class="min-w-0">
+                            <label for="picker_text" class="block text-xs font-semibold text-slate-900">Primary Text</label>
+                            <span class="text-[10px] text-slate-400">Headings, KPI numbers, chart labels</span>
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <input type="color" id="picker_text" data-color-key="text" value="{{ effective_custom_colors.text }}" class="w-9 h-8 rounded-lg border border-slate-200 cursor-pointer bg-transparent p-0.5">
+                            <input type="text" name="color_text" id="hex_text" data-hex-key="text" value="{{ effective_custom_colors.text }}" maxlength="7" class="w-20 px-2 py-1 text-xs font-mono uppercase rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graph & Chart Colors -->
+            <div class="bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm space-y-4">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Graph &amp; chart colors</h2>
+                    <p class="text-[11px] text-slate-400">Customize how data series, margins, discounts, and losses appear on every graph</p>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div class="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-slate-100" style="background-color: var(--theme-card-subtle);">
+                        <div class="min-w-0">
+                            <label for="picker_primary" class="block text-xs font-semibold text-slate-900">Primary Series</label>
+                            <span class="text-[10px] text-slate-400">Sales, Bikes, B2B</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <input type="color" id="picker_primary" data-color-key="primary" value="{{ effective_custom_colors.primary }}" class="w-8 h-8 rounded-lg border border-slate-200 cursor-pointer bg-transparent p-0.5">
+                            <input type="text" name="color_primary" id="hex_primary" data-hex-key="primary" value="{{ effective_custom_colors.primary }}" maxlength="7" class="w-[74px] px-1.5 py-1 text-[11px] font-mono uppercase rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-slate-100" style="background-color: var(--theme-card-subtle);">
+                        <div class="min-w-0">
+                            <label for="picker_anchor" class="block text-xs font-semibold text-slate-900">Secondary Series</label>
+                            <span class="text-[10px] text-slate-400">Gross, Components, B2C</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <input type="color" id="picker_anchor" data-color-key="anchor" value="{{ effective_custom_colors.anchor }}" class="w-8 h-8 rounded-lg border border-slate-200 cursor-pointer bg-transparent p-0.5">
+                            <input type="text" name="color_anchor" id="hex_anchor" data-hex-key="anchor" value="{{ effective_custom_colors.anchor }}" maxlength="7" class="w-[74px] px-1.5 py-1 text-[11px] font-mono uppercase rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-slate-100" style="background-color: var(--theme-card-subtle);">
+                        <div class="min-w-0">
+                            <label for="picker_positive" class="block text-xs font-semibold text-slate-900">Positive / Profit</label>
+                            <span class="text-[10px] text-slate-400">Net profit, Accessories</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <input type="color" id="picker_positive" data-color-key="positive" value="{{ effective_custom_colors.positive }}" class="w-8 h-8 rounded-lg border border-slate-200 cursor-pointer bg-transparent p-0.5">
+                            <input type="text" name="color_positive" id="hex_positive" data-hex-key="positive" value="{{ effective_custom_colors.positive }}" maxlength="7" class="w-[74px] px-1.5 py-1 text-[11px] font-mono uppercase rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-slate-100" style="background-color: var(--theme-card-subtle);">
+                        <div class="min-w-0">
+                            <label for="picker_secondary" class="block text-xs font-semibold text-slate-900">Extra Category</label>
+                            <span class="text-[10px] text-slate-400">Clothing, extra series</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <input type="color" id="picker_secondary" data-color-key="secondary" value="{{ effective_custom_colors.secondary }}" class="w-8 h-8 rounded-lg border border-slate-200 cursor-pointer bg-transparent p-0.5">
+                            <input type="text" name="color_secondary" id="hex_secondary" data-hex-key="secondary" value="{{ effective_custom_colors.secondary }}" maxlength="7" class="w-[74px] px-1.5 py-1 text-[11px] font-mono uppercase rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-slate-100" style="background-color: var(--theme-card-subtle);">
+                        <div class="min-w-0">
+                            <label for="picker_warning" class="block text-xs font-semibold text-slate-900">Discounts / Alert</label>
+                            <span class="text-[10px] text-slate-400">Discount bars, freight</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <input type="color" id="picker_warning" data-color-key="warning" value="{{ effective_custom_colors.warning }}" class="w-8 h-8 rounded-lg border border-slate-200 cursor-pointer bg-transparent p-0.5">
+                            <input type="text" name="color_warning" id="hex_warning" data-hex-key="warning" value="{{ effective_custom_colors.warning }}" maxlength="7" class="w-[74px] px-1.5 py-1 text-[11px] font-mono uppercase rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 p-2.5 rounded-lg border border-slate-100" style="background-color: var(--theme-card-subtle);">
+                        <div class="min-w-0">
+                            <label for="picker_negative" class="block text-xs font-semibold text-slate-900">Loss / Negative</label>
+                            <span class="text-[10px] text-slate-400">Scrap, COGS, negative margin</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <input type="color" id="picker_negative" data-color-key="negative" value="{{ effective_custom_colors.negative }}" class="w-8 h-8 rounded-lg border border-slate-200 cursor-pointer bg-transparent p-0.5">
+                            <input type="text" name="color_negative" id="hex_negative" data-hex-key="negative" value="{{ effective_custom_colors.negative }}" maxlength="7" class="w-[74px] px-1.5 py-1 text-[11px] font-mono uppercase rounded-lg border border-slate-200 bg-white text-slate-700 focus:outline-none focus:ring-1 focus:ring-coral">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Preview + Save / Reset Actions -->
+        <div class="bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Live preview</h2>
+                    <p class="text-[11px] text-slate-400">Preview updates immediately as you pick colors; click Save to keep your palette across all reports</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="submit" onclick="document.getElementById('settingsActionInput').value='reset'" class="px-3.5 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold transition">
+                        Reset to Default
+                    </button>
+                    <button type="submit" onclick="document.getElementById('settingsActionInput').value='save'" class="px-4 py-2 rounded-lg bg-coral hover:bg-coral-hover text-white text-xs font-semibold shadow-sm transition">
+                        Save Color Scheme
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                <div class="p-4 rounded-xl border border-[#DCE3EC] space-y-2" style="background-color: var(--theme-card-subtle);">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-medium text-slate-500">Sample KPI Card</span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-coral-light text-coral border border-coral-border">Active</span>
+                    </div>
+                    <div class="text-xl font-bold tabular-nums text-slate-900">$109,846,381</div>
+                    <div class="flex items-center gap-2 pt-1">
+                        <span class="px-2.5 py-1 rounded-lg bg-coral text-white text-[11px] font-semibold">Primary Button</span>
+                        <span class="text-[11px] text-coral font-semibold">Accent Link</span>
+                    </div>
+                </div>
+                <div class="md:col-span-2 h-44">
+                    <canvas id="settingsPreviewChart" data-no-print="1"></canvas>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const COLOR_KEYS = ['accent', 'canvas', 'card', 'text', 'primary', 'anchor', 'positive', 'secondary', 'warning', 'negative'];
+let previewChart = null;
+
+function readPickers() {
+    const out = {};
+    COLOR_KEYS.forEach(k => {
+        const inp = document.getElementById('hex_' + k);
+        if (inp && isValidHex(inp.value)) out[k] = inp.value.trim().toUpperCase();
+    });
+    return out;
+}
+
+function populatePickersFromPalette(pal) {
+    COLOR_KEYS.forEach(k => {
+        const val = (pal && isValidHex(pal[k])) ? pal[k].toUpperCase() : THEME_CONFIG['slate-blue'][k];
+        const picker = document.getElementById('picker_' + k);
+        const hex = document.getElementById('hex_' + k);
+        if (picker) picker.value = val;
+        if (hex) hex.value = val;
+    });
+}
+
+function highlightActivePreset(code) {
+    document.querySelectorAll('.preset-card').forEach(card => {
+        const active = card.dataset.presetCard === code;
+        card.className = active
+            ? 'preset-card text-left p-3 rounded-xl border-2 border-coral bg-coral-light/60 transition space-y-2 focus:outline-none shadow-sm'
+            : 'preset-card text-left p-3 rounded-xl border border-slate-200 hover:border-coral transition space-y-2 focus:outline-none';
+    });
+    const badge = document.getElementById('activeModeBadge');
+    if (badge) {
+        badge.textContent = code === 'custom'
+            ? 'Custom Palette'
+            : (THEME_CONFIG[code] ? THEME_CONFIG[code].name : 'Classic Slate');
+    }
+}
+
+function renderPreviewChart() {
+    const canvas = document.getElementById('settingsPreviewChart');
+    if (!canvas || typeof Chart === 'undefined') return;
+    if (previewChart) previewChart.destroy();
+    previewChart = new Chart(canvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Bikes', 'Components', 'Accessories', 'Clothing', 'Discounts', 'Scrap'],
+            datasets: [{
+                label: 'Sample Series',
+                data: [94, 48, 36, 28, -14, -9],
+                backgroundColor: [
+                    themeColor('primary'),
+                    themeColor('anchor'),
+                    themeColor('positive'),
+                    themeColor('secondary'),
+                    themeColor('warning'),
+                    themeColor('negative')
+                ],
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false }, ticks: { font: { size: 10 }, color: themeColor('axisTitle') } },
+                y: {
+                    grid: { color: c => (c.tick && c.tick.value === 0) ? '#64748B' : themeColor('grid') },
+                    ticks: { font: { size: 10 }, color: themeColor('axisTitle') }
+                }
+            }
+        }
+    });
+}
+
+function selectPreset(code) {
+    if (!THEME_CONFIG[code]) return;
+    document.getElementById('colorSchemeInput').value = code;
+    populatePickersFromPalette(THEME_CONFIG[code]);
+    highlightActivePreset(code);
+    previewPresetScheme(code);
+    renderPreviewChart();
+}
+
+function onCustomColorInput() {
+    document.getElementById('colorSchemeInput').value = 'custom';
+    highlightActivePreset('custom');
+    previewCustomColors(readPickers());
+    renderPreviewChart();
+}
+
+window.onThemeChange = () => {
+    renderPreviewChart();
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const initialScheme = document.getElementById('colorSchemeInput').value || 'slate-blue';
+    if (initialScheme !== 'custom' && THEME_CONFIG[initialScheme]) {
+        populatePickersFromPalette(THEME_CONFIG[initialScheme]);
+    }
+    highlightActivePreset(initialScheme);
+
+    COLOR_KEYS.forEach(k => {
+        const picker = document.getElementById('picker_' + k);
+        const hex = document.getElementById('hex_' + k);
+        if (picker && hex) {
+            picker.addEventListener('input', () => {
+                hex.value = picker.value.toUpperCase();
+                onCustomColorInput();
+            });
+            hex.addEventListener('input', () => {
+                const v = hex.value.trim();
+                if (isValidHex(v)) {
+                    picker.value = v.toUpperCase();
+                    onCustomColorInput();
+                }
+            });
+        }
+    });
+
+    renderPreviewChart();
+});
+</script>
+{% endblock %}

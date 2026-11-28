@@ -14,9 +14,11 @@ urlpatterns = [
     path('admin/', RedirectView.as_view(pattern_name='user_management', permanent=False)),
     path('django-admin/', admin.site.urls),
 
-    # Auth URLs
+    # Auth & User Settings URLs
     path('login/', account_views.login_view, name='login'),
     path('logout/', account_views.logout_view, name='logout'),
+    path('settings/', account_views.settings_view, name='settings'),
+    path('preferences/color-scheme/', account_views.update_color_scheme_view, name='update_color_scheme'),
 
     # Dashboard & Reports
     path('', report_views.dashboard_view, name='dashboard'),

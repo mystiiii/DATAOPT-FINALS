@@ -2,7 +2,7 @@ from django.test import TestCase, Client
 from django.contrib.auth.models import User, Group
 from django.contrib.admin.models import LogEntry
 from django.urls import reverse
-from accounts.models import UserProfile, Role
+from accounts.models import UserProfile, Role, ColorScheme
 from governance.models import SavedReportPreset, ReportAnnotation, AuditLog
 
 
@@ -182,3 +182,74 @@ class RBACTestCase(TestCase):
         # Delete created user
         self.client.post(reverse('delete_user', args=[created_u.pk]))
         self.assertFalse(User.objects.filter(pk=created_u.pk).exists())
+
+    def test_color_scheme_selection_available_to_all_roles(self):
+        """All user roles (Employee, Supervisor, Manager, Administrator) can access Settings and pick preset or custom colors."""
+        # Anonymous users are redirected to login
+        self.assertEqual(self.client.get(reverse('settings')).status_code, 302)
+        anon_res = self.client.post(reverse('update_color_scheme'), {'scheme': ColorScheme.CALM_TEAL})
+        self.assertEqual(anon_res.status_code, 302)
+        self.assertIn(reverse('login'), anon_res.url)
+
+        # Every role can open /settings/ and save a preset or custom palette independently
+        role_presets = [
+            ('employee', ColorScheme.CALM_TEAL),
+            ('supervisor', ColorScheme.FOREST_SAGE),
+            ('manager', ColorScheme.ROYAL_PLUM),
+            ('admin', ColorScheme.WARM_SAND),
+        ]
+        for uname, scheme in role_presets:
+            self.client.login(username=uname, password='Password123!')
+            page = self.client.get(reverse('settings'))
+            self.assertEqual(page.status_code, 200, f"Role '{uname}' could not access Settings tab.")
+            self.assertIn('Choose your own interface and chart colors', page.content.decode())
+
+            res = self.client.post(reverse('settings'), {
+                'action': 'save',
+                'color_scheme': scheme,
+            })
+            self.assertEqual(res.status_code, 302)
+            user_obj = User.objects.get(username=uname)
+            self.assertEqual(user_obj.profile.color_scheme, scheme)
+
+        # Employee saves fully custom hex colors via Settings form
+        self.client.login(username='employee', password='Password123!')
+        custom_post = self.client.post(reverse('settings'), {
+            'action': 'save',
+            'color_scheme': ColorScheme.CUSTOM,
+            'color_accent': '#1A6B8A',
+            'color_canvas': '#F2F6F8',
+            'color_card': '#FFFFFF',
+            'color_text': '#1C2E3A',
+            'color_primary': '#2E86AB',
+            'color_anchor': '#51718A',
+            'color_positive': '#389E82',
+            'color_secondary': '#6B74C4',
+            'color_warning': '#8B68B0',
+            'color_negative': '#C45B72',
+        })
+        self.assertEqual(custom_post.status_code, 302)
+        self.employee_user.profile.refresh_from_db()
+        self.assertEqual(self.employee_user.profile.color_scheme, ColorScheme.CUSTOM)
+        self.assertEqual(self.employee_user.profile.custom_colors['accent'], '#1A6B8A')
+        self.assertEqual(self.employee_user.profile.custom_colors['primary'], '#2E86AB')
+
+        # Rendered Settings page includes data-theme="custom" and serialized custom colors JSON
+        settings_html = self.client.get(reverse('settings')).content.decode()
+        self.assertIn('data-theme="custom"', settings_html)
+        self.assertIn('#1A6B8A', settings_html)
+
+        # Reset returns Employee to default Classic Slate
+        reset_res = self.client.post(reverse('settings'), {'action': 'reset'})
+        self.assertEqual(reset_res.status_code, 302)
+        self.employee_user.profile.refresh_from_db()
+        self.assertEqual(self.employee_user.profile.color_scheme, ColorScheme.SLATE_BLUE)
+        self.assertEqual(self.employee_user.profile.custom_colors, {})
+
+        # Invalid color scheme via JSON endpoint returns HTTP 400
+        bad_res = self.client.post(
+            reverse('update_color_scheme'),
+            data='{"scheme": "invalid-theme"}',
+            content_type='application/json',
+        )
+        self.assertEqual(bad_res.status_code, 400)

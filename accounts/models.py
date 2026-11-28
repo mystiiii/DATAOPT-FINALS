@@ -7,10 +7,20 @@ class Role(models.TextChoices):
     SUPERVISOR = 'Supervisor', 'Supervisor'
     EMPLOYEE = 'Employee', 'Employee'
 
+class ColorScheme(models.TextChoices):
+    SLATE_BLUE = 'slate-blue', 'Classic Slate'
+    CALM_TEAL = 'calm-teal', 'Ocean Teal'
+    FOREST_SAGE = 'forest-sage', 'Forest Sage'
+    ROYAL_PLUM = 'royal-plum', 'Soft Plum'
+    WARM_SAND = 'warm-sand', 'Warm Stone'
+    CUSTOM = 'custom', 'Custom'
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.EMPLOYEE)
     department = models.CharField(max_length=100, blank=True, default='General')
+    color_scheme = models.CharField(max_length=20, choices=ColorScheme.choices, default=ColorScheme.SLATE_BLUE)
+    custom_colors = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
         return f"{self.user.username} ({self.role})"

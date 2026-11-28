@@ -1,3 +1,6 @@
+import json
+import re
+from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -10,7 +13,7 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from governance.models import log_audit_event
 from .decorators import role_required
-from .models import UserProfile, Role
+from .models import UserProfile, Role, ColorScheme
 
 
 def _sync_user_role_and_group(target_user, role_value, department_value):
@@ -268,3 +271,142 @@ def delete_user_view(request, user_id):
     )
     messages.success(request, f"Deleted user '{uname}'.")
     return redirect('user_management')
+
+
+HEX_COLOR_RE = re.compile(r'^#[0-9A-Fa-f]{6}$')
+
+CUSTOM_COLOR_KEYS = (
+    'accent',
+    'canvas',
+    'card',
+    'text',
+    'primary',
+    'anchor',
+    'positive',
+    'secondary',
+    'warning',
+    'negative',
+)
+
+DEFAULT_CUSTOM_COLORS = {
+    'accent': '#2F6396',
+    'canvas': '#F5F7FA',
+    'card': '#FFFFFF',
+    'text': '#243447',
+    'primary': '#4A89C7',
+    'anchor': '#5B7FA6',
+    'positive': '#3E9B8C',
+    'secondary': '#7A7EC9',
+    'warning': '#9A72B5',
+    'negative': '#C9657B',
+}
+
+
+def _sanitize_custom_colors(raw_mapping):
+    cleaned = {}
+    if not isinstance(raw_mapping, dict):
+        return cleaned
+    for key in CUSTOM_COLOR_KEYS:
+        val = raw_mapping.get(key)
+        if isinstance(val, str):
+            val = val.strip()
+            if HEX_COLOR_RE.match(val):
+                cleaned[key] = val.upper()
+    return cleaned
+
+
+def _get_or_create_profile(user):
+    default_role = Role.ADMINISTRATOR if user.is_superuser else Role.EMPLOYEE
+    profile, _ = UserProfile.objects.get_or_create(
+        user=user,
+        defaults={'role': default_role, 'department': 'General'},
+    )
+    return profile
+
+
+@login_required
+def settings_view(request):
+    """Settings tab accessible to all authenticated roles for personal color scheme customization."""
+    profile = _get_or_create_profile(request.user)
+
+    if request.method == 'POST':
+        action = (request.POST.get('action') or 'save').strip()
+        if action == 'reset':
+            profile.color_scheme = ColorScheme.SLATE_BLUE
+            profile.custom_colors = {}
+            profile.save(update_fields=['color_scheme', 'custom_colors'])
+            messages.success(request, 'Color scheme reset to Classic Slate default.')
+            return redirect('settings')
+
+        scheme = (request.POST.get('color_scheme') or ColorScheme.CUSTOM).strip()
+        if scheme not in ColorScheme.values:
+            messages.error(request, 'Invalid color scheme selection.')
+            return redirect('settings')
+
+        if scheme == ColorScheme.CUSTOM:
+            raw_colors = {k: request.POST.get(f'color_{k}', '') for k in CUSTOM_COLOR_KEYS}
+            cleaned = _sanitize_custom_colors(raw_colors)
+            if not cleaned:
+                messages.error(request, 'Please provide valid hex color values (e.g. #2F6396).')
+                return redirect('settings')
+            merged = dict(DEFAULT_CUSTOM_COLORS)
+            merged.update(cleaned)
+            profile.color_scheme = ColorScheme.CUSTOM
+            profile.custom_colors = merged
+        else:
+            profile.color_scheme = scheme
+            profile.custom_colors = {}
+
+        profile.save(update_fields=['color_scheme', 'custom_colors'])
+        messages.success(request, 'Your color scheme preferences have been saved.')
+        return redirect('settings')
+
+    effective_custom = dict(DEFAULT_CUSTOM_COLORS)
+    if isinstance(profile.custom_colors, dict):
+        effective_custom.update(_sanitize_custom_colors(profile.custom_colors))
+
+    return render(request, 'accounts/settings.html', {
+        'profile': profile,
+        'effective_custom_colors': effective_custom,
+    })
+
+
+@login_required
+@require_POST
+def update_color_scheme_view(request):
+    """Allow any authenticated user (all roles) to save a preset or custom color scheme via AJAX or POST."""
+    scheme = ''
+    raw_custom = {}
+    if request.content_type and 'application/json' in request.content_type:
+        try:
+            payload = json.loads(request.body.decode('utf-8') or '{}')
+            scheme = str(payload.get('scheme') or '').strip()
+            raw_custom = payload.get('custom_colors') or {}
+        except (ValueError, UnicodeDecodeError):
+            return JsonResponse({'ok': False, 'error': 'Invalid JSON payload.'}, status=400)
+    else:
+        scheme = str(request.POST.get('scheme') or '').strip()
+        raw_custom = {k: request.POST.get(f'color_{k}', '') for k in CUSTOM_COLOR_KEYS if request.POST.get(f'color_{k}')}
+
+    if scheme not in ColorScheme.values:
+        return JsonResponse({'ok': False, 'error': 'Unsupported color scheme.'}, status=400)
+
+    profile = _get_or_create_profile(request.user)
+    if scheme == ColorScheme.CUSTOM:
+        cleaned = _sanitize_custom_colors(raw_custom)
+        if not cleaned:
+            return JsonResponse({'ok': False, 'error': 'Provide at least one valid hex color.'}, status=400)
+        merged = dict(DEFAULT_CUSTOM_COLORS)
+        merged.update(cleaned)
+        profile.color_scheme = ColorScheme.CUSTOM
+        profile.custom_colors = merged
+    else:
+        profile.color_scheme = scheme
+        profile.custom_colors = {}
+
+    profile.save(update_fields=['color_scheme', 'custom_colors'])
+    return JsonResponse({
+        'ok': True,
+        'color_scheme': profile.color_scheme,
+        'custom_colors': profile.custom_colors,
+    })

@@ -89,7 +89,7 @@
                     <button type="button" onclick="setCustDonutMetric('avg')" id="btnCDAvg" class="flex-1 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Avg / buyer</button>
                 </div>
             </div>
-            <div class="relative h-48 flex items-center justify-center">
+            <div class="relative h-48 w-full">
                 <canvas id="custSplitChart"></canvas>
                 <div id="cdCenterWrap" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                     <span id="cdCenterLabel" class="text-[10px] font-medium text-slate-400 uppercase">Total Sales</span>
@@ -97,8 +97,8 @@
                 </div>
             </div>
             <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100 text-[11px]">
-                <div><span class="inline-block w-2 h-2 rounded-full bg-coral mr-1"></span><span class="text-slate-500">B2B:</span> <strong id="cdB2B">-</strong></div>
-                <div><span class="inline-block w-2 h-2 rounded-full bg-slate-800 mr-1"></span><span class="text-slate-500">B2C:</span> <strong id="cdB2C">-</strong></div>
+                <div><span class="inline-block w-2 h-2 rounded-full mr-1" style="background-color: var(--theme-chart-primary);"></span><span class="text-slate-500">B2B:</span> <strong id="cdB2B">-</strong></div>
+                <div><span class="inline-block w-2 h-2 rounded-full mr-1" style="background-color: var(--theme-chart-anchor);"></span><span class="text-slate-500">B2C:</span> <strong id="cdB2C">-</strong></div>
             </div>
         </div>
 
@@ -365,7 +365,7 @@ function renderCustSplitChart() {
                 cctx.font = '600 10px ui-sans-serif, system-ui, -apple-system, sans-serif';
                 cctx.textAlign = 'center';
                 cctx.textBaseline = 'bottom';
-                cctx.fillStyle = '#3E5166';
+                cctx.fillStyle = themeColor('labelText');
                 meta.data.forEach((bar, idx) => {
                     const usd = rawAvgUsd[idx] || 0;
                     const txt = Math.abs(toCurr(usd)) >= 1e4 ? fmtCompact(usd) : fmtDollar(usd);
@@ -382,7 +382,7 @@ function renderCustSplitChart() {
                 labels: ['Stores (B2B)', 'Individuals (B2C)'],
                 datasets: [{
                     data: avgValues,
-                    backgroundColor: ['#4A89C7', '#5B7FA6'],
+                    backgroundColor: [themeColor('primary'), themeColor('anchor')],
                     borderRadius: 5,
                     minBarLength: c => c.raw === 0 ? 0 : 6
                 }]
@@ -407,8 +407,8 @@ function renderCustSplitChart() {
                     y: {
                         beginAtZero: true,
                         grace: '15%',
-                        title: { display: true, text: `Avg Sales / Buyer (${currSymbol()})`, font: { size: 10, weight: '600' }, color: '#5B6D82' },
-                        grid: { color: '#E6ECF2' },
+                        title: { display: true, text: `Avg Sales / Buyer (${currSymbol()})`, font: { size: 10, weight: '600' }, color: themeColor('axisTitle') },
+                        grid: { color: themeColor('grid') },
                         ticks: { font: { size: 10 }, callback: v => v >= 1e3 ? currSymbol() + Math.round(v / 1e3) + 'K' : currSymbol() + v }
                     }
                 }
@@ -437,7 +437,7 @@ function renderCustSplitChart() {
     const total = (v1 + v2) || 1;
     splitChart = new Chart(ctx, {
         type: 'doughnut',
-        data: { labels: ['Stores (B2B)', 'Individuals (B2C)'], datasets: [{ data: [v1, v2], backgroundColor: ['#4A89C7', '#5B7FA6'], borderWidth: 0 }] },
+        data: { labels: ['Stores (B2B)', 'Individuals (B2C)'], datasets: [{ data: [v1, v2], backgroundColor: [themeColor('primary'), themeColor('anchor')], borderWidth: 0 }] },
         options: {
             responsive: true,
             maintainAspectRatio: false,
@@ -491,7 +491,7 @@ function renderFreqChart() {
             datasets: [{
                 label: freqMetric === 'customers' ? 'Customers' : `Revenue (${currSymbol()}M)`,
                 data: buckets.map(b => freqMetric === 'customers' ? (parseInt(b.CustomerCount, 10) || 0) : +(toCurr(b.TotalRevenue) / 1e6).toFixed(2)),
-                backgroundColor: ['#93A7BC', '#7A7EC9', '#3E9B8C', '#9A72B5', '#4A89C7'],
+                backgroundColor: [themeColor('neutral'), themeColor('secondary'), themeColor('positive'), themeColor('warning'), themeColor('primary')],
                 borderRadius: 5
             }]
         },
@@ -512,7 +512,7 @@ function renderFreqChart() {
             },
             scales: {
                 x: { grid: { display: false } },
-                y: { beginAtZero: true, title: { display: true, text: freqMetric === 'customers' ? 'Customers' : `Sales (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#5B6D82' }, grid: { color: '#E6ECF2' }, ticks: { callback: v => freqMetric === 'customers' ? fmtInt(v) : fmtAxisMillions(v) } }
+                y: { beginAtZero: true, title: { display: true, text: freqMetric === 'customers' ? 'Customers' : `Sales (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: themeColor('axisTitle') }, grid: { color: themeColor('grid') }, ticks: { callback: v => freqMetric === 'customers' ? fmtInt(v) : fmtAxisMillions(v) } }
             }
         }
     });
@@ -557,8 +557,8 @@ async function renderCustGeoChart() {
                     labels: mapPoints.map(p => p.raw.CountryName),
                     datasets: [{
                         outline: countries, showOutline: true,
-                        outlineBackgroundColor: '#E6ECF2', outlineBorderColor: '#CBD5E1', outlineBorderWidth: 0.6,
-                        backgroundColor: 'rgba(74, 137, 199, 0.72)', borderColor: '#FFF', borderWidth: 1.5, data: mapPoints
+                        outlineBackgroundColor: themeColor('grid'), outlineBorderColor: '#CBD5E1', outlineBorderWidth: 0.6,
+                        backgroundColor: themeAlpha('primary', 0.72), borderColor: '#FFF', borderWidth: 1.5, data: mapPoints
                     }]
                 },
                 options: {
@@ -578,12 +578,12 @@ async function renderCustGeoChart() {
         type: 'bar',
         data: {
             labels: sourceRows.map(r => r.CountryName),
-            datasets: [{ data: sourceRows.map(r => +(toCurr(r.TotalRevenue) / 1e6).toFixed(2)), backgroundColor: '#4A89C7', borderRadius: 4 }]
+            datasets: [{ data: sourceRows.map(r => +(toCurr(r.TotalRevenue) / 1e6).toFixed(2)), backgroundColor: themeColor('primary'), borderRadius: 4 }]
         },
         options: {
             indexAxis: 'y', responsive: true, maintainAspectRatio: false,
             plugins: { legend: { display: false } },
-            scales: { x: { beginAtZero: true, title: { display: true, text: `Sales (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#5B6D82' }, grid: { color: '#E6ECF2' }, ticks: { callback: v => fmtAxisMillions(v) } }, y: { grid: { display: false } } }
+            scales: { x: { beginAtZero: true, title: { display: true, text: `Sales (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: themeColor('axisTitle') }, grid: { color: themeColor('grid') }, ticks: { callback: v => fmtAxisMillions(v) } }, y: { grid: { display: false } } }
         }
     });
 }
@@ -609,8 +609,8 @@ function renderCustTrendChart() {
         return trendMetric === 'revenue' ? +(toCurr(r.TotalRevenue) / 1e6).toFixed(2) : (parseInt(r.ActiveCustomers, 10) || 0);
     });
     const datasets = [];
-    if (custSegment === 'all' || custSegment === 'B2B') datasets.push({ label: 'Stores (B2B)', data: b2bData, backgroundColor: '#4A89C7', borderRadius: 4 });
-    if (custSegment === 'all' || custSegment === 'B2C') datasets.push({ label: 'Individuals (B2C)', data: b2cData, backgroundColor: '#5B7FA6', borderRadius: 4 });
+    if (custSegment === 'all' || custSegment === 'B2B') datasets.push({ label: 'Stores (B2B)', data: b2bData, backgroundColor: themeColor('primary'), borderRadius: 4 });
+    if (custSegment === 'all' || custSegment === 'B2C') datasets.push({ label: 'Individuals (B2C)', data: b2cData, backgroundColor: themeColor('anchor'), borderRadius: 4 });
 
     const ctx = document.getElementById('custTrendChart').getContext('2d');
     if (trendChart) trendChart.destroy();
@@ -620,7 +620,7 @@ function renderCustTrendChart() {
         options: {
             responsive: true, maintainAspectRatio: false,
             plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
-            scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: { display: true, text: trendMetric === 'revenue' ? `Sales (${currSymbol()}M)` : 'Active Buyers', font: { size: 10, weight: '600' }, color: '#5B6D82' }, grid: { color: '#E6ECF2' }, ticks: { callback: v => trendMetric === 'revenue' ? fmtAxisMillions(v) : fmtInt(v) } } }
+            scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: { display: true, text: trendMetric === 'revenue' ? `Sales (${currSymbol()}M)` : 'Active Buyers', font: { size: 10, weight: '600' }, color: themeColor('axisTitle') }, grid: { color: themeColor('grid') }, ticks: { callback: v => trendMetric === 'revenue' ? fmtAxisMillions(v) : fmtInt(v) } } }
         }
     });
 }

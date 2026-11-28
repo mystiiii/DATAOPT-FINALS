@@ -56,3 +56,48 @@ class GovernanceAndAuthSecurityTests(TestCase):
 
         self.client.get(reverse('logout'))
         self.assertTrue(AuditLog.objects.filter(action='LOGOUT', username_snapshot='gov_admin').exists())
+
+    def test_audit_log_role_scoping(self):
+        mgr = User.objects.create_user(username='gov_mgr', password='Password123!')
+        UserProfile.objects.create(user=mgr, role=Role.MANAGER)
+        sup = User.objects.create_user(username='gov_sup', password='Password123!')
+        UserProfile.objects.create(user=sup, role=Role.SUPERVISOR)
+        emp = User.objects.create_user(username='gov_emp', password='Password123!')
+        UserProfile.objects.create(user=emp, role=Role.EMPLOYEE)
+
+        log_audit_event(self.admin, 'CREATE', 'User', module='auth', details='Admin event secret')
+        log_audit_event(mgr, 'CREATE', 'SavedReportPreset', module='cost', details='Manager event visible')
+        log_audit_event(sup, 'EDIT', 'SavedReportPreset', module='sales', details='Supervisor event visible')
+        log_audit_event(emp, 'ACCESS_DENIED', 'Route', module='cost', details='Employee event visible')
+
+        # Admin sees all 4 roles
+        self.client.login(username='gov_admin', password='Password123!')
+        admin_resp = self.client.get(reverse('audit_log'))
+        self.assertContains(admin_resp, 'Admin event secret')
+        self.assertContains(admin_resp, 'Manager event visible')
+        self.assertContains(admin_resp, 'Supervisor event visible')
+        self.assertContains(admin_resp, 'Employee event visible')
+
+        # Manager sees Manager, Supervisor, Employee — NOT Admin
+        self.client.login(username='gov_mgr', password='Password123!')
+        mgr_resp = self.client.get(reverse('audit_log'))
+        self.assertEqual(mgr_resp.status_code, 200)
+        self.assertNotContains(mgr_resp, 'Admin event secret')
+        self.assertContains(mgr_resp, 'Manager event visible')
+        self.assertContains(mgr_resp, 'Supervisor event visible')
+        self.assertContains(mgr_resp, 'Employee event visible')
+        self.assertNotContains(mgr_resp, 'Manage Users &amp; Roles')
+
+        # Supervisor sees Supervisor, Employee — NOT Admin or Manager
+        self.client.login(username='gov_sup', password='Password123!')
+        sup_resp = self.client.get(reverse('audit_log'))
+        self.assertEqual(sup_resp.status_code, 200)
+        self.assertNotContains(sup_resp, 'Admin event secret')
+        self.assertNotContains(sup_resp, 'Manager event visible')
+        self.assertContains(sup_resp, 'Supervisor event visible')
+        self.assertContains(sup_resp, 'Employee event visible')
+        self.assertNotContains(sup_resp, 'Manage Users &amp; Roles')
+
+        # Employee is denied (403)
+        self.client.login(username='gov_emp', password='Password123!')
+        self.assertEqual(self.client.get(reverse('audit_log')).status_code, 403)

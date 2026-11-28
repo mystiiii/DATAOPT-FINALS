@@ -23,8 +23,8 @@ Access is enforced server-side via `@role_required` ([accounts/decorators.py](fi
 | Role | Dashboard | Sales Report | Customer Profile | Revenue & Loss | Cost Report | Presets & Notes (View / Create / Edit / Delete) | Audit Log & Admin |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Administrator** | Full company view | View | View | View | View | Full (any record) | Full |
-| **Manager** | Full company view | View | View | View | View | Full (any record) | No |
-| **Supervisor** | Sales + Customer view | View | View | Denied (`403`) | Denied (`403`) | Sales & Customers (own records only) | No |
+| **Manager** | Full company view | View | View | View | View | Full (any record) | Audit Log (Manager, Supervisor, Employee); Admin Users denied (`403`) |
+| **Supervisor** | Sales + Customer view | View | View | Denied (`403`) | Denied (`403`) | Sales & Customers (own records only) | Audit Log (Supervisor, Employee); Admin Users denied (`403`) |
 | **Employee** | Sales-only view | View | Denied (`403`) | Denied (`403`) | Denied (`403`) | View-only (`403` on mutations) | No |
 
 ---

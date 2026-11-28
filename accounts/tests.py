@@ -44,20 +44,19 @@ class RBACTestCase(TestCase):
         self.assertEqual(AuditLog.objects.filter(action='ACCESS_DENIED', username_snapshot='employee').count(), 4)
 
     def test_supervisor_access_limits(self):
-        """Supervisor can access Sales and Customers, but is denied Revenue/Loss, Cost, and Audit Log."""
+        """Supervisor can access Sales, Customers, and scoped Audit Log, but is denied Revenue/Loss and Cost."""
         self.client.login(username='supervisor', password='Password123!')
         self.assertEqual(self.client.get(reverse('report_sales')).status_code, 200)
         self.assertEqual(self.client.get(reverse('report_customers')).status_code, 200)
+        self.assertEqual(self.client.get(reverse('audit_log')).status_code, 200)
         self.assertEqual(self.client.get(reverse('report_revenue_loss')).status_code, 403)
         self.assertEqual(self.client.get(reverse('report_cost')).status_code, 403)
-        self.assertEqual(self.client.get(reverse('audit_log')).status_code, 403)
 
     def test_manager_and_admin_access(self):
-        """Manager accesses all 4 reports but not Admin Audit Log; Administrator accesses Audit Log too."""
+        """Manager accesses all 4 reports and scoped Audit Log; Administrator accesses everything."""
         self.client.login(username='manager', password='Password123!')
-        for route in ['report_sales', 'report_customers', 'report_revenue_loss', 'report_cost']:
+        for route in ['report_sales', 'report_customers', 'report_revenue_loss', 'report_cost', 'audit_log']:
             self.assertEqual(self.client.get(reverse(route)).status_code, 200)
-        self.assertEqual(self.client.get(reverse('audit_log')).status_code, 403)
 
         self.client.login(username='admin', password='Password123!')
         self.assertEqual(self.client.get(reverse('audit_log')).status_code, 200)

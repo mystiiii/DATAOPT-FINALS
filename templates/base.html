@@ -141,8 +141,10 @@
             <a href="{% url 'report_revenue_loss' %}" class="{% if request.resolver_match.url_name == 'report_revenue_loss' %}text-coral font-semibold{% else %}text-slate-600{% endif %}">Rev &amp; loss</a>
             <a href="{% url 'report_cost' %}" class="{% if request.resolver_match.url_name == 'report_cost' %}text-coral font-semibold{% else %}text-slate-600{% endif %}">Cost</a>
             {% endif %}
-            {% if user.profile.is_administrator or user.is_superuser %}
+            {% if user.profile.is_supervisor or user.is_superuser %}
             <a href="{% url 'audit_log' %}" class="{% if request.resolver_match.url_name == 'audit_log' %}text-coral font-semibold{% else %}text-slate-600{% endif %}">Audit</a>
+            {% endif %}
+            {% if user.profile.is_administrator or user.is_superuser %}
             <a href="{% url 'user_management' %}" class="{% if request.resolver_match.url_name == 'user_management' %}text-coral font-semibold{% else %}text-slate-600{% endif %}">Users</a>
             {% endif %}
             <a href="{% url 'settings' %}" class="{% if request.resolver_match.url_name == 'settings' %}text-coral font-semibold{% else %}text-slate-600{% endif %}">Settings</a>
@@ -296,7 +298,7 @@
                     </a>
                 </div>
 
-                {% if user.profile.is_administrator or user.is_superuser %}
+                {% if user.profile.is_supervisor or user.is_superuser %}
                 <div class="pt-3 mt-3 border-t border-slate-100">
                     <div class="px-2 pb-1.5">
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Administration</span>
@@ -312,6 +314,7 @@
                         <span class="w-1.5 h-1.5 rounded-full bg-coral"></span>
                         {% endif %}
                     </a>
+                    {% if user.profile.is_administrator or user.is_superuser %}
                     <a href="{% url 'user_management' %}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {% if request.resolver_match.url_name == 'user_management' %}bg-coral-light text-coral font-semibold{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
                         <div class="flex items-center space-x-2.5">
                             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -323,6 +326,7 @@
                         <span class="w-1.5 h-1.5 rounded-full bg-coral"></span>
                         {% endif %}
                     </a>
+                    {% endif %}
                 </div>
                 {% endif %}
             </nav>

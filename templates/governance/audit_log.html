@@ -15,12 +15,14 @@
             </div>
             <div>
                 <h1 class="text-lg font-bold text-slate-900 tracking-tight">Audit log</h1>
-                <p class="text-xs text-slate-500">Changes to presets and notes, and blocked requests (administrators only)</p>
+                <p class="text-xs text-slate-500">Changes to presets and notes, and blocked requests (scope: {{ audit_scope_label|default:"All roles" }})</p>
             </div>
         </div>
+        {% if user.profile.is_administrator or user.is_superuser %}
         <div class="flex items-center space-x-2 text-xs">
             <a href="{% url 'user_management' %}" class="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition font-medium">Manage Users &amp; Roles</a>
         </div>
+        {% endif %}
     </div>
 
     <!-- Filter Bar + Audit Table -->

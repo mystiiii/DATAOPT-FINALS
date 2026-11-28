@@ -299,13 +299,13 @@ function renderCatCostChart() {
 
     if (catCostChartType === 'amounts') {
         datasets = [
-            { label: `Total Revenue (${currSymbol()}M)`, data: revVals, backgroundColor: '#5B7FA6', borderRadius: 4 },
-            { label: `Total COGS (${currSymbol()}M)`, data: cogsVals, backgroundColor: '#C9657B', borderRadius: 4 }
+            { label: `Total Revenue (${currSymbol()}M)`, data: revVals, backgroundColor: themeColor('anchor'), borderRadius: 4 },
+            { label: `Total COGS (${currSymbol()}M)`, data: cogsVals, backgroundColor: themeColor('negative'), borderRadius: 4 }
         ];
         scales.y = {
             beginAtZero: true,
-            title: { display: true, text: `Amount (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#5B6D82' },
-            grid: { color: '#E6ECF2' },
+            title: { display: true, text: `Amount (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: themeColor('axisTitle') },
+            grid: { color: themeColor('grid') },
             ticks: { callback: v => fmtAxisMillions(v) }
         };
     } else if (catCostChartType === 'margin') {
@@ -313,16 +313,16 @@ function renderCatCostChart() {
             {
                 label: 'Margin %',
                 data: margins,
-                backgroundColor: margins.map(v => v >= 0 ? '#3E9B8C' : '#C9657B'),
+                backgroundColor: margins.map(v => v >= 0 ? themeColor('positive') : themeColor('negative')),
                 borderRadius: 4
             }
         ];
         const yMargin = {
             beginAtZero: true,
             grace: '10%',
-            title: { display: true, text: 'Margin (%)', font: { size: 10, weight: '600' }, color: '#3E9B8C' },
+            title: { display: true, text: 'Margin (%)', font: { size: 10, weight: '600' }, color: themeColor('positive') },
             grid: {
-                color: c => (hasNegMargin && c.tick && c.tick.value === 0) ? '#64748B' : '#E6ECF2',
+                color: c => (hasNegMargin && c.tick && c.tick.value === 0) ? '#64748B' : themeColor('grid'),
                 lineWidth: c => (hasNegMargin && c.tick && c.tick.value === 0) ? 1.5 : 1
             },
             ticks: { callback: v => v + '%' }
@@ -333,21 +333,21 @@ function renderCatCostChart() {
         scales.y = yMargin;
     } else {
         datasets = [
-            { label: `Total Revenue (${currSymbol()}M)`, data: revVals, backgroundColor: '#5B7FA6', borderRadius: 4, yAxisID: 'y' },
-            { label: `Total COGS (${currSymbol()}M)`, data: cogsVals, backgroundColor: '#C9657B', borderRadius: 4, yAxisID: 'y' },
-            { label: 'Margin %', data: margins, backgroundColor: '#3E9B8C', borderRadius: 4, yAxisID: 'y1' }
+            { label: `Total Revenue (${currSymbol()}M)`, data: revVals, backgroundColor: themeColor('anchor'), borderRadius: 4, yAxisID: 'y' },
+            { label: `Total COGS (${currSymbol()}M)`, data: cogsVals, backgroundColor: themeColor('negative'), borderRadius: 4, yAxisID: 'y' },
+            { label: 'Margin %', data: margins, backgroundColor: themeColor('positive'), borderRadius: 4, yAxisID: 'y1' }
         ];
         scales.y = {
             beginAtZero: true,
-            title: { display: true, text: `Amount (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#5B6D82' },
-            grid: { color: '#E6ECF2' },
+            title: { display: true, text: `Amount (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: themeColor('axisTitle') },
+            grid: { color: themeColor('grid') },
             ticks: { callback: v => fmtAxisMillions(v) }
         };
         const y1Scale = {
             position: 'right',
             beginAtZero: true,
             grace: '10%',
-            title: { display: true, text: 'Margin (%)', font: { size: 10, weight: '600' }, color: '#3E9B8C' },
+            title: { display: true, text: 'Margin (%)', font: { size: 10, weight: '600' }, color: themeColor('positive') },
             grid: {
                 drawOnChartArea: hasNegMargin,
                 color: c => (hasNegMargin && c.tick && c.tick.value === 0) ? '#64748B' : 'transparent',
@@ -391,12 +391,12 @@ function renderVendorSpendChart() {
             type: 'bar',
             data: {
                 labels: rows.map(v => (v.VendorName || '').slice(0, 18)),
-                datasets: [{ data: rows.map(v => +(toCurr(v.TotalSpent) / 1e6).toFixed(2)), backgroundColor: rows.map((_, i) => i === 0 ? '#4A89C7' : 'rgba(74, 137, 199, 0.55)'), borderRadius: 4 }]
+                datasets: [{ data: rows.map(v => +(toCurr(v.TotalSpent) / 1e6).toFixed(2)), backgroundColor: rows.map((_, i) => i === 0 ? themeColor('primary') : themeAlpha('primary', 0.55)), borderRadius: 4 }]
             },
             options: {
                 indexAxis: 'y', responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
-                scales: { x: { beginAtZero: true, title: { display: true, text: `Total Spend (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#5B6D82' }, grid: { color: '#E6ECF2' }, ticks: { callback: v => fmtAxisMillions(v) } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
+                scales: { x: { beginAtZero: true, title: { display: true, text: `Total Spend (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: themeColor('axisTitle') }, grid: { color: themeColor('grid') }, ticks: { callback: v => fmtAxisMillions(v) } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
             }
         });
     } else {
@@ -405,14 +405,14 @@ function renderVendorSpendChart() {
             data: {
                 labels: rawPOYearly.map(r => 'FY' + r.Year),
                 datasets: [
-                    { label: `PO SubTotal (${currSymbol()}M)`, data: rawPOYearly.map(r => +(toCurr(r.SubTotal) / 1e6).toFixed(2)), backgroundColor: '#5B7FA6', borderRadius: 4 },
-                    { label: `Freight (${currSymbol()}M)`, data: rawPOYearly.map(r => +(toCurr(r.FreightCost) / 1e6).toFixed(2)), backgroundColor: '#9A72B5', borderRadius: 4 }
+                    { label: `PO SubTotal (${currSymbol()}M)`, data: rawPOYearly.map(r => +(toCurr(r.SubTotal) / 1e6).toFixed(2)), backgroundColor: themeColor('anchor'), borderRadius: 4 },
+                    { label: `Freight (${currSymbol()}M)`, data: rawPOYearly.map(r => +(toCurr(r.FreightCost) / 1e6).toFixed(2)), backgroundColor: themeColor('warning'), borderRadius: 4 }
                 ]
             },
             options: {
                 responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
-                scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, title: { display: true, text: `PO Spend (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#5B6D82' }, grid: { color: '#E6ECF2' }, ticks: { callback: v => fmtAxisMillions(v) } } }
+                scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true, title: { display: true, text: `PO Spend (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: themeColor('axisTitle') }, grid: { color: themeColor('grid') }, ticks: { callback: v => fmtAxisMillions(v) } } }
             }
         });
     }
@@ -459,8 +459,8 @@ function renderCostDriverChart() {
                 datasets: [{
                     label: `Manufacturing COGS (${unitLabel})`,
                     data: rows.map(r => +(toCurr(r.TotalCOGS) / divisor).toFixed(2)),
-                    borderColor: '#C9657B',
-                    backgroundColor: 'rgba(201, 101, 123, 0.12)',
+                    borderColor: themeColor('negative'),
+                    backgroundColor: themeAlpha('negative', 0.12),
                     fill: true,
                     tension: 0.3,
                     pointRadius: 4,
@@ -487,8 +487,8 @@ function renderCostDriverChart() {
                     y: {
                         beginAtZero: true,
                         grace: '10%',
-                        title: { display: true, text: `Manufacturing COGS (${unitLabel})`, font: { size: 10, weight: '600' }, color: '#C9657B' },
-                        grid: { color: '#E6ECF2' },
+                        title: { display: true, text: `Manufacturing COGS (${unitLabel})`, font: { size: 10, weight: '600' }, color: themeColor('negative') },
+                        grid: { color: themeColor('grid') },
                         ticks: { callback: v => useK ? currSymbol() + fmtInt(v) + 'K' : currSymbol() + v + 'M' }
                     }
                 }
@@ -512,7 +512,7 @@ function renderCostDriverChart() {
                 datasets: [{
                     label: `Total COGS (${unitLabel})`,
                     data: filtered.map(p => +(toCurr(p.TotalCOGS) / divisor).toFixed(2)),
-                    backgroundColor: filtered.map((_, i) => i === 0 ? '#C9657B' : 'rgba(201, 101, 123, 0.55)'),
+                    backgroundColor: filtered.map((_, i) => i === 0 ? themeColor('negative') : themeAlpha('negative', 0.55)),
                     borderRadius: 4
                 }]
             },
@@ -535,8 +535,8 @@ function renderCostDriverChart() {
                 scales: {
                     x: {
                         beginAtZero: true,
-                        title: { display: true, text: `Total COGS (${unitLabel})`, font: { size: 10, weight: '600' }, color: '#C9657B' },
-                        grid: { color: '#E6ECF2' },
+                        title: { display: true, text: `Total COGS (${unitLabel})`, font: { size: 10, weight: '600' }, color: themeColor('negative') },
+                        grid: { color: themeColor('grid') },
                         ticks: { callback: v => useK ? currSymbol() + fmtInt(v) + 'K' : currSymbol() + v + 'M' }
                     },
                     y: { grid: { display: false }, ticks: { font: { size: 10 } } }

@@ -364,8 +364,8 @@ function renderMonthlyChart() {
             datasets: [{
                 label: monthlyMetric === 'revenue' ? `Revenue (${currSymbol()}M)` : 'Orders',
                 data: rows.map(r => monthlyMetric === 'revenue' ? +(toCurr(r.Revenue) / 1e6).toFixed(2) : (parseInt(r.OrderCount, 10) || 0)),
-                borderColor: '#4A89C7',
-                backgroundColor: 'rgba(74, 137, 199, 0.12)',
+                borderColor: themeColor('primary'),
+                backgroundColor: themeAlpha('primary', 0.12),
                 fill: true,
                 tension: 0.3,
                 pointRadius: 2
@@ -377,13 +377,20 @@ function renderMonthlyChart() {
             plugins: { legend: { display: false } },
             scales: {
                 x: { grid: { display: false }, ticks: { maxTicksLimit: 10, font: { size: 10 } } },
-                y: { beginAtZero: true, title: { display: true, text: monthlyMetric === 'revenue' ? `Revenue (${currSymbol()}M)` : 'Orders', font: { size: 10, weight: '600' }, color: '#5B6D82' }, grid: { color: '#E6ECF2' }, ticks: { font: { size: 10 }, callback: v => monthlyMetric === 'revenue' ? fmtAxisMillions(v) : fmtInt(v) } }
+                y: { beginAtZero: true, title: { display: true, text: monthlyMetric === 'revenue' ? `Revenue (${currSymbol()}M)` : 'Orders', font: { size: 10, weight: '600' }, color: themeColor('axisTitle') }, grid: { color: themeColor('grid') }, ticks: { font: { size: 10 }, callback: v => monthlyMetric === 'revenue' ? fmtAxisMillions(v) : fmtInt(v) } }
             }
         }
     });
 }
 
-const CAT_COLORS = { 'Bikes': '#4A89C7', 'Components': '#5B7FA6', 'Clothing': '#7A7EC9', 'Accessories': '#3E9B8C' };
+function getCatColors() {
+    return {
+        'Bikes': themeColor('primary'),
+        'Components': themeColor('anchor'),
+        'Clothing': themeColor('secondary'),
+        'Accessories': themeColor('positive')
+    };
+}
 
 function setSalesCatMetric(m) {
     salesCatMetric = m;
@@ -411,6 +418,7 @@ function setSalesCatFilter(cat) {
 function renderSalesCatChart() {
     const years = [...new Set(rawSalesCatYear.map(d => d.Year))].sort();
     const cats = salesCatFilter === 'all' ? ['Bikes', 'Components', 'Clothing', 'Accessories'] : [salesCatFilter];
+    const catColors = getCatColors();
     const datasets = cats.map(cat => ({
         label: cat,
         data: years.map(yr => {
@@ -420,7 +428,7 @@ function renderSalesCatChart() {
             if (salesCatMetric === 'profit') return +(toCurr(row.GrossProfit || 0) / 1e6).toFixed(2);
             return parseInt(row.UnitsSold, 10) || 0;
         }),
-        backgroundColor: years.map(yr => (salesYear !== 'all' && String(yr) !== String(salesYear)) ? CAT_COLORS[cat] + '33' : CAT_COLORS[cat]),
+        backgroundColor: years.map(yr => (salesYear !== 'all' && String(yr) !== String(salesYear)) ? catColors[cat] + '33' : catColors[cat]),
         borderRadius: 4
     }));
 
@@ -432,7 +440,7 @@ function renderSalesCatChart() {
         beginAtZero: true,
         grace: '10%',
         grid: {
-            color: c => (hasNeg && c.tick && c.tick.value === 0) ? '#64748B' : '#E6ECF2',
+            color: c => (hasNeg && c.tick && c.tick.value === 0) ? '#64748B' : themeColor('grid'),
             lineWidth: c => (hasNeg && c.tick && c.tick.value === 0) ? 1.5 : 1
         },
         ticks: {
@@ -520,8 +528,8 @@ async function renderSalesTerritoryChart() {
                     labels: mapPoints.map(p => p.raw.TerritoryName),
                     datasets: [{
                         outline: countries, showOutline: true,
-                        outlineBackgroundColor: '#E6ECF2', outlineBorderColor: '#CBD5E1', outlineBorderWidth: 0.6,
-                        backgroundColor: 'rgba(74, 137, 199, 0.72)', borderColor: '#FFF', borderWidth: 1.5, data: mapPoints
+                        outlineBackgroundColor: themeColor('grid'), outlineBorderColor: '#CBD5E1', outlineBorderWidth: 0.6,
+                        backgroundColor: themeAlpha('primary', 0.72), borderColor: '#FFF', borderWidth: 1.5, data: mapPoints
                     }]
                 },
                 options: {
@@ -542,12 +550,12 @@ async function renderSalesTerritoryChart() {
         type: 'bar',
         data: {
             labels: rows.map(r => r.TerritoryName),
-            datasets: [{ data: rows.map(r => +(toCurr(r.TotalRevenue) / 1e6).toFixed(2)), backgroundColor: rows.map((_, i) => i === 0 ? '#4A89C7' : 'rgba(74, 137, 199, 0.45)'), borderRadius: 4 }]
+            datasets: [{ data: rows.map(r => +(toCurr(r.TotalRevenue) / 1e6).toFixed(2)), backgroundColor: rows.map((_, i) => i === 0 ? themeColor('primary') : themeAlpha('primary', 0.45)), borderRadius: 4 }]
         },
         options: {
             indexAxis: 'y', responsive: true, maintainAspectRatio: false,
             plugins: { legend: { display: false } },
-            scales: { x: { beginAtZero: true, title: { display: true, text: `Total Sales (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#5B6D82' }, grid: { color: '#E6ECF2' }, ticks: { callback: v => fmtAxisMillions(v) } }, y: { grid: { display: false } } }
+            scales: { x: { beginAtZero: true, title: { display: true, text: `Total Sales (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: themeColor('axisTitle') }, grid: { color: themeColor('grid') }, ticks: { callback: v => fmtAxisMillions(v) } }, y: { grid: { display: false } } }
         }
     });
 }
@@ -572,14 +580,14 @@ function renderProductExtremeChart() {
             labels: rows.map(r => (r.ProductName || '').slice(0, 22)),
             datasets: [{
                 data: rows.map(r => +toCurr(r.TotalRevenue).toFixed(0)),
-                backgroundColor: prodExtremeMode === 'top' ? '#4A89C7' : '#64748B',
+                backgroundColor: prodExtremeMode === 'top' ? themeColor('primary') : '#64748B',
                 borderRadius: 4
             }]
         },
         options: {
             indexAxis: 'y', responsive: true, maintainAspectRatio: false,
             plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => fmtDollar(rows[c.dataIndex].TotalRevenue) } } },
-            scales: { x: { beginAtZero: true, grid: { color: '#E6ECF2' }, ticks: { callback: v => v >= 1e6 ? currSymbol() + (v / 1e6).toFixed(1) + 'M' : currSymbol() + Math.round(v / 1e3) + 'K' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
+            scales: { x: { beginAtZero: true, grid: { color: themeColor('grid') }, ticks: { callback: v => v >= 1e6 ? currSymbol() + (v / 1e6).toFixed(1) + 'M' : currSymbol() + Math.round(v / 1e3) + 'K' } }, y: { grid: { display: false }, ticks: { font: { size: 10 } } } }
         }
     });
 }

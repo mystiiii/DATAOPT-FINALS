@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="{{ user_color_scheme|default:'slate-blue' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}AdventureWorks BI Analytics{% endblock %}</title>
+    {{ user_custom_colors|json_script:"userCustomColorsData" }}
     <!-- Inter Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,16 +21,103 @@
                     },
                     colors: {
                         coral: {
-                            DEFAULT: '#2F6396',
-                            hover: '#25507A',
-                            light: '#EDF4FA',
-                            border: '#C4D9EC',
+                            DEFAULT: 'rgb(var(--theme-accent-rgb) / <alpha-value>)',
+                            hover: 'rgb(var(--theme-accent-hover-rgb) / <alpha-value>)',
+                            light: 'rgb(var(--theme-accent-light-rgb) / <alpha-value>)',
+                            border: 'rgb(var(--theme-accent-border-rgb) / <alpha-value>)',
                         }
                     }
                 }
             }
         }
     </script>
+    <style id="themeVarsStyle">
+        :root, [data-theme="slate-blue"] {
+            --theme-accent-rgb: 47 99 150;
+            --theme-accent-hover-rgb: 37 80 122;
+            --theme-accent-light-rgb: 237 244 250;
+            --theme-accent-border-rgb: 196 217 236;
+            --theme-canvas: #F5F7FA;
+            --theme-card: #FFFFFF;
+            --theme-card-subtle: #F9FAFB;
+            --theme-border: #DCE3EC;
+            --theme-text: #243447;
+            --theme-muted: #5B6D82;
+            --theme-chart-primary: #4A89C7;
+            --theme-chart-anchor: #5B7FA6;
+        }
+        [data-theme="calm-teal"] {
+            --theme-accent-rgb: 31 122 122;
+            --theme-accent-hover-rgb: 24 99 99;
+            --theme-accent-light-rgb: 236 246 246;
+            --theme-accent-border-rgb: 189 222 222;
+            --theme-canvas: #F4F8F7;
+            --theme-card: #FFFFFF;
+            --theme-card-subtle: #F7FBFA;
+            --theme-border: #D6E5E3;
+            --theme-text: #1F3636;
+            --theme-muted: #526E6D;
+            --theme-chart-primary: #2A928F;
+            --theme-chart-anchor: #4E7F8C;
+        }
+        [data-theme="forest-sage"] {
+            --theme-accent-rgb: 46 111 86;
+            --theme-accent-hover-rgb: 36 89 69;
+            --theme-accent-light-rgb: 238 246 242;
+            --theme-accent-border-rgb: 194 223 210;
+            --theme-canvas: #F5F8F6;
+            --theme-card: #FFFFFF;
+            --theme-card-subtle: #F7FAF8;
+            --theme-border: #D8E4DD;
+            --theme-text: #21352B;
+            --theme-muted: #566D61;
+            --theme-chart-primary: #3F8E6E;
+            --theme-chart-anchor: #5C8272;
+        }
+        [data-theme="royal-plum"] {
+            --theme-accent-rgb: 98 76 145;
+            --theme-accent-hover-rgb: 79 61 119;
+            --theme-accent-light-rgb: 243 239 250;
+            --theme-accent-border-rgb: 212 200 235;
+            --theme-canvas: #F7F6FA;
+            --theme-card: #FFFFFF;
+            --theme-card-subtle: #FAF8FC;
+            --theme-border: #E1DCEB;
+            --theme-text: #2B253B;
+            --theme-muted: #635B78;
+            --theme-chart-primary: #7760B0;
+            --theme-chart-anchor: #6774A6;
+        }
+        [data-theme="warm-sand"] {
+            --theme-accent-rgb: 61 106 126;
+            --theme-accent-hover-rgb: 47 85 102;
+            --theme-accent-light-rgb: 237 243 245;
+            --theme-accent-border-rgb: 196 215 223;
+            --theme-canvas: #F6F3EC;
+            --theme-card: #FDFBF7;
+            --theme-card-subtle: #F7F4EC;
+            --theme-border: #E3DDD1;
+            --theme-text: #2D2A24;
+            --theme-muted: #6A6459;
+            --theme-chart-primary: #4C829B;
+            --theme-chart-anchor: #6D7D8C;
+        }
+        body {
+            background-color: var(--theme-canvas) !important;
+            color: var(--theme-text) !important;
+            transition: background-color 180ms ease, color 180ms ease;
+        }
+        aside, header, .bg-white {
+            background-color: var(--theme-card);
+        }
+        .border-\[\#DCE3EC\], .border-\[\#E5E7EB\] {
+            border-color: var(--theme-border) !important;
+        }
+        [data-theme="custom"] .text-slate-900,
+        [data-theme="custom"] .text-\[\#243447\] {
+            color: var(--theme-text);
+        }
+    </style>
     <!-- Chart.js & Geo Map Plugin CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-geo@4/build/index.umd.min.js"></script>
@@ -56,6 +145,7 @@
             <a href="{% url 'audit_log' %}" class="{% if request.resolver_match.url_name == 'audit_log' %}text-coral font-semibold{% else %}text-slate-600{% endif %}">Audit</a>
             <a href="{% url 'user_management' %}" class="{% if request.resolver_match.url_name == 'user_management' %}text-coral font-semibold{% else %}text-slate-600{% endif %}">Users</a>
             {% endif %}
+            <a href="{% url 'settings' %}" class="{% if request.resolver_match.url_name == 'settings' %}text-coral font-semibold{% else %}text-slate-600{% endif %}">Settings</a>
             <select id="mobileCurrencySelect" onchange="setAppCurrency(this.value)" aria-label="Currency" class="border border-slate-200 rounded px-1.5 py-0.5 text-[11px] text-slate-700 bg-white font-medium">
                 <option value="USD">USD ($)</option>
                 <option value="EUR">EUR (€)</option>
@@ -187,6 +277,25 @@
                 </div>
                 {% endif %}
 
+                <!-- Preferences (All Authenticated Users) -->
+                <div class="pt-3 mt-3 border-t border-slate-100">
+                    <div class="px-2 pb-1.5">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Preferences</span>
+                    </div>
+                    <a href="{% url 'settings' %}" class="flex items-center justify-between px-3 py-2 rounded-lg transition {% if request.resolver_match.url_name == 'settings' %}bg-coral-light text-coral font-semibold{% else %}text-slate-600 hover:bg-slate-50 hover:text-slate-900{% endif %}">
+                        <div class="flex items-center space-x-2.5">
+                            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            <span>Settings</span>
+                        </div>
+                        {% if request.resolver_match.url_name == 'settings' %}
+                        <span class="w-1.5 h-1.5 rounded-full bg-coral"></span>
+                        {% endif %}
+                    </a>
+                </div>
+
                 {% if user.profile.is_administrator or user.is_superuser %}
                 <div class="pt-3 mt-3 border-t border-slate-100">
                     <div class="px-2 pb-1.5">
@@ -233,8 +342,8 @@
                 </div>
             </div>
 
-            <div class="flex items-center space-x-2.5 px-2 py-1.5 rounded-lg bg-[#F9FAFB] border border-[#DCE3EC]">
-                <div class="w-7 h-7 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-[10px] shrink-0">
+            <div class="flex items-center space-x-2.5 px-2 py-1.5 rounded-lg border border-[#DCE3EC]" style="background-color: var(--theme-card-subtle);">
+                <div class="w-7 h-7 rounded-full bg-coral text-white flex items-center justify-center font-bold text-[10px] shrink-0">
                     {{ user.username|slice:":2"|upper }}
                 </div>
                 <div class="flex-1 min-w-0">
@@ -339,6 +448,9 @@
                 margin: 0 !important;
                 padding: 0 !important;
             }
+            .bg-white {
+                background-color: #ffffff !important;
+            }
             aside, header {
                 display: none !important;
             }
@@ -370,10 +482,283 @@
     </style>
 
     <script>
-    if (typeof Chart !== 'undefined') {
+    const APP_USER_AUTHENTICATED = {% if user.is_authenticated %}true{% else %}false{% endif %};
+    const APP_THEME_SAVE_URL = "{% url 'update_color_scheme' %}";
+    const APP_INITIAL_THEME = "{{ user_color_scheme|default:'slate-blue' }}";
+    let APP_CUSTOM_COLORS = {};
+    try {
+        const customNode = document.getElementById('userCustomColorsData');
+        if (customNode && customNode.textContent) {
+            const parsed = JSON.parse(customNode.textContent);
+            if (parsed && typeof parsed === 'object') APP_CUSTOM_COLORS = parsed;
+        }
+    } catch (e) {}
+
+    const THEME_CONFIG = {
+        'slate-blue': {
+            code: 'slate-blue',
+            name: 'Classic Slate',
+            accent: '#2F6396',
+            canvas: '#F5F7FA',
+            card: '#FFFFFF',
+            text: '#243447',
+            primary: '#4A89C7',
+            primaryRgb: '74, 137, 199',
+            anchor: '#5B7FA6',
+            anchorRgb: '91, 127, 166',
+            positive: '#3E9B8C',
+            secondary: '#7A7EC9',
+            neutral: '#93A7BC',
+            warning: '#9A72B5',
+            negative: '#C9657B',
+            negativeRgb: '201, 101, 123',
+            negativeText: '#B55068',
+            grid: '#E6ECF2',
+            axisTitle: '#5B6D82',
+            labelText: '#3E5166',
+            tooltipBg: 'rgba(36, 52, 71, 0.94)'
+        },
+        'calm-teal': {
+            code: 'calm-teal',
+            name: 'Ocean Teal',
+            accent: '#1F7A7A',
+            canvas: '#F4F8F7',
+            card: '#FFFFFF',
+            text: '#1F3636',
+            primary: '#2A928F',
+            primaryRgb: '42, 146, 143',
+            anchor: '#4E7F8C',
+            anchorRgb: '78, 127, 140',
+            positive: '#42A37A',
+            secondary: '#5C82C4',
+            neutral: '#8FA9A8',
+            warning: '#8D75B8',
+            negative: '#C8687C',
+            negativeRgb: '200, 104, 124',
+            negativeText: '#B04E64',
+            grid: '#E4EEEC',
+            axisTitle: '#526E6D',
+            labelText: '#2F4B4A',
+            tooltipBg: 'rgba(31, 54, 54, 0.94)'
+        },
+        'forest-sage': {
+            code: 'forest-sage',
+            name: 'Forest Sage',
+            accent: '#2E6F56',
+            canvas: '#F5F8F6',
+            card: '#FFFFFF',
+            text: '#21352B',
+            primary: '#3F8E6E',
+            primaryRgb: '63, 142, 110',
+            anchor: '#5C8272',
+            anchorRgb: '92, 130, 114',
+            positive: '#4AA38F',
+            secondary: '#5D84BA',
+            neutral: '#95A89E',
+            warning: '#8E78B5',
+            negative: '#C46A7B',
+            negativeRgb: '196, 106, 123',
+            negativeText: '#AC5063',
+            grid: '#E5EEE9',
+            axisTitle: '#566D61',
+            labelText: '#324B3F',
+            tooltipBg: 'rgba(33, 53, 43, 0.94)'
+        },
+        'royal-plum': {
+            code: 'royal-plum',
+            name: 'Soft Plum',
+            accent: '#624C91',
+            canvas: '#F7F6FA',
+            card: '#FFFFFF',
+            text: '#2B253B',
+            primary: '#7760B0',
+            primaryRgb: '119, 96, 176',
+            anchor: '#6774A6',
+            anchorRgb: '103, 116, 166',
+            positive: '#3F9A8E',
+            secondary: '#5489C4',
+            neutral: '#9D97B3',
+            warning: '#A970A8',
+            negative: '#C96584',
+            negativeRgb: '201, 101, 132',
+            negativeText: '#B24D6D',
+            grid: '#EBE7F3',
+            axisTitle: '#635B78',
+            labelText: '#3E3654',
+            tooltipBg: 'rgba(43, 37, 59, 0.94)'
+        },
+        'warm-sand': {
+            code: 'warm-sand',
+            name: 'Warm Stone',
+            accent: '#3D6A7E',
+            canvas: '#F6F3EC',
+            card: '#FDFBF7',
+            text: '#2D2A24',
+            primary: '#4C829B',
+            primaryRgb: '76, 130, 155',
+            anchor: '#6D7D8C',
+            anchorRgb: '109, 125, 140',
+            positive: '#4A947C',
+            secondary: '#7B7DB8',
+            neutral: '#A39E93',
+            warning: '#9B74A8',
+            negative: '#C26973',
+            negativeRgb: '194, 105, 115',
+            negativeText: '#A94F5A',
+            grid: '#EAE4D9',
+            axisTitle: '#6A6459',
+            labelText: '#443F36',
+            tooltipBg: 'rgba(45, 42, 36, 0.94)'
+        }
+    };
+
+    const CUSTOM_CSS_VAR_KEYS = [
+        '--theme-accent-rgb',
+        '--theme-accent-hover-rgb',
+        '--theme-accent-light-rgb',
+        '--theme-accent-border-rgb',
+        '--theme-canvas',
+        '--theme-card',
+        '--theme-card-subtle',
+        '--theme-border',
+        '--theme-text',
+        '--theme-muted',
+        '--theme-chart-primary',
+        '--theme-chart-anchor'
+    ];
+
+    function isValidHex(v) {
+        return typeof v === 'string' && /^#[0-9A-Fa-f]{6}$/.test(v.trim());
+    }
+
+    function hexToRgbArr(hex) {
+        const clean = (isValidHex(hex) ? hex.trim() : '#2F6396').slice(1);
+        return [
+            parseInt(clean.slice(0, 2), 16),
+            parseInt(clean.slice(2, 4), 16),
+            parseInt(clean.slice(4, 6), 16)
+        ];
+    }
+
+    function rgbArrToHex(arr) {
+        return '#' + arr.map(n => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0')).join('').toUpperCase();
+    }
+
+    function mixRgb(a, b, t) {
+        return [
+            Math.round(a[0] * (1 - t) + b[0] * t),
+            Math.round(a[1] * (1 - t) + b[1] * t),
+            Math.round(a[2] * (1 - t) + b[2] * t)
+        ];
+    }
+
+    function buildCustomPalette(raw) {
+        const base = THEME_CONFIG['slate-blue'];
+        const pick = (k) => (raw && isValidHex(raw[k])) ? raw[k].trim().toUpperCase() : base[k];
+
+        const accent = pick('accent');
+        const canvas = pick('canvas');
+        const card = pick('card');
+        const text = pick('text');
+        const primary = pick('primary');
+        const anchor = pick('anchor');
+        const positive = pick('positive');
+        const secondary = pick('secondary');
+        const warning = pick('warning');
+        const negative = pick('negative');
+
+        const accRgb = hexToRgbArr(accent);
+        const canvasRgb = hexToRgbArr(canvas);
+        const cardRgb = hexToRgbArr(card);
+        const textRgb = hexToRgbArr(text);
+        const priRgb = hexToRgbArr(primary);
+        const ancRgb = hexToRgbArr(anchor);
+        const negRgb = hexToRgbArr(negative);
+
+        const accentHoverRgb = mixRgb(accRgb, [0, 0, 0], 0.18);
+        const accentLightRgb = mixRgb(accRgb, cardRgb, 0.88);
+        const accentBorderRgb = mixRgb(accRgb, cardRgb, 0.65);
+
+        return {
+            code: 'custom',
+            name: 'Custom',
+            accent,
+            accentRgbSpace: accRgb.join(' '),
+            accentHoverRgbSpace: accentHoverRgb.join(' '),
+            accentLightRgbSpace: accentLightRgb.join(' '),
+            accentBorderRgbSpace: accentBorderRgb.join(' '),
+            canvas,
+            card,
+            cardSubtle: rgbArrToHex(mixRgb(cardRgb, canvasRgb, 0.45)),
+            border: rgbArrToHex(mixRgb(canvasRgb, textRgb, 0.14)),
+            text,
+            muted: rgbArrToHex(mixRgb(textRgb, cardRgb, 0.35)),
+            primary,
+            primaryRgb: priRgb.join(', '),
+            anchor,
+            anchorRgb: ancRgb.join(', '),
+            positive,
+            secondary,
+            neutral: rgbArrToHex(mixRgb(ancRgb, cardRgb, 0.42)),
+            warning,
+            negative,
+            negativeRgb: negRgb.join(', '),
+            negativeText: rgbArrToHex(mixRgb(negRgb, [0, 0, 0], 0.14)),
+            grid: rgbArrToHex(mixRgb(cardRgb, textRgb, 0.10)),
+            axisTitle: rgbArrToHex(mixRgb(textRgb, cardRgb, 0.32)),
+            labelText: rgbArrToHex(mixRgb(textRgb, cardRgb, 0.16)),
+            tooltipBg: `rgba(${textRgb.join(', ')}, 0.94)`
+        };
+    }
+
+    function applyCustomCssVars(customObj) {
+        if (!document.documentElement || !document.documentElement.style) return;
+        const pal = buildCustomPalette(customObj);
+        const st = document.documentElement.style;
+        st.setProperty('--theme-accent-rgb', pal.accentRgbSpace);
+        st.setProperty('--theme-accent-hover-rgb', pal.accentHoverRgbSpace);
+        st.setProperty('--theme-accent-light-rgb', pal.accentLightRgbSpace);
+        st.setProperty('--theme-accent-border-rgb', pal.accentBorderRgbSpace);
+        st.setProperty('--theme-canvas', pal.canvas);
+        st.setProperty('--theme-card', pal.card);
+        st.setProperty('--theme-card-subtle', pal.cardSubtle);
+        st.setProperty('--theme-border', pal.border);
+        st.setProperty('--theme-text', pal.text);
+        st.setProperty('--theme-muted', pal.muted);
+        st.setProperty('--theme-chart-primary', pal.primary);
+        st.setProperty('--theme-chart-anchor', pal.anchor);
+    }
+
+    function clearCustomCssVars() {
+        if (!document.documentElement || !document.documentElement.style) return;
+        CUSTOM_CSS_VAR_KEYS.forEach(k => document.documentElement.style.removeProperty(k));
+    }
+
+    function getColorScheme() {
+        const attr = document.documentElement && document.documentElement.getAttribute('data-theme');
+        const code = attr || APP_INITIAL_THEME || 'slate-blue';
+        if (code === 'custom') return buildCustomPalette(APP_CUSTOM_COLORS);
+        if (THEME_CONFIG[code]) return THEME_CONFIG[code];
+        return THEME_CONFIG['slate-blue'];
+    }
+
+    function getThemePalette() { return getColorScheme(); }
+    function themeColor(key) {
+        const pal = getColorScheme();
+        return pal[key] || THEME_CONFIG['slate-blue'][key] || '#4A89C7';
+    }
+    function themeAlpha(key, alpha) {
+        const pal = getColorScheme();
+        const rgb = pal[key + 'Rgb'] || THEME_CONFIG['slate-blue'][key + 'Rgb'] || '74, 137, 199';
+        return `rgba(${rgb}, ${alpha})`;
+    }
+
+    function applyChartThemeDefaults() {
+        if (typeof Chart === 'undefined') return;
+        const pal = getColorScheme();
         Chart.defaults.font.family = "'Inter', system-ui, -apple-system, sans-serif";
-        Chart.defaults.color = '#64748B';
-        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(15, 23, 42, 0.94)';
+        Chart.defaults.color = pal.axisTitle;
+        Chart.defaults.plugins.tooltip.backgroundColor = pal.tooltipBg;
         Chart.defaults.plugins.tooltip.titleColor = '#F8FAFC';
         Chart.defaults.plugins.tooltip.bodyColor = '#E2E8F0';
         Chart.defaults.plugins.tooltip.padding = 10;
@@ -381,6 +766,87 @@
         Chart.defaults.plugins.tooltip.boxPadding = 4;
         Chart.defaults.plugins.legend.labels.usePointStyle = true;
     }
+
+    function syncColorSchemeUI() {
+        const cfg = getColorScheme();
+        if (document.documentElement) {
+            document.documentElement.setAttribute('data-theme', cfg.code);
+        }
+        if (cfg.code === 'custom') {
+            applyCustomCssVars(APP_CUSTOM_COLORS);
+        } else {
+            clearCustomCssVars();
+        }
+        applyChartThemeDefaults();
+    }
+
+    function previewCustomColors(customObj) {
+        APP_CUSTOM_COLORS = Object.assign({}, APP_CUSTOM_COLORS, customObj || {});
+        if (document.documentElement) {
+            document.documentElement.setAttribute('data-theme', 'custom');
+        }
+        applyCustomCssVars(APP_CUSTOM_COLORS);
+        applyChartThemeDefaults();
+        if (typeof window.onThemeChange === 'function') {
+            window.onThemeChange('custom');
+        }
+    }
+
+    function previewPresetScheme(code) {
+        if (!THEME_CONFIG[code]) return;
+        clearCustomCssVars();
+        if (document.documentElement) {
+            document.documentElement.setAttribute('data-theme', code);
+        }
+        applyChartThemeDefaults();
+        if (typeof window.onThemeChange === 'function') {
+            window.onThemeChange(code);
+        }
+    }
+
+    function setAppColorScheme(code, persist = true, customColors = null) {
+        if (code !== 'custom' && !THEME_CONFIG[code]) return;
+        if (code === 'custom') {
+            if (customColors && typeof customColors === 'object') {
+                APP_CUSTOM_COLORS = Object.assign({}, APP_CUSTOM_COLORS, customColors);
+            }
+            if (document.documentElement) document.documentElement.setAttribute('data-theme', 'custom');
+            applyCustomCssVars(APP_CUSTOM_COLORS);
+        } else {
+            clearCustomCssVars();
+            if (document.documentElement) document.documentElement.setAttribute('data-theme', code);
+        }
+        applyChartThemeDefaults();
+        if (typeof window.onThemeChange === 'function') {
+            window.onThemeChange(code);
+        } else if (typeof window.onCurrencyChange === 'function') {
+            window.onCurrencyChange(getCurrency().code);
+        }
+        if (persist && APP_USER_AUTHENTICATED && typeof fetch === 'function') {
+            const meta = document.querySelector('meta[name="csrf-token"]');
+            const csrf = meta ? meta.content : '';
+            const payload = code === 'custom'
+                ? { scheme: 'custom', custom_colors: APP_CUSTOM_COLORS }
+                : { scheme: code };
+            fetch(APP_THEME_SAVE_URL, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrf
+                },
+                body: JSON.stringify(payload)
+            }).catch(() => {});
+        }
+    }
+
+    // Apply saved custom CSS variables & Chart defaults immediately on load
+    (function initColorSchemeEarly() {
+        if (APP_INITIAL_THEME === 'custom') {
+            applyCustomCssVars(APP_CUSTOM_COLORS);
+        }
+        applyChartThemeDefaults();
+    })();
 
     function syncKpiTitles() {
         document.querySelectorAll('.truncate').forEach(el => {
@@ -556,9 +1022,11 @@
     window.addEventListener('afterprint', clearSingleChartPrint);
 
     document.addEventListener('DOMContentLoaded', () => {
+        syncColorSchemeUI();
         syncCurrencyUI();
         setTimeout(syncKpiTitles, 60);
         document.querySelectorAll('main canvas').forEach(canvas => {
+            if (canvas.dataset && canvas.dataset.noPrint === '1') return;
             const card = canvas.closest('.bg-white');
             if (!card || card.querySelector('.print-chart-btn')) return;
             const heading = card.querySelector('h2');

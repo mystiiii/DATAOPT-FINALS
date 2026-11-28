@@ -387,7 +387,7 @@ function renderRevWaterfall() {
                     const boxY = val < 0 ? labelY - 1 : labelY - 11;
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
                     ctx.fillRect(bar.x - boxW / 2, boxY, boxW, 12);
-                    ctx.fillStyle = val < 0 ? '#B55068' : '#3E5166';
+                    ctx.fillStyle = val < 0 ? themeColor('negativeText') : themeColor('labelText');
                     ctx.textBaseline = val < 0 ? 'top' : 'bottom';
                     ctx.fillText(text, bar.x, labelY);
                 });
@@ -407,14 +407,14 @@ function renderRevWaterfall() {
                 {
                     label: `Revenue (${currSymbol()}M)`,
                     data: mData,
-                    backgroundColor: ['#5B7FA6', 'transparent', '#7A7EC9', 'transparent', afterScrap >= 0 ? '#3E9B8C' : '#C9657B'],
+                    backgroundColor: [themeColor('anchor'), 'transparent', themeColor('secondary'), 'transparent', afterScrap >= 0 ? themeColor('positive') : themeColor('negative')],
                     borderRadius: 5,
                     yAxisID: 'y'
                 },
                 {
                     label: `Losses (${currSymbol()}K)`,
                     data: kData,
-                    backgroundColor: ['transparent', '#9A72B5', 'transparent', '#C9657B', 'transparent'],
+                    backgroundColor: ['transparent', themeColor('warning'), 'transparent', themeColor('negative'), 'transparent'],
                     borderRadius: 5,
                     yAxisID: 'y1'
                 }
@@ -441,9 +441,9 @@ function renderRevWaterfall() {
                     position: 'left',
                     min: -yMinMag,
                     max: yMax,
-                    title: { display: true, text: `Revenue (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#5B6D82' },
+                    title: { display: true, text: `Revenue (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: themeColor('axisTitle') },
                     grid: {
-                        color: c => (c.tick && c.tick.value === 0) ? '#64748B' : '#E6ECF2',
+                        color: c => (c.tick && c.tick.value === 0) ? '#64748B' : themeColor('grid'),
                         lineWidth: c => (c.tick && c.tick.value === 0) ? 1.5 : 1
                     },
                     ticks: { stepSize: yStep, font: { size: 10 }, callback: v => v < 0 ? '' : fmtAxisMillions(v) }
@@ -452,7 +452,7 @@ function renderRevWaterfall() {
                     position: 'right',
                     min: -y1Max,
                     max: y1PosMax,
-                    title: { display: true, text: `Discounts / Scrap (${currSymbol()}K)`, font: { size: 10, weight: '600' }, color: '#B55068' },
+                    title: { display: true, text: `Discounts / Scrap (${currSymbol()}K)`, font: { size: 10, weight: '600' }, color: themeColor('negativeText') },
                     grid: { drawOnChartArea: false },
                     afterBuildTicks: axis => {
                         const t = [];
@@ -461,7 +461,7 @@ function renderRevWaterfall() {
                     },
                     ticks: {
                         font: { size: 10 },
-                        color: '#B55068',
+                        color: themeColor('negativeText'),
                         callback: v => fmtAxisThousands(v)
                     }
                 }
@@ -512,41 +512,41 @@ function renderRevTrend() {
     if (revTrendChartType === 'revenue') {
         chartType = 'bar';
         datasets = [
-            { label: `Net Revenue (${currSymbol()}M)`, data: netVals, backgroundColor: '#5B7FA6', borderRadius: 4 }
+            { label: `Net Revenue (${currSymbol()}M)`, data: netVals, backgroundColor: themeColor('anchor'), borderRadius: 4 }
         ];
         scales.y = {
             beginAtZero: true,
-            title: { display: true, text: `Net Revenue (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#5B6D82' },
-            grid: { color: '#E6ECF2' },
+            title: { display: true, text: `Net Revenue (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: themeColor('axisTitle') },
+            grid: { color: themeColor('grid') },
             ticks: { callback: v => fmtAxisMillions(v) }
         };
     } else if (revTrendChartType === 'discount') {
         chartType = 'line';
         datasets = [
-            { label: 'Discount Rate %', data: discRates, borderColor: '#4A89C7', backgroundColor: 'rgba(74, 137, 199, 0.12)', fill: true, tension: 0.3, pointRadius: 3 }
+            { label: 'Discount Rate %', data: discRates, borderColor: themeColor('primary'), backgroundColor: themeAlpha('primary', 0.12), fill: true, tension: 0.3, pointRadius: 3 }
         ];
         scales.y = {
             beginAtZero: true,
-            title: { display: true, text: 'Discount Rate (%)', font: { size: 10, weight: '600' }, color: '#4A89C7' },
-            grid: { color: '#E6ECF2' },
+            title: { display: true, text: 'Discount Rate (%)', font: { size: 10, weight: '600' }, color: themeColor('primary') },
+            grid: { color: themeColor('grid') },
             ticks: { callback: v => v + '%' }
         };
     } else {
         chartType = 'bar';
         datasets = [
-            { label: `Net Revenue (${currSymbol()}M)`, data: netVals, backgroundColor: '#5B7FA6', borderRadius: 4, yAxisID: 'y' },
-            { label: 'Discount Rate %', data: discRates, backgroundColor: '#4A89C7', borderRadius: 4, yAxisID: 'y1' }
+            { label: `Net Revenue (${currSymbol()}M)`, data: netVals, backgroundColor: themeColor('anchor'), borderRadius: 4, yAxisID: 'y' },
+            { label: 'Discount Rate %', data: discRates, backgroundColor: themeColor('primary'), borderRadius: 4, yAxisID: 'y1' }
         ];
         scales.y = {
             beginAtZero: true,
-            title: { display: true, text: `Net Revenue (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#5B6D82' },
-            grid: { color: '#E6ECF2' },
+            title: { display: true, text: `Net Revenue (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: themeColor('axisTitle') },
+            grid: { color: themeColor('grid') },
             ticks: { callback: v => fmtAxisMillions(v) }
         };
         scales.y1 = {
             position: 'right',
             beginAtZero: true,
-            title: { display: true, text: 'Discount Rate (%)', font: { size: 10, weight: '600' }, color: '#4A89C7' },
+            title: { display: true, text: 'Discount Rate (%)', font: { size: 10, weight: '600' }, color: themeColor('primary') },
             grid: { drawOnChartArea: false },
             ticks: { callback: v => v + '%' }
         };
@@ -591,14 +591,14 @@ function renderCatDiscountChart() {
             labels: list.map(r => r.Category),
             datasets: [{
                 data: list.map(r => catDiscMetric === 'loss' ? Math.round(toCurr(r.Disc)) : (r.Gross > 0 ? +((r.Disc / r.Gross) * 100).toFixed(2) : 0)),
-                backgroundColor: ['#9A72B5', '#4A89C7', '#7A7EC9', '#3E9B8C'],
+                backgroundColor: [themeColor('warning'), themeColor('primary'), themeColor('secondary'), themeColor('positive')],
                 borderRadius: 4
             }]
         },
         options: {
             indexAxis: 'y', responsive: true, maintainAspectRatio: false,
             plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => catDiscMetric === 'loss' ? fmtDollar(list[c.dataIndex].Disc) : c.raw + '%' } } },
-            scales: { x: { beginAtZero: true, title: { display: true, text: catDiscMetric === 'loss' ? `Discount Loss (${currSymbol()})` : 'Discount Rate (%)', font: { size: 10, weight: '600' }, color: '#5B6D82' }, grid: { color: '#E6ECF2' }, ticks: { callback: v => catDiscMetric === 'loss' ? currSymbol() + Math.round(v / 1e3) + 'K' : v + '%' } }, y: { grid: { display: false } } }
+            scales: { x: { beginAtZero: true, title: { display: true, text: catDiscMetric === 'loss' ? `Discount Loss (${currSymbol()})` : 'Discount Rate (%)', font: { size: 10, weight: '600' }, color: themeColor('axisTitle') }, grid: { color: themeColor('grid') }, ticks: { callback: v => catDiscMetric === 'loss' ? currSymbol() + Math.round(v / 1e3) + 'K' : v + '%' } }, y: { grid: { display: false } } }
         }
     });
 }
@@ -634,54 +634,54 @@ function renderScrapPareto() {
     if (scrapChartType === 'cost') {
         chartType = 'bar';
         datasets = [
-            { label: `Scrap Cost (${currSymbol()})`, data: costVals, backgroundColor: '#B55068', borderRadius: 4 }
+            { label: `Scrap Cost (${currSymbol()})`, data: costVals, backgroundColor: themeColor('negativeText'), borderRadius: 4 }
         ];
         scales.y = {
             beginAtZero: true,
-            title: { display: true, text: `Scrap Cost (${currSymbol()})`, font: { size: 10, weight: '600' }, color: '#B55068' },
-            grid: { color: '#E6ECF2' },
+            title: { display: true, text: `Scrap Cost (${currSymbol()})`, font: { size: 10, weight: '600' }, color: themeColor('negativeText') },
+            grid: { color: themeColor('grid') },
             ticks: { callback: v => currSymbol() + Math.round(v / 1e3) + 'K' }
         };
     } else if (scrapChartType === 'units') {
         chartType = 'bar';
         datasets = [
-            { label: 'Scrapped Units', data: unitVals, backgroundColor: '#C9657B', borderRadius: 4 }
+            { label: 'Scrapped Units', data: unitVals, backgroundColor: themeColor('negative'), borderRadius: 4 }
         ];
         scales.y = {
             beginAtZero: true,
-            title: { display: true, text: 'Scrapped Units', font: { size: 10, weight: '600' }, color: '#C9657B' },
-            grid: { color: '#E6ECF2' },
+            title: { display: true, text: 'Scrapped Units', font: { size: 10, weight: '600' }, color: themeColor('negative') },
+            grid: { color: themeColor('grid') },
             ticks: { callback: v => fmtInt(v) }
         };
     } else if (scrapChartType === 'cumulative') {
         chartType = 'line';
         datasets = [
-            { label: 'Cumulative %', data: cumPct, borderColor: '#5B7FA6', backgroundColor: 'rgba(91, 127, 166, 0.10)', fill: true, tension: 0.25, pointRadius: 3 }
+            { label: 'Cumulative %', data: cumPct, borderColor: themeColor('anchor'), backgroundColor: themeAlpha('anchor', 0.10), fill: true, tension: 0.25, pointRadius: 3 }
         ];
         scales.y = {
             min: 0,
             max: 100,
-            title: { display: true, text: 'Cumulative Share (%)', font: { size: 10, weight: '600' }, color: '#5B7FA6' },
-            grid: { color: '#E6ECF2' },
+            title: { display: true, text: 'Cumulative Share (%)', font: { size: 10, weight: '600' }, color: themeColor('anchor') },
+            grid: { color: themeColor('grid') },
             ticks: { callback: v => v + '%' }
         };
     } else {
         chartType = 'bar';
         datasets = [
-            { label: 'Scrapped Units', data: unitVals, backgroundColor: '#C9657B', borderRadius: 4, yAxisID: 'y' },
-            { label: 'Cumulative %', data: cumPct, backgroundColor: '#5B7FA6', borderRadius: 4, yAxisID: 'y1' }
+            { label: 'Scrapped Units', data: unitVals, backgroundColor: themeColor('negative'), borderRadius: 4, yAxisID: 'y' },
+            { label: 'Cumulative %', data: cumPct, backgroundColor: themeColor('anchor'), borderRadius: 4, yAxisID: 'y1' }
         ];
         scales.y = {
             beginAtZero: true,
-            title: { display: true, text: 'Scrapped Units', font: { size: 10, weight: '600' }, color: '#C9657B' },
-            grid: { color: '#E6ECF2' },
+            title: { display: true, text: 'Scrapped Units', font: { size: 10, weight: '600' }, color: themeColor('negative') },
+            grid: { color: themeColor('grid') },
             ticks: { callback: v => fmtInt(v) }
         };
         scales.y1 = {
             position: 'right',
             min: 0,
             max: 100,
-            title: { display: true, text: 'Cumulative Share (%)', font: { size: 10, weight: '600' }, color: '#5B7FA6' },
+            title: { display: true, text: 'Cumulative Share (%)', font: { size: 10, weight: '600' }, color: themeColor('anchor') },
             grid: { drawOnChartArea: false },
             ticks: { callback: v => v + '%' }
         };

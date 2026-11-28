@@ -53,7 +53,7 @@
                 <span class="text-[11px] font-medium text-slate-500">Discounts given</span>
                 <span id="revKpiDiscRate" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-purple-50 text-purple-700">0.0%</span>
             </div>
-            <div id="revKpiDiscount" class="text-lg xl:text-[21px] leading-tight tracking-tight font-bold tabular-nums break-words text-purple-700 mt-2">-${{ total_discount|floatformat:0|intcomma }}</div>
+            <div id="revKpiDiscount" class="text-lg xl:text-[21px] leading-tight tracking-tight font-bold tabular-nums break-words text-purple-700 mt-2">${{ total_discount|floatformat:0|intcomma }}</div>
             <div class="text-[11px] text-slate-500 mt-1">Line item discounts</div>
         </div>
 
@@ -62,7 +62,7 @@
                 <span class="text-[11px] font-medium text-slate-500">Factory scrap loss</span>
                 <span class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-rose-50 text-rose-700">Work orders</span>
             </div>
-            <div id="revKpiScrap" class="text-lg xl:text-[21px] leading-tight tracking-tight font-bold tabular-nums break-words text-rose-600 mt-2">-${{ total_scrap_loss|floatformat:0|intcomma }}</div>
+            <div id="revKpiScrap" class="text-lg xl:text-[21px] leading-tight tracking-tight font-bold tabular-nums break-words text-rose-600 mt-2">${{ total_scrap_loss|floatformat:0|intcomma }}</div>
             <div class="text-[11px] text-slate-500 mt-1">{{ total_scrapped_qty|intcomma }} units scrapped</div>
         </div>
 
@@ -144,10 +144,8 @@
                     <p class="text-[11px] text-slate-400">Top eight scrap causes and their share of wasted units</p>
                 </div>
                 <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
-                    <button type="button" onclick="setScrapChartType('cost')" id="btnScrapTypeCost" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Cost $ (Bar)</button>
-                    <button type="button" onclick="setScrapChartType('units')" id="btnScrapTypeUnits" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Units (Bar)</button>
-                    <button type="button" onclick="setScrapChartType('cumulative')" id="btnScrapTypeCum" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Cumulative %</button>
-                    <button type="button" onclick="setScrapChartType('grouped')" id="btnScrapTypeGrouped" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Pareto</button>
+                    <button type="button" onclick="setScrapChartType('cost')" id="btnScrapTypeCost" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Cost $</button>
+                    <button type="button" onclick="setScrapChartType('units')" id="btnScrapTypeUnits" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Units</button>
                 </div>
             </div>
             <div class="h-60">
@@ -317,9 +315,9 @@ function updateRevKPIs() {
 
     document.getElementById('revKpiGross').textContent = fmtDollar(gross);
     document.getElementById('revKpiOrders').textContent = fmtInt(orders) + ' orders';
-    document.getElementById('revKpiDiscount').textContent = '-' + fmtDollar(disc);
+    document.getElementById('revKpiDiscount').textContent = fmtDollar(disc);
     document.getElementById('revKpiDiscRate').textContent = (gross > 0 ? ((disc / gross) * 100).toFixed(2) : '0.00') + '%';
-    document.getElementById('revKpiScrap').textContent = '-' + fmtDollar(scrap);
+    document.getElementById('revKpiScrap').textContent = fmtDollar(scrap);
     document.getElementById('revKpiNet').textContent = fmtDollar(net);
 }
 
@@ -604,11 +602,11 @@ function renderCatDiscountChart() {
 }
 
 function setScrapChartType(t) {
-    scrapChartType = t;
-    const map = { cost: 'btnScrapTypeCost', units: 'btnScrapTypeUnits', cumulative: 'btnScrapTypeCum', grouped: 'btnScrapTypeGrouped' };
+    scrapChartType = t === 'units' ? 'units' : 'cost';
+    const map = { cost: 'btnScrapTypeCost', units: 'btnScrapTypeUnits' };
     Object.entries(map).forEach(([k, id]) => {
         const el = document.getElementById(id);
-        if (el) el.className = k === t
+        if (el) el.className = k === scrapChartType
             ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition'
             : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
     });
@@ -618,79 +616,28 @@ function setScrapChartType(t) {
 
 function renderScrapPareto() {
     const rows = getScrapForSelectedYear().slice(0, 8);
-    const totalQty = rows.reduce((s, r) => s + (parseInt(r.TotalScrappedQty, 10) || 0), 0) || 1;
-    let running = 0;
-    const cumPct = rows.map(r => { running += (parseInt(r.TotalScrappedQty, 10) || 0); return +((running / totalQty) * 100).toFixed(1); });
     const labels = rows.map(r => (r.ScrapReason || '').slice(0, 14));
     const unitVals = rows.map(r => parseInt(r.TotalScrappedQty, 10) || 0);
     const costVals = rows.map(r => Math.round(toCurr(parseFloat(r.ActualScrapCost) || ((r.TotalScrappedQty || 0) * 36.50))));
 
-    let chartType = 'bar';
-    let datasets = [];
-    let scales = {
-        x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+    const isUnits = scrapChartType === 'units';
+    const datasets = isUnits
+        ? [{ label: 'Scrapped Units', data: unitVals, backgroundColor: themeColor('negative'), borderRadius: 4 }]
+        : [{ label: `Scrap Cost (${currSymbol()})`, data: costVals, backgroundColor: themeColor('negativeText'), borderRadius: 4 }];
+    const scales = {
+        x: { grid: { display: false }, ticks: { font: { size: 9 } } },
+        y: {
+            beginAtZero: true,
+            title: { display: true, text: isUnits ? 'Scrapped Units' : `Scrap Cost (${currSymbol()})`, font: { size: 10, weight: '600' }, color: isUnits ? themeColor('negative') : themeColor('negativeText') },
+            grid: { color: themeColor('grid') },
+            ticks: { callback: v => isUnits ? fmtInt(v) : currSymbol() + Math.round(v / 1e3) + 'K' }
+        }
     };
-
-    if (scrapChartType === 'cost') {
-        chartType = 'bar';
-        datasets = [
-            { label: `Scrap Cost (${currSymbol()})`, data: costVals, backgroundColor: themeColor('negativeText'), borderRadius: 4 }
-        ];
-        scales.y = {
-            beginAtZero: true,
-            title: { display: true, text: `Scrap Cost (${currSymbol()})`, font: { size: 10, weight: '600' }, color: themeColor('negativeText') },
-            grid: { color: themeColor('grid') },
-            ticks: { callback: v => currSymbol() + Math.round(v / 1e3) + 'K' }
-        };
-    } else if (scrapChartType === 'units') {
-        chartType = 'bar';
-        datasets = [
-            { label: 'Scrapped Units', data: unitVals, backgroundColor: themeColor('negative'), borderRadius: 4 }
-        ];
-        scales.y = {
-            beginAtZero: true,
-            title: { display: true, text: 'Scrapped Units', font: { size: 10, weight: '600' }, color: themeColor('negative') },
-            grid: { color: themeColor('grid') },
-            ticks: { callback: v => fmtInt(v) }
-        };
-    } else if (scrapChartType === 'cumulative') {
-        chartType = 'line';
-        datasets = [
-            { label: 'Cumulative %', data: cumPct, borderColor: themeColor('anchor'), backgroundColor: themeAlpha('anchor', 0.10), fill: true, tension: 0.25, pointRadius: 3 }
-        ];
-        scales.y = {
-            min: 0,
-            max: 100,
-            title: { display: true, text: 'Cumulative Share (%)', font: { size: 10, weight: '600' }, color: themeColor('anchor') },
-            grid: { color: themeColor('grid') },
-            ticks: { callback: v => v + '%' }
-        };
-    } else {
-        chartType = 'bar';
-        datasets = [
-            { label: 'Scrapped Units', data: unitVals, backgroundColor: themeColor('negative'), borderRadius: 4, yAxisID: 'y' },
-            { label: 'Cumulative %', data: cumPct, backgroundColor: themeColor('anchor'), borderRadius: 4, yAxisID: 'y1' }
-        ];
-        scales.y = {
-            beginAtZero: true,
-            title: { display: true, text: 'Scrapped Units', font: { size: 10, weight: '600' }, color: themeColor('negative') },
-            grid: { color: themeColor('grid') },
-            ticks: { callback: v => fmtInt(v) }
-        };
-        scales.y1 = {
-            position: 'right',
-            min: 0,
-            max: 100,
-            title: { display: true, text: 'Cumulative Share (%)', font: { size: 10, weight: '600' }, color: themeColor('anchor') },
-            grid: { drawOnChartArea: false },
-            ticks: { callback: v => v + '%' }
-        };
-    }
 
     const ctx = document.getElementById('scrapParetoChart').getContext('2d');
     if (paretoChart) paretoChart.destroy();
     paretoChart = new Chart(ctx, {
-        type: chartType,
+        type: 'bar',
         data: { labels, datasets },
         options: {
             responsive: true, maintainAspectRatio: false,

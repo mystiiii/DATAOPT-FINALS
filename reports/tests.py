@@ -29,6 +29,12 @@ SAMPLE_TOP_PRODUCTS = [
 SAMPLE_TOP_CUSTOMERS = [
     {'CustomerID': 29818, 'CustomerName': 'Brakes and Gears', 'CustomerType': 'Store (B2B)', 'Orders': 12, 'TotalSpent': 989184.0},
 ]
+SAMPLE_DEMOGRAPHICS = [
+    {'Segment': 'B2B', 'Dimension': 'specialty', 'GroupLabel': 'Road', 'SortOrder': 0, 'ActiveBuyers': 269, 'TotalOrders': 1779, 'TotalRevenue': 38971720.0, 'AvgSpendPerBuyer': 144876.0},
+    {'Segment': 'B2B', 'Dimension': 'business_type', 'GroupLabel': 'Warehouse (OS)', 'SortOrder': 0, 'ActiveBuyers': 219, 'TotalOrders': 1339, 'TotalRevenue': 43718321.0, 'AvgSpendPerBuyer': 199627.0},
+    {'Segment': 'B2C', 'Dimension': 'income', 'GroupLabel': '$50K–$75K', 'SortOrder': 3, 'ActiveBuyers': 5476, 'TotalOrders': 8156, 'TotalRevenue': 9629840.0, 'AvgSpendPerBuyer': 1759.0},
+    {'Segment': 'B2C', 'Dimension': 'occupation', 'GroupLabel': 'Professional', 'SortOrder': 0, 'ActiveBuyers': 5520, 'TotalOrders': 8661, 'TotalRevenue': 10948315.0, 'AvgSpendPerBuyer': 1983.0},
+]
 SAMPLE_SCRAP = [
     {'ScrapReason': 'Paint process failed', 'ScrapOrders': 150, 'TotalScrappedQty': 1271},
 ]
@@ -101,6 +107,7 @@ class DashboardAndLayoutTests(TestCase):
     @patch('reports.views.sales_service.get_territory_sales', return_value=SAMPLE_TERRITORIES)
     @patch('reports.views.sales_service.get_top_selling_products', return_value=SAMPLE_TOP_PRODUCTS)
     @patch('reports.views.sales_service.get_sales_by_category_and_year', return_value=SAMPLE_CAT_YEAR)
+    @patch('reports.views.customer_service.get_customer_demographics_breakdown', return_value=SAMPLE_DEMOGRAPHICS)
     @patch('reports.views.customer_service.get_customer_trends_by_year', return_value=[])
     @patch('reports.views.customer_service.get_purchase_frequency_buckets', return_value=[])
     @patch('reports.views.customer_service.get_country_customer_distribution', return_value=[])
@@ -122,7 +129,7 @@ class DashboardAndLayoutTests(TestCase):
         self.client.login(username='boss', password='pw')
         expected_canvases = {
             'report_sales': ['monthlySalesChart', 'salesCategoryChart', 'salesTerritoryChart', 'productExtremeChart'],
-            'report_customers': ['custSplitChart', 'frequencyChart', 'custGeoChart', 'custTrendChart'],
+            'report_customers': ['custSplitChart', 'demographicsChart', 'custGeoChart', 'custTrendChart'],
             'report_revenue_loss': ['revWaterfallChart', 'revTrendChart', 'catDiscountChart', 'scrapParetoChart'],
             'report_cost': ['catCostChart', 'vendorSpendChart', 'cogsDriverChart'],
         }
@@ -133,6 +140,10 @@ class DashboardAndLayoutTests(TestCase):
             self.assertNotIn('lg:w-72 xl:w-80', html)
             for canvas_id in canvases:
                 self.assertIn(canvas_id, html, msg=f"Missing {canvas_id} on {url_name}")
+
+        cust_resp = self.client.get(reverse('report_customers'))
+        self.assertIn('Warehouse (OS)', cust_resp.context['demographics_breakdown_json'])
+        self.assertIn('Professional', cust_resp.context['demographics_breakdown_json'])
 
 
 class DatabaseHelperConnectionTests(TestCase):

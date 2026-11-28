@@ -252,7 +252,7 @@ def customer_report_view(request):
     role_ctx = _get_role_context(request.user)
     db_error = None
     top_customers, customer_types, geo_distribution = [], [], []
-    country_geo, frequency_buckets, customer_trends = [], [], []
+    country_geo, frequency_buckets, customer_trends, demographics_breakdown = [], [], [], []
 
     try:
         top_customers = customer_service.get_top_customers(100) or []
@@ -261,6 +261,7 @@ def customer_report_view(request):
         country_geo = customer_service.get_country_customer_distribution() or []
         frequency_buckets = customer_service.get_purchase_frequency_buckets() or []
         customer_trends = customer_service.get_customer_trends_by_year() or []
+        demographics_breakdown = customer_service.get_customer_demographics_breakdown() or []
     except DatabaseConnectionError as e:
         db_error = str(e)
         messages.error(request, f"Database Error: {e}")
@@ -284,6 +285,7 @@ def customer_report_view(request):
         'geo_distribution_json': serialize_for_json(geo_distribution),
         'country_geo_json': serialize_for_json(country_geo),
         'frequency_buckets_json': serialize_for_json(frequency_buckets),
+        'demographics_breakdown_json': serialize_for_json(demographics_breakdown),
         'customer_trends_json': serialize_for_json(customer_trends),
         'presets': presets,
         'annotations': annotations,

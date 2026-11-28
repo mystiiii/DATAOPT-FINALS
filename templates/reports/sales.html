@@ -202,15 +202,6 @@
         </div>
     </div>
 
-    <!-- Key Findings & Recommendations -->
-    <div class="bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm space-y-2">
-        <div class="flex items-center justify-between">
-            <h2 class="text-sm font-bold text-slate-900">Key findings &amp; recommendations</h2>
-            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral border border-coral-border">Sales analysis</span>
-        </div>
-        <ul id="salesFindingsList" class="text-xs text-slate-600 space-y-1.5 list-disc pl-4"></ul>
-    </div>
-
     <!-- Governance Panel (Presets + Analytical Notes) -->
     {% include "reports/_governance_panel.html" %}
 </div>
@@ -315,7 +306,6 @@ function applyReportPreset(params) {
     renderSalesTerritoryChart();
     renderProductExtremeChart();
     renderSalesTable();
-    renderSalesFindings();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
@@ -324,7 +314,6 @@ function onSalesYearChange(val) {
     updateSalesKPIs();
     renderMonthlyChart();
     renderSalesCatChart();
-    renderSalesFindings();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
@@ -416,7 +405,6 @@ function setSalesCatFilter(cat) {
     renderSalesCatChart();
     renderProductExtremeChart();
     renderSalesTable();
-    renderSalesFindings();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
@@ -688,55 +676,12 @@ function renderSalesTable() {
         schema.columns.map((col, idx) => `<td class="px-3 py-2.5 ${col.align === 'right' ? 'text-right font-mono' : 'text-left'} ${idx === 0 ? 'font-semibold text-slate-900' : 'text-slate-600'}">${col.fmt ? col.fmt(row[col.key]) : (row[col.key] ?? '-')}</td>`).join('') + `</tr>`).join('');
 }
 
-function renderSalesFindings() {
-    const el = document.getElementById('salesFindingsList');
-    if (!el) return;
-    const periodLabel = salesYear === 'all' ? '2011–2014' : `FY${salesYear}`;
-    const yearCatRows = salesYear === 'all' ? rawSalesCatYear : rawSalesCatYear.filter(r => String(r.Year) === String(salesYear));
-    const filteredCatRows = salesCatFilter === 'all' ? yearCatRows : yearCatRows.filter(r => r.Category === salesCatFilter);
-
-    const byCat = {};
-    yearCatRows.forEach(r => { byCat[r.Category] = (byCat[r.Category] || 0) + (parseFloat(r.Revenue) || 0); });
-    const sortedCats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
-    const totalYearRev = sortedCats.reduce((s, [, v]) => s + v, 0) || 1;
-
-    const prodTopPool = salesCatFilter === 'all' ? rawTopProducts : rawTopProducts.filter(r => r.Category === salesCatFilter);
-    const prodLowPool = salesCatFilter === 'all' ? rawLowProducts : rawLowProducts.filter(r => r.Category === salesCatFilter);
-    const topProd = prodTopPool[0];
-    const lowProd = prodLowPool[0];
-
-    const continentEl = document.getElementById('salesContinentFilter');
-    const continent = continentEl ? continentEl.value : 'all';
-    const terrPool = (continent === 'all' ? [...rawTerritories] : rawTerritories.filter(t => t.TerritoryGroup === continent))
-        .sort((a, b) => (parseFloat(b.TotalRevenue) || 0) - (parseFloat(a.TotalRevenue) || 0));
-    const topTerr = terrPool[0];
-
-    const items = [];
-    if (salesCatFilter !== 'all') {
-        const catRev = filteredCatRows.reduce((s, r) => s + (parseFloat(r.Revenue) || 0), 0);
-        const catUnits = filteredCatRows.reduce((s, r) => s + (parseInt(r.UnitsSold, 10) || 0), 0);
-        items.push(`<strong>${salesCatFilter} performance (${periodLabel}):</strong> Generated ${fmtDollar(catRev)} (${((catRev / totalYearRev) * 100).toFixed(1)}% of ${periodLabel} sales) across ${fmtInt(catUnits)} units sold.`);
-    } else if (sortedCats.length) {
-        items.push(`<strong>Category concentration (${periodLabel}):</strong> ${sortedCats[0][0]} drives ${((sortedCats[0][1] / totalYearRev) * 100).toFixed(1)}% of sales (${fmtDollar(sortedCats[0][1])}); cross-selling lower-share lines like Accessories and Clothing can diversify revenue.`);
-    }
-    if (topProd && lowProd) {
-        const catScope = salesCatFilter === 'all' ? 'All categories' : salesCatFilter;
-        items.push(`<strong>Product spread (${catScope}):</strong> Top SKU <em>${topProd.ProductName}</em> generated ${fmtDollar(topProd.TotalRevenue)} (${fmtInt(topProd.TotalQuantity)} units), while slowest SKU <em>${lowProd.ProductName}</em> generated ${fmtDollar(lowProd.TotalRevenue)} — review low-velocity SKUs for bundling or rationalization.`);
-    }
-    if (topTerr) {
-        const regScope = continent === 'all' ? 'all territories' : continent;
-        items.push(`<strong>Regional performance (${regScope}):</strong> ${topTerr.TerritoryName} leads with ${fmtDollar(topTerr.TotalRevenue)} (${fmtInt(topTerr.TotalOrders)} orders, incl. tax &amp; freight).`);
-    }
-    el.innerHTML = items.map(t => `<li>${t}</li>`).join('');
-}
-
 window.onCurrencyChange = () => {
     updateSalesKPIs();
     renderMonthlyChart();
     renderSalesCatChart();
     renderSalesTerritoryChart();
     renderProductExtremeChart();
-    renderSalesFindings();
     renderSalesTable();
 };
 

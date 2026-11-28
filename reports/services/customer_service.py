@@ -115,3 +115,101 @@ def get_customer_trends_by_year():
     ORDER BY [Year], CustomerType;
     """
     return execute_query(sql)
+
+
+def get_customer_demographics_breakdown():
+    sql = """
+    SELECT
+        'B2B' AS Segment,
+        'specialty' AS Dimension,
+        d.Specialty AS GroupLabel,
+        0 AS SortOrder,
+        COUNT(DISTINCT c.CustomerID) AS ActiveBuyers,
+        COUNT(soh.SalesOrderID) AS TotalOrders,
+        SUM(soh.TotalDue) AS TotalRevenue,
+        CASE WHEN COUNT(DISTINCT c.CustomerID) > 0
+             THEN SUM(soh.TotalDue) / COUNT(DISTINCT c.CustomerID)
+             ELSE 0 END AS AvgSpendPerBuyer
+    FROM Sales.Customer c
+    JOIN Sales.SalesOrderHeader soh ON soh.CustomerID = c.CustomerID
+    JOIN Sales.vStoreWithDemographics d ON d.BusinessEntityID = c.StoreID
+    WHERE c.StoreID IS NOT NULL AND d.Specialty IS NOT NULL
+    GROUP BY d.Specialty
+
+    UNION ALL
+
+    SELECT
+        'B2B' AS Segment,
+        'business_type' AS Dimension,
+        CASE d.BusinessType
+            WHEN 'OS' THEN 'Warehouse (OS)'
+            WHEN 'BM' THEN 'Value Added Reseller (BM)'
+            WHEN 'BS' THEN 'Specialty Bike Shop (BS)'
+            ELSE d.BusinessType
+        END AS GroupLabel,
+        0 AS SortOrder,
+        COUNT(DISTINCT c.CustomerID) AS ActiveBuyers,
+        COUNT(soh.SalesOrderID) AS TotalOrders,
+        SUM(soh.TotalDue) AS TotalRevenue,
+        CASE WHEN COUNT(DISTINCT c.CustomerID) > 0
+             THEN SUM(soh.TotalDue) / COUNT(DISTINCT c.CustomerID)
+             ELSE 0 END AS AvgSpendPerBuyer
+    FROM Sales.Customer c
+    JOIN Sales.SalesOrderHeader soh ON soh.CustomerID = c.CustomerID
+    JOIN Sales.vStoreWithDemographics d ON d.BusinessEntityID = c.StoreID
+    WHERE c.StoreID IS NOT NULL AND d.BusinessType IS NOT NULL
+    GROUP BY d.BusinessType
+
+    UNION ALL
+
+    SELECT
+        'B2C' AS Segment,
+        'income' AS Dimension,
+        CASE d.YearlyIncome
+            WHEN '0-25000' THEN 'Under $25K'
+            WHEN '25001-50000' THEN '$25K–$50K'
+            WHEN '50001-75000' THEN '$50K–$75K'
+            WHEN '75001-100000' THEN '$75K–$100K'
+            WHEN 'greater than 100000' THEN '$100K+'
+            ELSE d.YearlyIncome
+        END AS GroupLabel,
+        CASE d.YearlyIncome
+            WHEN '0-25000' THEN 1
+            WHEN '25001-50000' THEN 2
+            WHEN '50001-75000' THEN 3
+            WHEN '75001-100000' THEN 4
+            WHEN 'greater than 100000' THEN 5
+            ELSE 9
+        END AS SortOrder,
+        COUNT(DISTINCT c.CustomerID) AS ActiveBuyers,
+        COUNT(soh.SalesOrderID) AS TotalOrders,
+        SUM(soh.TotalDue) AS TotalRevenue,
+        CASE WHEN COUNT(DISTINCT c.CustomerID) > 0
+             THEN SUM(soh.TotalDue) / COUNT(DISTINCT c.CustomerID)
+             ELSE 0 END AS AvgSpendPerBuyer
+    FROM Sales.Customer c
+    JOIN Sales.SalesOrderHeader soh ON soh.CustomerID = c.CustomerID
+    JOIN Sales.vPersonDemographics d ON d.BusinessEntityID = c.PersonID
+    WHERE c.StoreID IS NULL AND d.YearlyIncome IS NOT NULL
+    GROUP BY d.YearlyIncome
+
+    UNION ALL
+
+    SELECT
+        'B2C' AS Segment,
+        'occupation' AS Dimension,
+        d.Occupation AS GroupLabel,
+        0 AS SortOrder,
+        COUNT(DISTINCT c.CustomerID) AS ActiveBuyers,
+        COUNT(soh.SalesOrderID) AS TotalOrders,
+        SUM(soh.TotalDue) AS TotalRevenue,
+        CASE WHEN COUNT(DISTINCT c.CustomerID) > 0
+             THEN SUM(soh.TotalDue) / COUNT(DISTINCT c.CustomerID)
+             ELSE 0 END AS AvgSpendPerBuyer
+    FROM Sales.Customer c
+    JOIN Sales.SalesOrderHeader soh ON soh.CustomerID = c.CustomerID
+    JOIN Sales.vPersonDemographics d ON d.BusinessEntityID = c.PersonID
+    WHERE c.StoreID IS NULL AND d.Occupation IS NOT NULL
+    GROUP BY d.Occupation;
+    """
+    return execute_query(sql)

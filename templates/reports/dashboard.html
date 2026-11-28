@@ -260,15 +260,6 @@
         {% endif %}
     </div>
 
-    <!-- Key Findings & Recommendations -->
-    <div class="bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm space-y-2">
-        <div class="flex items-center justify-between">
-            <h2 class="text-sm font-bold text-slate-900">Key findings &amp; recommendations</h2>
-            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral border border-coral-border">Live summary</span>
-        </div>
-        <ul id="dashFindingsList" class="text-xs text-slate-600 space-y-1.5 list-disc pl-4"></ul>
-    </div>
-
     <!-- Bottom Section: All-in-One Searchable & Sortable Explorer Table -->
     <div class="bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm space-y-4">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
@@ -372,7 +363,6 @@ function onGlobalYearChange(yearVal) {
     renderCategoryChart();
     if (IS_MANAGER) renderWaterfallChart();
     else renderVelocityChart();
-    renderDashboardFindings();
 }
 
 function updateTopKPIs() {
@@ -465,7 +455,6 @@ function setCatFilter(cat) {
         }
     });
     renderCategoryChart();
-    renderDashboardFindings();
 }
 
 function renderCategoryChart() {
@@ -1245,43 +1234,6 @@ function renderExplorerTable() {
     }).join('');
 }
 
-function renderDashboardFindings() {
-    const el = document.getElementById('dashFindingsList');
-    if (!el) return;
-    const periodLabel = globalYear === 'all' ? '2011–2014' : `FY${globalYear}`;
-    let catRows = globalYear === 'all' ? rawCatYearData : rawCatYearData.filter(r => String(r.Year) === String(globalYear));
-    if (catFilter !== 'all') {
-        catRows = catRows.filter(r => r.Category === catFilter);
-    }
-    const byCat = {};
-    catRows.forEach(r => { byCat[r.Category] = (byCat[r.Category] || 0) + (parseFloat(r.Revenue) || 0); });
-    const topCat = Object.entries(byCat).sort((a, b) => b[1] - a[1])[0];
-
-    const continentEl = document.getElementById('continentFilter');
-    const continent = continentEl ? continentEl.value : 'all';
-    const terrPool = continent === 'all' ? rawTerritoryData : rawTerritoryData.filter(t => t.TerritoryGroup === continent);
-    const topTerr = terrPool.slice().sort((a, b) => (parseFloat(b.TotalRevenue) || 0) - (parseFloat(a.TotalRevenue) || 0))[0];
-
-    const items = [];
-    if (topCat) {
-        items.push(`<strong>Top revenue driver (${periodLabel}):</strong> ${topCat[0]} leads ${catFilter === 'all' ? 'all categories' : 'the filtered selection'} with ${fmtDollar(topCat[1])} in sales.`);
-    }
-    if (topTerr) {
-        const regScope = continent === 'all' ? 'all territories' : continent;
-        items.push(`<strong>Leading territory (${regScope}):</strong> ${topTerr.TerritoryName} (${fmtDollar(topTerr.TotalRevenue)} across ${fmtInt(topTerr.TotalOrders)} orders) — focus expansion and inventory allocation on top regions.`);
-    }
-    if (IS_MANAGER && rawRevenueData.length) {
-        const revRows = globalYear === 'all' ? rawRevenueData : rawRevenueData.filter(r => String(r.Year) === String(globalYear));
-        const disc = revRows.reduce((s, r) => s + (parseFloat(r.DiscountLoss) || 0), 0);
-        const gross = revRows.reduce((s, r) => s + (parseFloat(r.GrossAmount) || 0), 0);
-        const rate = gross > 0 ? ((disc / gross) * 100).toFixed(2) : '0.00';
-        items.push(`<strong>Margin &amp; discount control (${periodLabel}):</strong> Discounts total ${fmtDollar(disc)} (${rate}% of gross sales).${globalYear === '2014' || globalYear === 'all' ? ' Note that 2014 data ends in June, so compare monthly averages rather than full-year totals.' : ''}`);
-    } else {
-        items.push(`<strong>Period note:</strong> 2014 records stop in June; use monthly trends when comparing 2014 against prior full years.`);
-    }
-    el.innerHTML = items.map(t => `<li>${t}</li>`).join('');
-}
-
 window.onCurrencyChange = () => {
     updateTopKPIs();
     renderCategoryChart();
@@ -1289,7 +1241,6 @@ window.onCurrencyChange = () => {
     else renderVelocityChart();
     renderTerritoryChart();
     if (IS_SUPERVISOR) renderCustomerChart();
-    renderDashboardFindings();
     renderExplorerTable();
 };
 

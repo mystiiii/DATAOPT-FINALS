@@ -15,7 +15,7 @@
             </div>
             <div>
                 <h1 class="text-lg font-bold text-slate-900 tracking-tight">Customer profile</h1>
-                <p class="text-xs text-slate-500">Store accounts vs. individual buyers, repeat order habits, and buyer locations</p>
+                <p class="text-xs text-slate-500">Store accounts vs. individual buyers, buyer demographics, and locations</p>
             </div>
         </div>
 
@@ -102,20 +102,27 @@
             </div>
         </div>
 
-        <!-- Chart 2: Purchase Frequency Buckets (2 cols) -->
-        <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm flex flex-col justify-between space-y-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <!-- Chart 2: Buyer & Store Profile Demographics (2 cols) -->
+        <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm flex flex-col justify-between space-y-3">
+            <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
                 <div>
-                    <h2 class="text-sm font-bold text-slate-900">Repeat orders</h2>
-                    <p class="text-[11px] text-slate-400">How often buyers reorder and what each group spends</p>
+                    <h2 class="text-sm font-bold text-slate-900">Buyer &amp; store profile</h2>
+                    <p id="demoChartSub" class="text-[11px] text-slate-400">B2B store revenue by specialty</p>
                 </div>
-                <div class="inline-flex rounded-lg bg-slate-100 p-0.5 text-[11px] font-medium">
-                    <button type="button" onclick="setFreqMetric('customers')" id="btnFreqCust" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Customers</button>
-                    <button type="button" onclick="setFreqMetric('revenue')" id="btnFreqRev" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Revenue $</button>
+                <div class="flex flex-wrap items-center gap-1.5 text-[11px] font-medium">
+                    <div class="inline-flex rounded-lg bg-slate-100 p-0.5">
+                        <button type="button" onclick="setDemoSegment('B2B')" id="btnDemoB2B" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">B2B Stores</button>
+                        <button type="button" onclick="setDemoSegment('B2C')" id="btnDemoB2C" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">B2C Buyers</button>
+                    </div>
+                    <div class="inline-flex rounded-lg bg-slate-100 p-0.5">
+                        <button type="button" onclick="setDemoMetric('revenue')" id="btnDemoRev" class="px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition">Revenue $</button>
+                        <button type="button" onclick="setDemoMetric('avg')" id="btnDemoAvg" class="px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition">Avg / buyer</button>
+                    </div>
                 </div>
             </div>
-            <div class="h-60">
-                <canvas id="frequencyChart"></canvas>
+            <div id="demoDimensionPills" class="flex flex-wrap items-center gap-1.5 text-[11px]"></div>
+            <div class="h-56">
+                <canvas id="demographicsChart"></canvas>
             </div>
         </div>
     </div>
@@ -187,15 +194,6 @@
         </div>
     </div>
 
-    <!-- Key Findings & Recommendations -->
-    <div class="bg-white p-5 rounded-xl border border-[#DCE3EC] shadow-sm space-y-2">
-        <div class="flex items-center justify-between">
-            <h2 class="text-sm font-bold text-slate-900">Key findings &amp; recommendations</h2>
-            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-coral-light text-coral border border-coral-border">Customer analysis</span>
-        </div>
-        <ul id="custFindingsList" class="text-xs text-slate-600 space-y-1.5 list-disc pl-4"></ul>
-    </div>
-
     {% include "reports/_governance_panel.html" %}
 </div>
 {% endblock %}
@@ -207,11 +205,25 @@ const rawTopCustomers = {{ top_customers_json|safe }} || [];
 const rawGeo = {{ geo_distribution_json|safe }} || [];
 const rawCountryGeo = {{ country_geo_json|safe }} || [];
 const rawFreqBuckets = {{ frequency_buckets_json|safe }} || [];
+const rawDemographics = {{ demographics_breakdown_json|safe }} || [];
 const rawCustTrends = {{ customer_trends_json|safe }} || [];
+
+const DEMO_DIMENSIONS = {
+    B2B: [
+        { key: 'specialty', label: 'Store specialty', sub: 'B2B store revenue by specialty' },
+        { key: 'business_type', label: 'Business type', sub: 'B2B store revenue by retail business type' }
+    ],
+    B2C: [
+        { key: 'income', label: 'Yearly income', sub: 'B2C buyer revenue by household income bracket' },
+        { key: 'occupation', label: 'Occupation', sub: 'B2C buyer revenue by occupation' }
+    ]
+};
 
 let custSegment = 'all';
 let donutMetric = 'revenue';
-let freqMetric = 'customers';
+let demoSegment = 'B2B';
+let demoDimension = 'specialty';
+let demoMetric = 'revenue';
 let geoView = 'map';
 let trendMetric = 'revenue';
 let custTab = 'accounts';
@@ -219,7 +231,7 @@ let custSortKey = 'TotalSpent';
 let custSortAsc = false;
 let worldCountriesGeo = null;
 
-let splitChart = null, freqChart = null, geoChart = null, trendChart = null;
+let splitChart = null, demoChart = null, geoChart = null, trendChart = null;
 
 const fmtCompact = v => fmtCurrCompact(v);
 const fmtDollar = v => fmtCurrDollar(v);
@@ -228,7 +240,9 @@ const fmtInt = v => Math.round(v || 0).toLocaleString();
 const DEFAULT_REPORT_FILTERS = {
     segment: 'all',
     donutMetric: 'revenue',
-    freqMetric: 'customers',
+    demoSegment: 'B2B',
+    demoDimension: 'specialty',
+    demoMetric: 'revenue',
     geoView: 'map',
     trendMetric: 'revenue',
     tab: 'accounts',
@@ -242,7 +256,9 @@ function getCurrentReportFilters() {
     return {
         segment: custSegment,
         donutMetric: donutMetric,
-        freqMetric: freqMetric,
+        demoSegment: demoSegment,
+        demoDimension: demoDimension,
+        demoMetric: demoMetric,
         geoView: geoView,
         trendMetric: trendMetric,
         tab: custTab,
@@ -268,7 +284,13 @@ function applyReportPreset(params) {
     custSegment = segVal;
 
     setCustDonutMetric(params.donutMetric || DEFAULT_REPORT_FILTERS.donutMetric);
-    setFreqMetric(params.freqMetric || DEFAULT_REPORT_FILTERS.freqMetric);
+    const targetDemoSeg = params.demoSegment || (segVal === 'B2C' ? 'B2C' : DEFAULT_REPORT_FILTERS.demoSegment);
+    setDemoSegment(targetDemoSeg, true);
+    if (params.demoDimension && DEMO_DIMENSIONS[demoSegment].some(d => d.key === params.demoDimension)) {
+        demoDimension = params.demoDimension;
+    }
+    renderDemoDimensionPills();
+    setDemoMetric(params.demoMetric || DEFAULT_REPORT_FILTERS.demoMetric, true);
     setGeoView(params.geoView || DEFAULT_REPORT_FILTERS.geoView);
     setTrendMetric(params.trendMetric || DEFAULT_REPORT_FILTERS.trendMetric);
 
@@ -283,20 +305,21 @@ function applyReportPreset(params) {
     }
 
     updateCustKPIs();
-    renderFreqChart();
+    renderDemographicsChart();
     renderCustTrendChart();
     renderCustTable();
-    renderCustFindings();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
 function onCustSegmentChange(val) {
     custSegment = val;
+    if (val === 'B2B' || val === 'B2C') {
+        setDemoSegment(val, true);
+    }
     updateCustKPIs();
-    renderFreqChart();
+    renderDemographicsChart();
     renderCustTrendChart();
     renderCustTable();
-    renderCustFindings();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
 }
 
@@ -458,12 +481,76 @@ function renderCustSplitChart() {
     });
 }
 
-function setFreqMetric(m) {
-    freqMetric = m;
-    document.getElementById('btnFreqCust').className = m === 'customers' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
-    document.getElementById('btnFreqRev').className = m === 'revenue' ? 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition' : 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
-    renderFreqChart();
+function renderDemoDimensionPills() {
+    const wrap = document.getElementById('demoDimensionPills');
+    if (!wrap) return;
+    const dims = DEMO_DIMENSIONS[demoSegment] || DEMO_DIMENSIONS.B2B;
+    wrap.innerHTML = dims.map(d => {
+        const active = d.key === demoDimension;
+        const cls = active
+            ? 'px-2.5 py-0.5 rounded-full bg-coral text-white font-semibold transition'
+            : 'px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition';
+        return `<button type="button" onclick="setDemoDimension('${d.key}')" class="${cls}">${d.label}</button>`;
+    }).join('');
+}
+
+function setDemoSegment(seg, silent) {
+    demoSegment = seg === 'B2C' ? 'B2C' : 'B2B';
+    const dims = DEMO_DIMENSIONS[demoSegment];
+    if (!dims.some(d => d.key === demoDimension)) {
+        demoDimension = dims[0].key;
+    }
+    const activeCls = 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition';
+    const inactiveCls = 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    document.getElementById('btnDemoB2B').className = demoSegment === 'B2B' ? activeCls : inactiveCls;
+    document.getElementById('btnDemoB2C').className = demoSegment === 'B2C' ? activeCls : inactiveCls;
+    renderDemoDimensionPills();
+    if (!silent) {
+        renderDemographicsChart();
+        if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
+    }
+}
+
+function setDemoDimension(dim) {
+    demoDimension = dim;
+    renderDemoDimensionPills();
+    renderDemographicsChart();
     if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
+}
+
+function setDemoMetric(m, silent) {
+    demoMetric = m === 'avg' ? 'avg' : 'revenue';
+    const activeCls = 'px-2.5 py-1 rounded-md bg-white text-slate-900 shadow-sm transition';
+    const inactiveCls = 'px-2.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition';
+    document.getElementById('btnDemoRev').className = demoMetric === 'revenue' ? activeCls : inactiveCls;
+    document.getElementById('btnDemoAvg').className = demoMetric === 'avg' ? activeCls : inactiveCls;
+    if (!silent) {
+        renderDemographicsChart();
+        if (typeof updateLivePresetPreview === 'function') updateLivePresetPreview();
+    }
+}
+
+function getDemoRows(seg, dim) {
+    const rows = rawDemographics
+        .filter(r => r.Segment === seg && r.Dimension === dim)
+        .map(r => {
+            const buyers = parseInt(r.ActiveBuyers, 10) || 0;
+            const rev = parseFloat(r.TotalRevenue) || 0;
+            return {
+                ...r,
+                ActiveBuyers: buyers,
+                TotalOrders: parseInt(r.TotalOrders, 10) || 0,
+                TotalRevenue: rev,
+                AvgSpendPerBuyer: buyers > 0 ? rev / buyers : (parseFloat(r.AvgSpendPerBuyer) || 0)
+            };
+        });
+    if (dim === 'income') {
+        rows.sort((a, b) => (parseInt(a.SortOrder, 10) || 0) - (parseInt(b.SortOrder, 10) || 0));
+    } else {
+        const key = demoMetric === 'avg' ? 'AvgSpendPerBuyer' : 'TotalRevenue';
+        rows.sort((a, b) => b[key] - a[key]);
+    }
+    return rows;
 }
 
 function getAggregatedFreqBuckets() {
@@ -480,39 +567,99 @@ function getAggregatedFreqBuckets() {
     return order.filter(k => map[k]).map(k => map[k]);
 }
 
-function renderFreqChart() {
-    const buckets = getAggregatedFreqBuckets();
-    const ctx = document.getElementById('frequencyChart').getContext('2d');
-    if (freqChart) freqChart.destroy();
-    freqChart = new Chart(ctx, {
+function renderDemographicsChart() {
+    renderDemoDimensionPills();
+    const rows = getDemoRows(demoSegment, demoDimension);
+    const dimMeta = (DEMO_DIMENSIONS[demoSegment] || []).find(d => d.key === demoDimension);
+    const subEl = document.getElementById('demoChartSub');
+    if (subEl && dimMeta) {
+        subEl.textContent = demoMetric === 'avg'
+            ? dimMeta.sub.replace('revenue', 'average lifetime spend per buyer')
+            : dimMeta.sub;
+    }
+
+    const totalSegRev = rows.reduce((s, r) => s + r.TotalRevenue, 0) || 1;
+    const isAvg = demoMetric === 'avg';
+    const rawVals = rows.map(r => isAvg ? r.AvgSpendPerBuyer : r.TotalRevenue);
+    const maxVal = Math.max(...rawVals, 0);
+    const chartVals = rows.map(r => isAvg ? Math.round(toCurr(r.AvgSpendPerBuyer)) : +(toCurr(r.TotalRevenue) / 1e6).toFixed(2));
+    const barColors = rows.map((_, i) => rawVals[i] === maxVal && maxVal > 0 ? '#4A89C7' : 'rgba(74, 137, 199, 0.55)');
+
+    const demoBarLabelsPlugin = {
+        id: 'demoBarLabels',
+        afterDatasetsDraw(chart) {
+            const { ctx: cctx } = chart;
+            const meta = chart.getDatasetMeta(0);
+            if (!meta || !meta.data) return;
+            cctx.save();
+            cctx.font = '600 10px ui-sans-serif, system-ui, -apple-system, sans-serif';
+            cctx.textAlign = 'left';
+            cctx.textBaseline = 'middle';
+            cctx.fillStyle = '#3E5166';
+            meta.data.forEach((bar, idx) => {
+                const usd = rawVals[idx] || 0;
+                const txt = isAvg
+                    ? (Math.abs(toCurr(usd)) >= 1e4 ? fmtCompact(usd) : fmtDollar(usd))
+                    : fmtCompact(usd);
+                cctx.fillText(txt, bar.x + 6, bar.y);
+            });
+            cctx.restore();
+        }
+    };
+
+    const ctx = document.getElementById('demographicsChart').getContext('2d');
+    if (demoChart) demoChart.destroy();
+    demoChart = new Chart(ctx, {
         type: 'bar',
+        plugins: [demoBarLabelsPlugin],
         data: {
-            labels: buckets.map(b => b.FrequencyBucket),
+            labels: rows.map(r => r.GroupLabel),
             datasets: [{
-                label: freqMetric === 'customers' ? 'Customers' : `Revenue (${currSymbol()}M)`,
-                data: buckets.map(b => freqMetric === 'customers' ? (parseInt(b.CustomerCount, 10) || 0) : +(toCurr(b.TotalRevenue) / 1e6).toFixed(2)),
-                backgroundColor: ['#93A7BC', '#7A7EC9', '#3E9B8C', '#9A72B5', '#4A89C7'],
+                label: isAvg ? `Avg / Buyer (${currSymbol()})` : `Revenue (${currSymbol()}M)`,
+                data: chartVals,
+                backgroundColor: barColors,
                 borderRadius: 5
             }]
         },
         options: {
-            responsive: true, maintainAspectRatio: false,
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: { right: 56 } },
             plugins: {
                 legend: { display: false },
                 tooltip: {
                     callbacks: {
                         label: c => {
-                            const row = buckets[c.dataIndex];
+                            const row = rows[c.dataIndex];
                             if (!row) return '';
-                            const avgOrd = row.TotalOrders > 0 ? row.TotalRevenue / row.TotalOrders : 0;
-                            return `${fmtInt(row.CustomerCount)} buyers · ${fmtDollar(row.TotalRevenue)} sales (${fmtDollar(avgOrd)} avg order)`;
+                            const share = ((row.TotalRevenue / totalSegRev) * 100).toFixed(1);
+                            return `${fmtDollar(row.TotalRevenue)} (${share}%) · ${fmtInt(row.ActiveBuyers)} buyers · ${fmtDollar(row.AvgSpendPerBuyer)} avg/buyer`;
                         }
                     }
                 }
             },
             scales: {
-                x: { grid: { display: false } },
-                y: { beginAtZero: true, title: { display: true, text: freqMetric === 'customers' ? 'Customers' : `Sales (${currSymbol()}M)`, font: { size: 10, weight: '600' }, color: '#5B6D82' }, grid: { color: '#E6ECF2' }, ticks: { callback: v => freqMetric === 'customers' ? fmtInt(v) : fmtAxisMillions(v) } }
+                x: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: isAvg ? `Avg Lifetime Spend / Buyer (${currSymbol()})` : `Sales (${currSymbol()}M)`,
+                        font: { size: 10, weight: '600' },
+                        color: '#5B6D82'
+                    },
+                    grid: { color: '#E6ECF2' },
+                    ticks: {
+                        font: { size: 10 },
+                        callback: v => {
+                            if (!isAvg) return fmtAxisMillions(v);
+                            if (v >= 1e6) return currSymbol() + (v / 1e6).toFixed(1) + 'M';
+                            if (v >= 1e3) return currSymbol() + Math.round(v / 1e3) + 'K';
+                            return currSymbol() + v;
+                        }
+                    }
+                },
+                y: { grid: { display: false }, ticks: { font: { size: 11 } } }
             }
         }
     });
@@ -698,49 +845,12 @@ function renderCustTable() {
         schema.columns.map((col, idx) => `<td class="px-3 py-2.5 ${col.align === 'right' ? 'text-right font-mono' : 'text-left'} ${idx === 0 ? 'font-semibold text-slate-900' : 'text-slate-600'}">${col.fmt ? col.fmt(row[col.key]) : (row[col.key] ?? '-')}</td>`).join('') + `</tr>`).join('');
 }
 
-function renderCustFindings() {
-    const el = document.getElementById('custFindingsList');
-    if (!el) return;
-    const b2b = rawTypes.find(c => (c.CustomerType || '').includes('Store') || (c.CustomerType || '').includes('B2B')) || {};
-    const b2c = rawTypes.find(c => !((c.CustomerType || '').includes('Store') || (c.CustomerType || '').includes('B2B'))) || {};
-    const b2bRev = parseFloat(b2b.TotalRevenue) || 0;
-    const b2cRev = parseFloat(b2c.TotalRevenue) || 0;
-    const totRev = (b2bRev + b2cRev) || 1;
-    const buckets = getAggregatedFreqBuckets();
-    const oneTime = buckets.find(b => b.FrequencyBucket === '1 Order');
-    const b7_12 = buckets.find(b => b.FrequencyBucket === '7-12 Orders');
-    const totalFreqCust = buckets.reduce((s, b) => s + (parseInt(b.CustomerCount, 10) || 0), 0) || 1;
-    const items = [];
-    if (totRev > 1) {
-        const b2bActive = parseInt(b2b.ActiveBuyers || b2b.TotalCustomers, 10) || 0;
-        const b2bTotal = parseInt(b2b.TotalCustomers, 10) || 0;
-        const inactiveStores = Math.max(0, b2bTotal - b2bActive);
-        items.push(`<strong>Channel economics &amp; dormant B2B accounts:</strong> ${fmtInt(b2bActive)} active Stores (B2B) generate ${((b2bRev / totRev) * 100).toFixed(1)}% of sales (${fmtDollar(b2bRev)}), while ${fmtInt(b2c.ActiveBuyers || b2c.TotalCustomers)} Individuals (B2C) place ${fmtInt(b2c.TotalOrders)} orders. Notably, ${fmtInt(inactiveStores)} of ${fmtInt(b2bTotal)} registered store accounts have zero orders — launching a B2B reactivation campaign is a high-ROI growth lever.`);
-    }
-    if (oneTime) {
-        const onePct = (((parseInt(oneTime.CustomerCount, 10) || 0) / totalFreqCust) * 100).toFixed(1);
-        const coreNote = b7_12 ? ` Meanwhile, the <em>7-12 Orders</em> tier (${fmtInt(b7_12.CustomerCount)} wholesale store buyers) drives ${fmtDollar(b7_12.TotalRevenue)}, whereas the <em>13+ Orders</em> tier consists of high-frequency B2C accessory shoppers.` : '';
-        items.push(`<strong>Repeat-purchase &amp; tier dynamics:</strong> ${onePct}% of active buyers (${fmtInt(oneTime.CustomerCount)}) placed only 1 order; automated post-purchase replenishment offers can lift second-order conversion.${coreNote}`);
-    }
-    if (rawTopCustomers.length) {
-        const segCustomers = custSegment === 'all'
-            ? rawTopCustomers
-            : rawTopCustomers.filter(c => (c.CustomerType || '').includes(custSegment));
-        if (segCustomers[0]) {
-            const segLabel = custSegment === 'all' ? 'All segments' : custSegment;
-            items.push(`<strong>Key account concentration (${segLabel}):</strong> ${segCustomers[0].CustomerName} (${segCustomers[0].CustomerType}) leads with ${fmtDollar(segCustomers[0].TotalSpent)} across ${fmtInt(segCustomers[0].Orders)} orders.`);
-        }
-    }
-    el.innerHTML = items.map(t => `<li>${t}</li>`).join('');
-}
-
 window.onCurrencyChange = () => {
     updateCustKPIs();
     renderCustSplitChart();
-    renderFreqChart();
+    renderDemographicsChart();
     renderCustGeoChart();
     renderCustTrendChart();
-    renderCustFindings();
     renderCustTable();
 };
 
